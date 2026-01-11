@@ -335,7 +335,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                       href="mailto:contact@leetgrading.com" 
                       className="text-blue-600 hover:text-blue-700 font-medium break-all"
                     >
-                      contact@leetgrading.com
+                      all_leet@naver.com
                     </a>
                   </div>
                 </div>
