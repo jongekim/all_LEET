@@ -1,0 +1,374 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { YearSelector } from '../components/YearSelector';
+import { AnswerSheet } from '../components/AnswerSheet';
+import { getQuestionCount, gradeAnswers } from '../utils/grading';
+import { calculateDday, getDdayText } from '../utils/dday';
+import { Subject, Year, User, GradingResult, ExamType } from '../App';
+import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+
+interface HomePageProps {
+  user: User;
+  onLogout: () => void;
+  onAddToHistory: (result: GradingResult) => void;
+}
+
+export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const [selectedYear, setSelectedYear] = useState<Year>('2026');
+  const [examType, setExamType] = useState<ExamType>('odd');
+  const [verbalAnswers, setVerbalAnswers] = useState<Record<number, number>>({});
+  const [reasoningAnswers, setReasoningAnswers] = useState<Record<number, number>>({});
+  const [showContactModal, setShowContactModal] = useState(false);
+
+  const verbalQuestionCount = getQuestionCount(selectedYear, 'verbal');
+  const reasoningQuestionCount = getQuestionCount(selectedYear, 'reasoning');
+  
+  const { dday, examDate } = calculateDday();
+  const ddayText = getDdayText();
+
+  const handleYearChange = (year: Year) => {
+    setSelectedYear(year);
+    setVerbalAnswers({});
+    setReasoningAnswers({});
+  };
+
+  const handleExamTypeChange = (type: ExamType) => {
+    setExamType(type);
+    setVerbalAnswers({});
+    setReasoningAnswers({});
+  };
+
+  const handleVerbalAnswerChange = (questionNumber: number, answer: number) => {
+    setVerbalAnswers(prev => ({
+      ...prev,
+      [questionNumber]: answer
+    }));
+  };
+
+  const handleReasoningAnswerChange = (questionNumber: number, answer: number) => {
+    setReasoningAnswers(prev => ({
+      ...prev,
+      [questionNumber]: answer
+    }));
+  };
+
+  const handleGrade = () => {
+    const results: GradingResult[] = [];
+    
+    // 언어이해 답안이 있으면 채점
+    const hasVerbalAnswers = Object.keys(verbalAnswers).length > 0;
+    if (hasVerbalAnswers) {
+      const verbalResult = gradeAnswers(selectedYear, 'verbal', verbalAnswers, verbalQuestionCount, examType);
+      results.push(verbalResult);
+      onAddToHistory(verbalResult);
+    }
+
+    // 추리논증 답안이 있으면 채점
+    const hasReasoningAnswers = Object.keys(reasoningAnswers).length > 0;
+    if (hasReasoningAnswers) {
+      const reasoningResult = gradeAnswers(selectedYear, 'reasoning', reasoningAnswers, reasoningQuestionCount, examType);
+      results.push(reasoningResult);
+      onAddToHistory(reasoningResult);
+    }
+
+    if (results.length === 0) {
+      alert('최소 한 과목의 답안을 입력해주세요.');
+      return;
+    }
+
+    // 결과 페이지로 이동
+    navigate('/result', { state: { results } });
+  };
+
+  const handleReset = () => {
+    if (window.confirm('모든 답안을 초기화하시겠습니까?')) {
+      setVerbalAnswers({});
+      setReasoningAnswers({});
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">all LEET</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <Calendar className="w-4 h-4 text-red-600" />
+                <p className="text-sm font-semibold text-red-600">
+                  {examDate} (예상)시험일 {ddayText}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row items-center gap-3">
+              {currentUser ? (
+                <>
+                  <span className="text-xs sm:text-sm text-gray-600 text-center sm:text-left w-full sm:w-auto">
+                    {currentUser?.user_metadata?.name ? `${currentUser.user_metadata.name}님 오늘도 화이팅!` : user.email}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => navigate('/history')}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    >
+                      <History className="w-4 h-4" />
+                      <span className="hidden sm:inline">히스토리</span>
+                    </button>
+                    <button
+                      onClick={onLogout}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="hidden sm:inline">로그아웃</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>로그인</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* 로그인 안내 배너 - 비로그인 시에만 표시 */}
+        {!currentUser && (
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white">
+            <div className="flex items-start gap-4">
+              <div className="bg-white/20 backdrop-blur rounded-full p-3 mt-1">
+                <LogIn className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold mb-2">로그인 없이 채점 가능합니다</h3>
+                <p className="text-sm text-blue-100 mb-3">
+                  로그인하시면 <strong>채점 기록 저장</strong>, <strong>성적 변화 분석</strong>, <strong>로스쿨 지원 가능성 분석</strong> 기능을 이용하실 수 있습니다.
+                </p>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+                >
+                  로그인하기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 로스쿨 지원 가능성 분석 배너 - 항상 표시 */}
+        <div 
+          onClick={() => {
+            if (currentUser) {
+              navigate('/admission');
+            } else {
+              navigate('/signup');
+            }
+          }}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:shadow-xl transition-shadow relative"
+        >
+          {!currentUser && (
+            <div className="absolute top-3 right-3 bg-yellow-400 text-purple-900 text-xs font-bold px-3 py-1 rounded-full">
+              회원가입 필요
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 backdrop-blur rounded-full p-3">
+                <GraduationCap className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1">로스쿨 지원 가능성 분석</h3>
+                <p className="text-sm text-purple-100">
+                  LEET 점수, GPA, 토익으로 25개 로스쿨의 합격 가능성을 확인하요
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:block text-white/80">
+              →
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
+            <div className="flex-1">
+              <YearSelector selectedYear={selectedYear} onYearChange={handleYearChange} />
+            </div>
+            
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                시험 유형
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleExamTypeChange('odd')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                    examType === 'odd'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  홀수형
+                </button>
+                <button
+                  onClick={() => handleExamTypeChange('even')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                    examType === 'even'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  짝수형
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-900">
+            💡 <strong>두 과목을 동시에 채점할 수 있습니다.</strong> 각 과목의 답안을 입력한 후 "채점하기" 버튼을 누르세요. 한 과목만 입력해도 채점 가능합니다.
+          </p>
+        </div>
+
+        {/* 언어이해 */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-blue-600 px-4 sm:px-6 py-3 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-white" />
+            <h2 className="text-lg font-bold text-white">언어이해</h2>
+            <span className="text-sm text-blue-100">({verbalQuestionCount}문항)</span>
+          </div>
+          <div className="p-4 sm:p-6">
+            <AnswerSheet
+              questionCount={verbalQuestionCount}
+              userAnswers={verbalAnswers}
+              onAnswerChange={handleVerbalAnswerChange}
+              result={null}
+            />
+          </div>
+        </div>
+
+        {/* 추리논증 */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-purple-600 px-4 sm:px-6 py-3 flex items-center gap-2">
+            <Brain className="w-5 h-5 text-white" />
+            <h2 className="text-lg font-bold text-white">추리논증</h2>
+            <span className="text-sm text-purple-100">({reasoningQuestionCount}문항)</span>
+          </div>
+          <div className="p-4 sm:p-6">
+            <AnswerSheet
+              questionCount={reasoningQuestionCount}
+              userAnswers={reasoningAnswers}
+              onAnswerChange={handleReasoningAnswerChange}
+              result={null}
+            />
+          </div>
+        </div>
+
+        {/* 채점 버튼 */}
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleGrade}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+            >
+              채점하기
+            </button>
+            <button
+              onClick={handleReset}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
+            >
+              전체 초기화
+            </button>
+          </div>
+        </div>
+      </main>
+
+      {/* 문의하기 버튼 (우하단 고정, 설치 버튼보다 위) */}
+      <button
+        onClick={() => setShowContactModal(true)}
+        className="fixed bottom-20 right-4 sm:bottom-20 sm:right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all z-50"
+        aria-label="문의하기"
+      >
+        <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+      </button>
+
+      {/* 문의하기 모달 */}
+      {showContactModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowContactModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">문의하기</h3>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-blue-600 rounded-full p-2">
+                    <Mail className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">이메일 문의</p>
+                    <a 
+                      href="mailto:contact@leetgrading.com" 
+                      className="text-blue-600 hover:text-blue-700 font-medium break-all"
+                    >
+                      contact@leetgrading.com
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">📝 안내사항</h4>
+                <ul className="text-sm text-gray-700 space-y-2">
+                  <li>• 서비스 이용 중 문제가 발생하면 언제든지 문의해주세요</li>
+                  <li>• 정답 또는 성적 데이터 관련 문의는 학년도와 과목을 명시해주세요</li>
+                  <li>• 기능 개선 제안이나 버그 리포트도 환영합니다</li>
+                  <li>• 의견 주신 기능은 빠른 시일 내에 제공 할 수 있도록 노력하겠습니다!</li>
+                </ul>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>⚠️ 긴급 문의:</strong> 정답 또는 성적 데이터 관련 문제 발생 시 이메일에 [긴급]을 제목에 포함해주세요
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
