@@ -12,6 +12,7 @@ import { AdmissionPage } from './pages/AdmissionPage';
 import { AdmissionResultPage } from './pages/AdmissionResultPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { projectId, publicAnonKey } from './utils/supabase/info';
+import { Analytics } from "@vercel/analytics/react"
 
 // --- 타입 정의 ---
 export type Subject = 'verbal' | 'reasoning';
@@ -253,6 +254,7 @@ export default function App() {
         <AppContent />
         {/* PWA 설치 버튼은 앱 전체에 띄웁니다 */}
         <PWAInstallButton />
+        <Analytics />
       </AuthProvider>
     </Router>
   );
