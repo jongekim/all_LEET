@@ -211,7 +211,7 @@ export function TrendChart({ history, sortBy }: TrendChartProps) {
           표준점수 추이 (합산) {hasPre2020 && useAdjustedScore && <span className="text-sm text-yellow-600">- 보정값 기준</span>}
         </h3>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={sortedChartData}>
+          <LineChart data={sortBy === 'date' ? [...sortedChartData].reverse() : sortedChartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="name" 
@@ -237,7 +237,7 @@ export function TrendChart({ history, sortBy }: TrendChartProps) {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">백분위 추이 (평균)</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={sortedChartData}>
+          <LineChart data={sortBy === 'date' ? [...sortedChartData].reverse() : sortedChartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="name" 
