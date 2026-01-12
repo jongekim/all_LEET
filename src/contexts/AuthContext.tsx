@@ -4,7 +4,7 @@ import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 interface AuthContextType {
   currentUser: User | null;
-  signup: (email: string, password: string, name: string, birthDate: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, birthDate: string, university: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function signup(email: string, password: string, name: string, birthDate: string) {
+  async function signup(email: string, password: string, name: string, birthDate: string, university: string) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -42,6 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         data: {
           name: name,
           birth_date: birthDate,
+          university: university,
         }
       }
     });

@@ -12,6 +12,8 @@ export function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [universityPreset, setUniversityPreset] = useState('');
+  const [universityCustom, setUniversityCustom] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -30,6 +32,24 @@ export function SignupPage() {
     'custom'
   ];
 
+  const universityOptions = [
+    '서울대학교',
+    '연세대학교',
+    '고려대학교',
+    '성균관대학교',
+    '한양대학교',
+    '중앙대학교',
+    '경희대학교',
+    '서강대학교',
+    '이화여자대학교',
+    '부산대학교',
+    '경북대학교',
+    '전남대학교',
+    '전북대학교',
+    '충남대학교',
+    '기타'
+  ];
+
   const getFullEmail = () => {
     if (emailDomain === 'custom') {
       return `${emailId}@${customDomain}`;
@@ -37,10 +57,18 @@ export function SignupPage() {
     return `${emailId}${emailDomain}`;
   };
 
+  const getUniversityValue = () => {
+    if (universityPreset === '기타') {
+      return universityCustom.trim();
+    }
+    return universityPreset;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const fullEmail = getFullEmail();
+    const university = getUniversityValue();
 
     if (!emailId.trim()) {
       return setError('이메일 아이디를 입력해주세요.');
@@ -66,10 +94,18 @@ export function SignupPage() {
       return setError('생년월일을 입력해주세요.');
     }
 
+    if (!universityPreset) {
+      return setError('대학교를 선택해주세요.');
+    }
+
+    if (universityPreset === '기타' && !university) {
+      return setError('대학교명을 입력해주세요.');
+    }
+
     try {
       setError('');
       setLoading(true);
-      await signup(fullEmail, password, name, birthDate);
+      await signup(fullEmail, password, name, birthDate, university);
       setSuccess(true);
     } catch (err: any) {
       console.error(err);
@@ -266,6 +302,43 @@ export function SignupPage() {
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                대학교
+              </label>
+              <select
+                value={universityPreset}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setUniversityPreset(next);
+                  if (next !== '기타') {
+                    setUniversityCustom('');
+                  }
+                }}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                required
+              >
+                <option value="" disabled>
+                  선택해주세요
+                </option>
+                {universityOptions.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+              {universityPreset === '기타' && (
+                <input
+                  type="text"
+                  value={universityCustom}
+                  onChange={(e) => setUniversityCustom(e.target.value)}
+                  className="w-full mt-2 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="대학교명을 입력해주세요"
+                  required
+                />
+              )}
             </div>
 
             <button
