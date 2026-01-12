@@ -105,4 +105,32 @@ app.delete("/make-server-cd835c22/history/:userId", async (c) => {
   }
 });
 
+// Delete specific record from history
+app.delete("/make-server-cd835c22/history/:userId/:timestamp", async (c) => {
+  try {
+    const userId = c.req.param("userId");
+    const timestamp = parseInt(c.req.param("timestamp"));
+    const key = `history:${userId}`;
+    
+    // Get current history
+    const history = await kv.get(key) || [];
+    
+    // Filter out the record with matching timestamp
+    const updatedHistory = history.filter((record: any) => record.timestamp !== timestamp);
+    
+    // Save updated history
+    await kv.set(key, updatedHistory);
+    
+    return c.json({ 
+      success: true 
+    });
+  } catch (error) {
+    console.error("Failed to delete record:", error);
+    return c.json({ 
+      success: false, 
+      error: "Failed to delete record" 
+    }, 500);
+  }
+});
+
 Deno.serve(app.fetch);

@@ -204,16 +204,14 @@ function AppContent() {
         });
 
         if (!response.ok) {
-          // 서버 삭제 실패 시 로컬에서만 삭제
-          console.warn('Server delete failed, deleting locally only');
+          throw new Error('Failed to delete record from server');
         }
 
-        // 로컬 상태 업데이트 (항상 수행)
+        // 서버 삭제 성공 시 로컬 상태 업데이트
         setHistory(prev => prev.filter(record => record.timestamp !== timestamp));
       } catch (error) {
-        console.error('Failed to delete record from server:', error);
-        // 서버 오류 시에도 로컬에서 삭제
-        setHistory(prev => prev.filter(record => record.timestamp !== timestamp));
+        console.error('Failed to delete record:', error);
+        alert('채점 기록 삭제에 실패했습니다. 다시 시도해주세요.');
       }
     }
   };
