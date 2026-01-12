@@ -140,7 +140,7 @@ export function ResetPasswordPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
               <BookOpen className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">all LEET</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">리트 채점은 all LEET</h1>
             <p className="text-gray-600">
               새로운 비밀번호를 입력하세요
             </p>

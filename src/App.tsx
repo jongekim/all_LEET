@@ -105,7 +105,7 @@ function AppContent() {
     }
 
     // 6. 페이지 타이틀 설정
-    document.title = 'all_LEET';
+    document.title = '리트 채점은 all LEET';
   }, []);
 
   // ----------------------------------------------------------------

@@ -110,7 +110,7 @@ export function LoginPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
               <BookOpen className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">all LEET</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">리트 채점은 all LEET</h1>
             <div className="flex items-center justify-center gap-2">
               <Calendar className="w-4 h-4 text-red-600" />
               <p className="text-sm font-semibold text-red-600">

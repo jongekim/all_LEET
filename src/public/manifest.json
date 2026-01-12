@@ -1,6 +1,6 @@
 {
-  "name": "all_LEET",
-  "short_name": "all_LEET",
+  "name": "리트 채점은 all LEET",
+  "short_name": "리트 채점은 all LEET",
   "description": "LEET 시험 채점 및 로스쿨 지원 가능성 분석 서비스",
   "start_url": "/",
   "display": "standalone",
@@ -13,6 +13,6 @@
       "sizes": "192x192 512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
+    }
   ]
 }
