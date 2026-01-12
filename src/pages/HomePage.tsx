@@ -55,15 +55,14 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     }));
   };
 
-  const handleGrade = () => {
+  const handleGrade = async () => {
     const results: GradingResult[] = [];
-    
     // 언어이해 답안이 있으면 채점
     const hasVerbalAnswers = Object.keys(verbalAnswers).length > 0;
     if (hasVerbalAnswers) {
       const verbalResult = gradeAnswers(selectedYear, 'verbal', verbalAnswers, verbalQuestionCount, examType);
       results.push(verbalResult);
-      onAddToHistory(verbalResult);
+      await onAddToHistory(verbalResult);
     }
 
     // 추리논증 답안이 있으면 채점
@@ -71,7 +70,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     if (hasReasoningAnswers) {
       const reasoningResult = gradeAnswers(selectedYear, 'reasoning', reasoningAnswers, reasoningQuestionCount, examType);
       results.push(reasoningResult);
-      onAddToHistory(reasoningResult);
+      await onAddToHistory(reasoningResult);
     }
 
     if (results.length === 0) {
