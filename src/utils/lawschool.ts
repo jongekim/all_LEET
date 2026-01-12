@@ -280,10 +280,10 @@ export const lawSchools: LawSchool[] = [
     name: '동아대학교',
     region: '지방',
     standardScore: { leet: 124, gpa: 92 },
-    minimumScore: { leet: 120, gpa: 88 },
+    minimumScore: { leet: 120, gpa: 90 },
     conversionFactor: { 
       leetPerPoint: 0.5, 
-      gpaPerPoint: 1.5, 
+      gpaPerPoint: 1.0, 
     },
   },
   {

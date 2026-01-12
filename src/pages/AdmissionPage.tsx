@@ -7,13 +7,42 @@ export function AdmissionPage() {
   const navigate = useNavigate();
   const [leet, setLeet] = useState<string>('');
   const [gpa, setGpa] = useState<string>('');
+  const [leetError, setLeetError] = useState<string>('');
+  const [gpaError, setGpaError] = useState<string>('');
+
+  const handleIntegerInputChange = (
+    nextValue: string,
+    setValue: (v: string) => void,
+    setError: (v: string) => void
+  ) => {
+    if (nextValue === '') {
+      setValue('');
+      setError('');
+      return;
+    }
+
+    // Only allow integer digits. If user tries decimal or other numeric formats, show guidance.
+    if (/^\d+$/.test(nextValue)) {
+      setValue(nextValue);
+      setError('');
+      return;
+    }
+
+    // If it's not digits (e.g. "120.5"), do not accept it.
+    setError('정수만 입력 가능합니다.');
+  };
 
   const handleAnalyze = () => {
-    const leetNum = parseFloat(leet);
-    const gpaNum = parseFloat(gpa);
+    const leetNum = Number.parseInt(leet, 10);
+    const gpaNum = Number.parseInt(gpa, 10);
 
     if (!leet || !gpa) {
       alert('모든 점수를 입력해주세요.');
+      return;
+    }
+
+    if (!Number.isInteger(leetNum) || !Number.isInteger(gpaNum)) {
+      alert('점수는 정수만 입력해주세요.');
       return;
     }
 
@@ -80,22 +109,25 @@ export function AdmissionPage() {
             </label>
             <div className="relative">
               <input
-                type="number"
+                type="text"
                 value={leet}
-                onChange={(e) => setLeet(e.target.value)}
+                onChange={(e) => handleIntegerInputChange(e.target.value, setLeet, setLeetError)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="예: 120"
-                min="0"
-                max="200"
-                step="0.1"
+                inputMode="numeric"
+                pattern="[0-9]*"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
                 / 200
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              언어이해와 추리논증 표준점수의 합계를 입력하세요.
-            </p>
+            {leetError ? (
+              <p className="text-xs text-red-600 mt-1">{leetError}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">
+                언어이해와 추리논증 표준점수의 합계를 입력하세요.
+              </p>
+            )}
           </div>
 
           {/* GPA */}
@@ -105,22 +137,23 @@ export function AdmissionPage() {
             </label>
             <div className="relative">
               <input
-                type="number"
+                type="text"
                 value={gpa}
-                onChange={(e) => setGpa(e.target.value)}
+                onChange={(e) => handleIntegerInputChange(e.target.value, setGpa, setGpaError)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="예: 95"
-                min="0"
-                max="100"
-                step="0.1"
+                inputMode="numeric"
+                pattern="[0-9]*"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
                 / 100
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              100점 만점 기준으로 입력하세요.
-            </p>
+            {gpaError ? (
+              <p className="text-xs text-red-600 mt-1">{gpaError}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">100점 만점 기준으로 입력하세요.</p>
+            )}
           </div>
 
           {/* 분석 버튼 */}
