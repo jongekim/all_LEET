@@ -234,23 +234,23 @@ export const SCORE_DATA: ScoreDatabase = {
     18: { standardScore: 43.6, percentile: 25.7 },
     17: { standardScore: 41.4, percentile: 19.3 },
     // 이하 데이터 없음 (추세 기반 추정)
-    16: { standardScore: 39.15, percentile: 14.0 }, // 추정
+    16: { standardScore: 39.1, percentile: 14.0 }, // 추정
     15: { standardScore: 36.9, percentile: 10.0 },  // 추정
-    14: { standardScore: 34.65, percentile: 7.0 },  // 추정
+    14: { standardScore: 34.6, percentile: 7.0 },  // 추정
     13: { standardScore: 32.4, percentile: 4.5 },   // 추정
-    12: { standardScore: 30.15, percentile: 2.5 },  // 추정
+    12: { standardScore: 30.1, percentile: 2.5 },  // 추정
     11: { standardScore: 27.9, percentile: 1.0 },   // 추정
-    10: { standardScore: 25.65, percentile: 0.5 },  // 추정
+    10: { standardScore: 25.6, percentile: 0.5 },  // 추정
     9: { standardScore: 23.4, percentile: 0.1 },    // 추정
-    8: { standardScore: 21.15, percentile: 0.0 },
+    8: { standardScore: 21.1, percentile: 0.0 },
     7: { standardScore: 18.9, percentile: 0.0 },
-    6: { standardScore: 16.65, percentile: 0.0 },
+    6: { standardScore: 16.6, percentile: 0.0 },
     5: { standardScore: 14.4, percentile: 0.0 },
-    4: { standardScore: 12.15, percentile: 0.0 },
+    4: { standardScore: 12.1, percentile: 0.0 },
     3: { standardScore: 9.9, percentile: 0.0 },
-    2: { standardScore: 7.65, percentile: 0.0 },
+    2: { standardScore: 7.6, percentile: 0.0 },
     1: { standardScore: 5.4, percentile: 0.0 },
-    0: { standardScore: 3.15, percentile: 0.0 },
+    0: { standardScore: 3.1, percentile: 0.0 },
     },
     reasoning: {
       // [추리논증] 35문항 만점 / 평균 20.93
@@ -275,23 +275,23 @@ export const SCORE_DATA: ScoreDatabase = {
     18: { standardScore: 43.7, percentile: 26.5 },
     17: { standardScore: 41.6, percentile: 20.0 }, // 백분위 표기 없음 (18점과 간격 고려 추정)
     // 이하 데이터 없음 (추세 기반 추정)
-    16: { standardScore: 39.45, percentile: 15.0 }, // 추정
+    16: { standardScore: 39.4, percentile: 15.0 }, // 추정
     15: { standardScore: 37.3, percentile: 11.0 },  // 추정
-    14: { standardScore: 35.15, percentile: 7.5 },  // 추정
+    14: { standardScore: 35.1, percentile: 7.5 },  // 추정
     13: { standardScore: 33.0, percentile: 5.0 },   // 추정
-    12: { standardScore: 30.85, percentile: 3.0 },  // 추정
+    12: { standardScore: 30.8, percentile: 3.0 },  // 추정
     11: { standardScore: 28.7, percentile: 1.5 },   // 추정
-    10: { standardScore: 26.55, percentile: 0.8 },  // 추정
+    10: { standardScore: 26.5, percentile: 0.8 },  // 추정
     9: { standardScore: 24.4, percentile: 0.2 },    // 추정
-    8: { standardScore: 22.25, percentile: 0.0 },
+    8: { standardScore: 22.2, percentile: 0.0 },
     7: { standardScore: 20.1, percentile: 0.0 },
-    6: { standardScore: 17.95, percentile: 0.0 },
+    6: { standardScore: 17.9, percentile: 0.0 },
     5: { standardScore: 15.8, percentile: 0.0 },
-    4: { standardScore: 13.65, percentile: 0.0 },
+    4: { standardScore: 13.6, percentile: 0.0 },
     3: { standardScore: 11.5, percentile: 0.0 },
-    2: { standardScore: 9.35, percentile: 0.0 },
+    2: { standardScore: 9.3, percentile: 0.0 },
     1: { standardScore: 7.2, percentile: 0.0 },
-    0: { standardScore: 5.05, percentile: 0.0 },
+    0: { standardScore: 5.0, percentile: 0.0 },
     },
   },
   
@@ -405,21 +405,21 @@ export const SCORE_DATA: ScoreDatabase = {
     17: { standardScore: 42.2, percentile: 22.4 }, // 중간값 보간 추정
     16: { standardScore: 39.8, percentile: 15.9 },
     // 이하 추정 구간 (Slope: 약 -2.35)
-    15: { standardScore: 37.45, percentile: 11.0 }, // 추정
+    15: { standardScore: 37.4, percentile: 11.0 }, // 추정
     14: { standardScore: 35.1, percentile: 7.5 },   // 추정
-    13: { standardScore: 32.75, percentile: 5.0 },  // 추정
+    13: { standardScore: 32.7, percentile: 5.0 },  // 추정
     12: { standardScore: 30.4, percentile: 3.5 },   // 추정
-    11: { standardScore: 28.05, percentile: 2.0 },  // 추정
+    11: { standardScore: 28.0, percentile: 2.0 },  // 추정
     10: { standardScore: 25.7, percentile: 1.0 },   // 추정
-    9: { standardScore: 23.35, percentile: 0.5 },
+    9: { standardScore: 23.3, percentile: 0.5 },
     8: { standardScore: 21.0, percentile: 0.1 },
-    7: { standardScore: 18.65, percentile: 0.0 },
+    7: { standardScore: 18.6, percentile: 0.0 },
     6: { standardScore: 16.3, percentile: 0.0 },
-    5: { standardScore: 13.95, percentile: 0.0 },
+    5: { standardScore: 13.9, percentile: 0.0 },
     4: { standardScore: 11.6, percentile: 0.0 },
-    3: { standardScore: 9.25, percentile: 0.0 },
+    3: { standardScore: 9.2, percentile: 0.0 },
     2: { standardScore: 6.9, percentile: 0.0 },
-    1: { standardScore: 4.55, percentile: 0.0 },
+    1: { standardScore: 4.5, percentile: 0.0 },
     0: { standardScore: 2.2, percentile: 0.0 },
     },
     reasoning: {
@@ -446,21 +446,21 @@ export const SCORE_DATA: ScoreDatabase = {
     17: { standardScore: 43.0, percentile: 23.4 },
     16: { standardScore: 41.6, percentile: 16.0 }, // 백분위 공란 추정
     // 이하 추정 구간 (Slope: 약 -2.45)
-    15: { standardScore: 39.15, percentile: 11.0 }, // 추정
+    15: { standardScore: 39.1, percentile: 11.0 }, // 추정
     14: { standardScore: 36.7, percentile: 8.0 },    // 추정
-    13: { standardScore: 34.25, percentile: 5.5 },   // 추정
+    13: { standardScore: 34.2, percentile: 5.5 },   // 추정
     12: { standardScore: 31.8, percentile: 3.5 },    // 추정
-    11: { standardScore: 29.35, percentile: 2.0 },   // 추정
+    11: { standardScore: 29.3, percentile: 2.0 },   // 추정
     10: { standardScore: 26.9, percentile: 1.0 },    // 추정
-    9: { standardScore: 24.45, percentile: 0.5 },
+    9: { standardScore: 24.4, percentile: 0.5 },
     8: { standardScore: 22.0, percentile: 0.1 },
-    7: { standardScore: 19.55, percentile: 0.0 },
+    7: { standardScore: 19.5, percentile: 0.0 },
     6: { standardScore: 17.1, percentile: 0.0 },
-    5: { standardScore: 14.65, percentile: 0.0 },
+    5: { standardScore: 14.6, percentile: 0.0 },
     4: { standardScore: 12.2, percentile: 0.0 },
-    3: { standardScore: 9.75, percentile: 0.0 },
+    3: { standardScore: 9.7, percentile: 0.0 },
     2: { standardScore: 7.3, percentile: 0.0 },
-    1: { standardScore: 4.85, percentile: 0.0 },
+    1: { standardScore: 4.8, percentile: 0.0 },
     0: { standardScore: 2.4, percentile: 0.0 },
     },
   },
@@ -617,21 +617,21 @@ export const SCORE_DATA: ScoreDatabase = {
     16: { standardScore: 36.8, percentile: 10.1 },
     15: { standardScore: 34.8, percentile: 5.3 },
     // 이하 추정 구간 (Slope: 약 -2.05)
-    14: { standardScore: 32.75, percentile: 3.5 }, // 추정
+    14: { standardScore: 32.7, percentile: 3.5 }, // 추정
     13: { standardScore: 30.7, percentile: 2.0 },  // 추정
-    12: { standardScore: 28.65, percentile: 1.0 }, // 추정
+    12: { standardScore: 28.6, percentile: 1.0 }, // 추정
     11: { standardScore: 26.6, percentile: 0.5 },  // 추정
-    10: { standardScore: 24.55, percentile: 0.2 }, // 추정
+    10: { standardScore: 24.5, percentile: 0.2 }, // 추정
     9: { standardScore: 22.5, percentile: 0.1 },   // 추정
-    8: { standardScore: 20.45, percentile: 0.0 },
+    8: { standardScore: 20.4, percentile: 0.0 },
     7: { standardScore: 18.4, percentile: 0.0 },
-    6: { standardScore: 16.35, percentile: 0.0 },
+    6: { standardScore: 16.3, percentile: 0.0 },
     5: { standardScore: 14.3, percentile: 0.0 },
-    4: { standardScore: 12.25, percentile: 0.0 },
+    4: { standardScore: 12.2, percentile: 0.0 },
     3: { standardScore: 10.2, percentile: 0.0 },
-    2: { standardScore: 8.15, percentile: 0.0 },
+    2: { standardScore: 8.1, percentile: 0.0 },
     1: { standardScore: 6.1, percentile: 0.0 },
-    0: { standardScore: 4.05, percentile: 0.0 },
+    0: { standardScore: 4.0, percentile: 0.0 },
     },
   },
   
@@ -702,21 +702,21 @@ export const SCORE_DATA: ScoreDatabase = {
     16: { standardScore: 38.5, percentile: 13.0 },
     15: { standardScore: 36.4, percentile: 9.2 },
     // 이하 추정 구간 (Slope: 약 -2.15)
-    14: { standardScore: 34.25, percentile: 6.5 }, // 추정
+    14: { standardScore: 34.2, percentile: 6.5 }, // 추정
     13: { standardScore: 32.1, percentile: 4.5 },  // 추정
-    12: { standardScore: 29.95, percentile: 3.0 }, // 추정
+    12: { standardScore: 29.9, percentile: 3.0 }, // 추정
     11: { standardScore: 27.8, percentile: 2.0 },  // 추정
-    10: { standardScore: 25.65, percentile: 1.2 }, // 추정
+    10: { standardScore: 25.6, percentile: 1.2 }, // 추정
     9: { standardScore: 23.5, percentile: 0.8 },   // 추정
-    8: { standardScore: 21.35, percentile: 0.4 },
+    8: { standardScore: 21.3, percentile: 0.4 },
     7: { standardScore: 19.2, percentile: 0.1 },
-    6: { standardScore: 17.05, percentile: 0.0 },
+    6: { standardScore: 17.0, percentile: 0.0 },
     5: { standardScore: 14.9, percentile: 0.0 },
-    4: { standardScore: 12.75, percentile: 0.0 },
+    4: { standardScore: 12.7, percentile: 0.0 },
     3: { standardScore: 10.6, percentile: 0.0 },
-    2: { standardScore: 8.45, percentile: 0.0 },
+    2: { standardScore: 8.4, percentile: 0.0 },
     1: { standardScore: 6.3, percentile: 0.0 },
-    0: { standardScore: 4.15, percentile: 0.0 },
+    0: { standardScore: 4.1, percentile: 0.0 },
     },
   },
   
@@ -746,21 +746,21 @@ export const SCORE_DATA: ScoreDatabase = {
     16: { standardScore: 35.9, percentile: 9.1 },
     15: { standardScore: 34.0, percentile: 6.7 },
     // 이하 추정 구간 (Slope: -1.95)
-    14: { standardScore: 32.05, percentile: 5.0 }, // 추정
+    14: { standardScore: 32.0, percentile: 5.0 }, // 추정
     13: { standardScore: 30.1, percentile: 4.0 },  // 추정
-    12: { standardScore: 28.15, percentile: 3.0 }, // 추정
+    12: { standardScore: 28.1, percentile: 3.0 }, // 추정
     11: { standardScore: 26.2, percentile: 2.0 },  // 추정
-    10: { standardScore: 24.25, percentile: 1.5 }, // 추정
+    10: { standardScore: 24.2, percentile: 1.5 }, // 추정
     9: { standardScore: 22.3, percentile: 1.0 },   // 추정
-    8: { standardScore: 20.35, percentile: 0.5 },
+    8: { standardScore: 20.3, percentile: 0.5 },
     7: { standardScore: 18.4, percentile: 0.2 },
-    6: { standardScore: 16.45, percentile: 0.0 },
+    6: { standardScore: 16.4, percentile: 0.0 },
     5: { standardScore: 14.5, percentile: 0.0 },
-    4: { standardScore: 12.55, percentile: 0.0 },
+    4: { standardScore: 12.5, percentile: 0.0 },
     3: { standardScore: 10.6, percentile: 0.0 },
-    2: { standardScore: 8.65, percentile: 0.0 },
+    2: { standardScore: 8.6, percentile: 0.0 },
     1: { standardScore: 6.7, percentile: 0.0 },
-    0: { standardScore: 4.75, percentile: 0.0 },
+    0: { standardScore: 4.7, percentile: 0.0 },
     },
     reasoning: {
       // [추리논증] 35문항 만점 / 평균 19.07
@@ -787,20 +787,20 @@ export const SCORE_DATA: ScoreDatabase = {
     16: { standardScore: 43.3, percentile: 25.3 },
     15: { standardScore: 41.1, percentile: 19.4 },
     // 이하 추정 구간 (Slope: 약 -2.18)
-    14: { standardScore: 38.92, percentile: 14.5 }, // 추정
-    13: { standardScore: 36.74, percentile: 10.5 }, // 추정
-    12: { standardScore: 34.56, percentile: 7.5 },  // 추정
-    11: { standardScore: 32.38, percentile: 5.0 },  // 추정
+    14: { standardScore: 38.9, percentile: 14.5 }, // 추정
+    13: { standardScore: 36.7, percentile: 10.5 }, // 추정
+    12: { standardScore: 34.5, percentile: 7.5 },  // 추정
+    11: { standardScore: 32.3, percentile: 5.0 },  // 추정
     10: { standardScore: 30.2, percentile: 3.0 },   // 추정
-    9: { standardScore: 28.02, percentile: 1.5 },   // 추정
-    8: { standardScore: 25.84, percentile: 0.8 },
-    7: { standardScore: 23.66, percentile: 0.4 },
-    6: { standardScore: 21.48, percentile: 0.1 },
+    9: { standardScore: 28.0, percentile: 1.5 },   // 추정
+    8: { standardScore: 25.8, percentile: 0.8 },
+    7: { standardScore: 23.6, percentile: 0.4 },
+    6: { standardScore: 21.4, percentile: 0.1 },
     5: { standardScore: 19.3, percentile: 0.0 },
-    4: { standardScore: 17.12, percentile: 0.0 },
-    3: { standardScore: 14.94, percentile: 0.0 },
-    2: { standardScore: 12.76, percentile: 0.0 },
-    1: { standardScore: 10.58, percentile: 0.0 },
+    4: { standardScore: 17.1, percentile: 0.0 },
+    3: { standardScore: 14.9, percentile: 0.0 },
+    2: { standardScore: 12.7, percentile: 0.0 },
+    1: { standardScore: 10.5, percentile: 0.0 },
     0: { standardScore: 8.4, percentile: 0.0 },
     },
   },
