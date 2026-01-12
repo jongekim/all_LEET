@@ -1159,6 +1159,7 @@ export const ANSWER_DATA: AnswerDatabase = {
   },
 };
 
+
 // 정답 데이터 가져오기 함수
 export function getCorrectAnswers(
   year: Year,
