@@ -191,25 +191,31 @@ function AppContent() {
     }
   };
 
-  const handleDeleteRecord = async (timestamp: number) => {
+  const handleDeleteRecord = async (timestamps: number[]) => {
     if (!currentUser) return;
+
+    const uniqueTimestamps = Array.from(new Set(timestamps));
+    if (uniqueTimestamps.length === 0) return;
     
     if (window.confirm('이 채점 기록을 삭제하시겠습니까?')) {
       try {
-        // 서버에서 삭제 (timestamp로 식별)
-        const response = await fetch(`${API_BASE_URL}/history/${currentUser.id}/${timestamp}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`
-          }
-        });
+        // 서버에서 삭제 (timestamp로 식별) - 그룹 내 모든 timestamp를 삭제
+        for (const timestamp of uniqueTimestamps) {
+          const response = await fetch(`${API_BASE_URL}/history/${currentUser.id}/${timestamp}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${publicAnonKey}`
+            }
+          });
 
-        if (!response.ok) {
-          throw new Error('Failed to delete record from server');
+          if (!response.ok) {
+            throw new Error('Failed to delete record from server');
+          }
         }
 
+        const toDelete = new Set(uniqueTimestamps);
         // 서버 삭제 성공 시 로컬 상태 업데이트
-        setHistory(prev => prev.filter(record => record.timestamp !== timestamp));
+        setHistory(prev => prev.filter(record => !toDelete.has(record.timestamp)));
       } catch (error) {
         console.error('Failed to delete record:', error);
         alert('채점 기록 삭제에 실패했습니다. 다시 시도해주세요.');

@@ -7,7 +7,7 @@ import { useState } from 'react';
 interface HistoryPageProps {
   history: GradingResult[];
   onClearHistory: () => void;
-  onDeleteRecord: (timestamp: number) => void;
+  onDeleteRecord: (timestamps: number[]) => void;
 }
 
 export function HistoryPage({ history, onClearHistory, onDeleteRecord }: HistoryPageProps) {
@@ -259,7 +259,10 @@ export function HistoryPage({ history, onClearHistory, onDeleteRecord }: History
                       )}
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => onDeleteRecord(firstRecord.timestamp)}
+                          onClick={() => {
+                            const uniqueTimestamps = Array.from(new Set(group.map(r => r.timestamp)));
+                            onDeleteRecord(uniqueTimestamps);
+                          }}
                           className="text-sm text-red-600 hover:text-red-700 font-semibold whitespace-nowrap flex items-center gap-1"
                         >
                           <Trash2 className="w-4 h-4" />
