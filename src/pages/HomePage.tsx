@@ -11,7 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 interface HomePageProps {
   user: User;
   onLogout: () => void;
-  onAddToHistory: (result: GradingResult) => void;
+  onAddToHistory: (result: GradingResult) => Promise<void>;
 }
 
 export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
@@ -21,6 +21,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   const [examType, setExamType] = useState<ExamType>('odd');
   const [verbalAnswers, setVerbalAnswers] = useState<Record<number, number>>({});
   const [reasoningAnswers, setReasoningAnswers] = useState<Record<number, number>>({});
+  const [isGrading, setIsGrading] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
 
   const verbalQuestionCount = getQuestionCount(selectedYear, 'verbal');
@@ -56,26 +57,42 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   };
 
   const handleGrade = async () => {
+    if (isGrading) return;
+
     const results: GradingResult[] = [];
+    const groupTimestamp = Date.now();
     // 언어이해 답안이 있으면 채점
     const hasVerbalAnswers = Object.keys(verbalAnswers).length > 0;
     if (hasVerbalAnswers) {
-      const verbalResult = gradeAnswers(selectedYear, 'verbal', verbalAnswers, verbalQuestionCount, examType);
+      const verbalResult: GradingResult = {
+        ...gradeAnswers(selectedYear, 'verbal', verbalAnswers, verbalQuestionCount, examType),
+        groupTimestamp,
+      };
       results.push(verbalResult);
-      await onAddToHistory(verbalResult);
     }
 
     // 추리논증 답안이 있으면 채점
     const hasReasoningAnswers = Object.keys(reasoningAnswers).length > 0;
     if (hasReasoningAnswers) {
-      const reasoningResult = gradeAnswers(selectedYear, 'reasoning', reasoningAnswers, reasoningQuestionCount, examType);
+      const reasoningResult: GradingResult = {
+        ...gradeAnswers(selectedYear, 'reasoning', reasoningAnswers, reasoningQuestionCount, examType),
+        groupTimestamp,
+      };
       results.push(reasoningResult);
-      await onAddToHistory(reasoningResult);
     }
 
     if (results.length === 0) {
       alert('최소 한 과목의 답안을 입력해주세요.');
       return;
+    }
+
+    setIsGrading(true);
+    try {
+      for (const result of results) {
+        await onAddToHistory(result);
+      }
+    } finally {
+      setIsGrading(false);
     }
 
     // 결과 페이지로 이동
@@ -279,7 +296,10 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleGrade}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              disabled={isGrading}
+              className={`flex-1 bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors ${
+                isGrading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-blue-700'
+              }`}
             >
               채점하기
             </button>

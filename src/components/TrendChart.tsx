@@ -36,66 +36,52 @@ export function TrendChart({ history, sortBy }: TrendChartProps) {
     yearData[item.subject] = item;
   });
 
-  const chartData = Array.from(yearMap.entries()).map(([year, subjects]) => {
+  const chartData = Array.from(yearMap.entries()).flatMap(([year, subjects]) => {
     const hasVerbal = !!subjects.verbal;
     const hasReasoning = !!subjects.reasoning;
     const hasBoth = hasVerbal && hasReasoning;
 
-    let standardScore = 0;
-    let percentile = 0;
-    let correctRate = 0;
+    // 두 과목 모두 채점된 연도만 추이 그래프에 표시
+    if (!hasBoth) return [];
 
-    if (hasBoth) {
-      // 보정값 사용 여부에 따라 점수 선택
-      const verbalScore = useAdjustedScore && subjects.verbal!.adjustedScore 
-        ? subjects.verbal!.adjustedScore 
-        : subjects.verbal!.standardScore;
-      const reasoningScore = useAdjustedScore && subjects.reasoning!.adjustedScore
-        ? subjects.reasoning!.adjustedScore
-        : subjects.reasoning!.standardScore;
-      
-      // 표준점수는 합산
-      standardScore = verbalScore + reasoningScore;
-      // 백분위는 평균
-      percentile = Math.round((subjects.verbal!.percentile + subjects.reasoning!.percentile) / 2);
-      // 정답률은 평균
-      const verbalRate = (subjects.verbal!.correct / subjects.verbal!.total) * 100;
-      const reasoningRate = (subjects.reasoning!.correct / subjects.reasoning!.total) * 100;
-      correctRate = Math.round((verbalRate + reasoningRate) / 2);
-    } else if (hasVerbal) {
-      standardScore = useAdjustedScore && subjects.verbal!.adjustedScore
-        ? subjects.verbal!.adjustedScore
-        : subjects.verbal!.standardScore;
-      percentile = subjects.verbal!.percentile;
-      correctRate = Math.round((subjects.verbal!.correct / subjects.verbal!.total) * 100);
-    } else if (hasReasoning) {
-      standardScore = useAdjustedScore && subjects.reasoning!.adjustedScore
-        ? subjects.reasoning!.adjustedScore
-        : subjects.reasoning!.standardScore;
-      percentile = subjects.reasoning!.percentile;
-      correctRate = Math.round((subjects.reasoning!.correct / subjects.reasoning!.total) * 100);
-    }
+    // 보정값 사용 여부에 따라 점수 선택
+    const verbalScore = useAdjustedScore && subjects.verbal!.adjustedScore 
+      ? subjects.verbal!.adjustedScore 
+      : subjects.verbal!.standardScore;
+    const reasoningScore = useAdjustedScore && subjects.reasoning!.adjustedScore
+      ? subjects.reasoning!.adjustedScore
+      : subjects.reasoning!.standardScore;
 
-    return {
+    // 표준점수는 합산
+    const standardScore = verbalScore + reasoningScore;
+    // 백분위는 평균
+    const percentile = Math.round((subjects.verbal!.percentile + subjects.reasoning!.percentile) / 2);
+    // 정답률은 평균
+    const verbalRate = (subjects.verbal!.correct / subjects.verbal!.total) * 100;
+    const reasoningRate = (subjects.reasoning!.correct / subjects.reasoning!.total) * 100;
+    const correctRate = Math.round((verbalRate + reasoningRate) / 2);
+
+    return [{
       name: year,
       표준점수: standardScore,
       백분위: percentile,
       정답률: correctRate,
-      과목수: (hasVerbal ? 1 : 0) + (hasReasoning ? 1 : 0),
-    };
+      과목수: 2,
+    }];
   });
 
   // 데이터의 최소/최대값 계산
+  const hasChartData = chartData.length > 0;
   const standardScores = chartData.map(d => d.표준점수);
   const percentiles = chartData.map(d => d.백분위);
   const correctRates = chartData.map(d => d.정답률);
 
-  const minStandardScore = Math.min(...standardScores);
-  const maxStandardScore = Math.max(...standardScores);
-  const minPercentile = Math.min(...percentiles);
-  const maxPercentile = Math.max(...percentiles);
-  const minCorrectRate = Math.min(...correctRates);
-  const maxCorrectRate = Math.max(...correctRates);
+  const minStandardScore = hasChartData ? Math.min(...standardScores) : 0;
+  const maxStandardScore = hasChartData ? Math.max(...standardScores) : 300;
+  const minPercentile = hasChartData ? Math.min(...percentiles) : 0;
+  const maxPercentile = hasChartData ? Math.max(...percentiles) : 100;
+  const minCorrectRate = hasChartData ? Math.min(...correctRates) : 0;
+  const maxCorrectRate = hasChartData ? Math.max(...correctRates) : 100;
 
   // Y축 범위를 데이터 중심으로 설정 (위아래 여유 공간 추가)
   const getYDomain = (min: number, max: number, totalRange: number) => {
@@ -106,9 +92,9 @@ export function TrendChart({ history, sortBy }: TrendChartProps) {
     return [Math.floor(newMin), Math.ceil(newMax)];
   };
 
-  const standardScoreDomain = getYDomain(minStandardScore, maxStandardScore, 300);
-  const percentileDomain = getYDomain(minPercentile, maxPercentile, 100);
-  const correctRateDomain = getYDomain(minCorrectRate, maxCorrectRate, 100);
+  const standardScoreDomain = hasChartData ? getYDomain(minStandardScore, maxStandardScore, 300) : [0, 300];
+  const percentileDomain = hasChartData ? getYDomain(minPercentile, maxPercentile, 100) : [0, 100];
+  const correctRateDomain = hasChartData ? getYDomain(minCorrectRate, maxCorrectRate, 100) : [0, 100];
 
   // 정렬 적용
   const sortedChartData = [...chartData].sort((a, b) => {
@@ -203,7 +189,7 @@ export function TrendChart({ history, sortBy }: TrendChartProps) {
         <p className="font-semibold mb-1">📊 점수 계산 방식</p>
         <p>• 표준점수: 언어이해 + 추리논증 <strong>합산</strong></p>
         <p>• 백분위: 언어이해와 추리논증의 <strong>평균</strong></p>
-        <p className="mt-2 text-xs text-blue-700">* 같은 연도에 두 과목을 모두 채점하면 종합 점수가 표시됩니다</p>
+        <p className="mt-2 text-xs text-blue-700">* 추이 그래프는 같은 연도에 두 과목을 모두 채점한 경우에만 표시됩니다</p>
       </div>
 
       <div>
@@ -263,7 +249,7 @@ export function TrendChart({ history, sortBy }: TrendChartProps) {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">정답률 추이 (평균)</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={sortedChartData}>
+          <LineChart data={sortBy === 'date' ? [...sortedChartData].reverse() : sortedChartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="name" 

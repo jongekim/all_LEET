@@ -32,6 +32,7 @@ export interface GradingResult {
   percentile: number;
   fieldAnalysis: { field: string; correct: number; total: number; questions: number[] }[];
   timestamp: number;
+  groupTimestamp?: number;
   userAnswers?: Record<number, number>;
   correctAnswers?: Record<number, number>;
   round: number;

@@ -14,6 +14,8 @@ export function HistoryPage({ history, onClearHistory, onDeleteRecord }: History
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<'date' | 'year'>('date'); // 기본값: 채점 순서
 
+  const getGroupTime = (record: GradingResult) => record.groupTimestamp ?? record.timestamp;
+
   // timestamp를 기준으로 기록 그룹화 (1초 이내는 같은 그룹으로 간주)
   const groupedHistory: GradingResult[][] = [];
   const processed = new Set<number>();
@@ -24,12 +26,12 @@ export function HistoryPage({ history, onClearHistory, onDeleteRecord }: History
     const group: GradingResult[] = [record];
     processed.add(index);
 
-    // 같은 timestamp를 가진 다른 기록 찾기 (1초 이내)
+    // 같은 groupTimestamp(없으면 timestamp) 기준으로 그룹화 (1초 이내는 같은 그룹으로 간주)
     history.forEach((otherRecord, otherIndex) => {
       if (
         otherIndex !== index &&
         !processed.has(otherIndex) &&
-        Math.abs(record.timestamp - otherRecord.timestamp) < 1000
+        Math.abs(getGroupTime(record) - getGroupTime(otherRecord)) < 1000
       ) {
         group.push(otherRecord);
         processed.add(otherIndex);
@@ -43,7 +45,7 @@ export function HistoryPage({ history, onClearHistory, onDeleteRecord }: History
   const sortedGroupedHistory = [...groupedHistory].sort((a, b) => {
     if (sortBy === 'date') {
       // 채점 순서 (최신순)
-      return b[0].timestamp - a[0].timestamp;
+      return getGroupTime(b[0]) - getGroupTime(a[0]);
     } else {
       // 연도순 (오래된 순)
       const yearA = a[0].year === '09예비' ? 2009 : parseInt(a[0].year);
@@ -154,8 +156,9 @@ export function HistoryPage({ history, onClearHistory, onDeleteRecord }: History
           <div className="space-y-3">
             {sortedGroupedHistory.map((group, groupIndex) => {
               const firstRecord = group[0];
-              const date = new Date(firstRecord.timestamp).toLocaleDateString('ko-KR');
-              const time = new Date(firstRecord.timestamp).toLocaleTimeString('ko-KR', { 
+              const groupTime = getGroupTime(firstRecord);
+              const date = new Date(groupTime).toLocaleDateString('ko-KR');
+              const time = new Date(groupTime).toLocaleTimeString('ko-KR', { 
                 hour: '2-digit', 
                 minute: '2-digit' 
               });

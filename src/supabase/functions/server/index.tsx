@@ -65,7 +65,8 @@ app.post("/make-server-cd835c22/history/:userId", async (c) => {
     const resultWithRound = {
       ...result,
       round: maxRound + 1,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      groupTimestamp: typeof result.groupTimestamp === 'number' ? result.groupTimestamp : result.timestamp
     };
     
     // Add new result
