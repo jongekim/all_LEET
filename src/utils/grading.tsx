@@ -1,5 +1,5 @@
 import { Subject, Year, GradingResult, ExamType } from '../App';
-import { getCorrectAnswers } from './answerData';
+import { getCorrectAnswers, getFieldMapping } from './answerData';
 import { getScoreConversion } from './scoreData';
 
 // 문제 수 결정
@@ -24,22 +24,62 @@ function generateCorrectAnswers(year: Year, subject: Subject, count: number, exa
   return getCorrectAnswers(year, subject, examType);
 }
 
-// 분야별 문제 범위 (모의 데이터)
-function getFieldRanges(subject: Subject, total: number) {
+// 분야별 문제 범위 (실제 데이터 사용, 없으면 모의 데이터)
+function getFieldRanges(year: Year, subject: Subject, total: number) {
+  const fieldMapping = getFieldMapping(year, subject);
+  
+  // fieldMapping이 있으면 실제 데이터 사용
+  if (Object.keys(fieldMapping).length > 0) {
+    const fieldNames: Record<string, string> = subject === 'verbal' ? {
+      '1': '규범',
+      '2': '인문',
+      '3': '사회',
+      '4': '과학기술',
+      '5': '문예',
+      '6': '국어',
+    } : {
+      '1': '법규범',
+      '2': '인문',
+      '3': '사회',
+      '4': '과학기술',
+      '5': '논리학수학',
+    };
+
+    const fieldGroups: Record<string, number[]> = {};
+    for (let i = 1; i <= total; i++) {
+      const fieldNum = fieldMapping[i];
+      if (fieldNum) {
+        const fieldName = fieldNames[fieldNum.toString()] || `분야 ${fieldNum}`;
+        if (!fieldGroups[fieldName]) {
+          fieldGroups[fieldName] = [];
+        }
+        fieldGroups[fieldName].push(i);
+      }
+    }
+
+    return Object.entries(fieldGroups).map(([field, questions]) => ({
+      field,
+      start: Math.min(...questions),
+      end: Math.max(...questions),
+      questions,
+    }));
+  }
+  
+  // fieldMapping이 없으면 모의 데이터 사용
   if (subject === 'verbal') {
     const perField = Math.floor(total / 3);
     return [
-      { field: '인문', start: 1, end: perField },
-      { field: '사회', start: perField + 1, end: perField * 2 },
-      { field: '과학/기술', start: perField * 2 + 1, end: total },
+      { field: '인문', start: 1, end: perField, questions: Array.from({length: perField}, (_, i) => i + 1) },
+      { field: '사회', start: perField + 1, end: perField * 2, questions: Array.from({length: perField}, (_, i) => i + perField + 1) },
+      { field: '과학/기술', start: perField * 2 + 1, end: total, questions: Array.from({length: total - perField * 2}, (_, i) => i + perField * 2 + 1) },
     ];
   } else {
     const perField = Math.floor(total / 4);
     return [
-      { field: '논리', start: 1, end: perField },
-      { field: '논증', start: perField + 1, end: perField * 2 },
-      { field: '법학', start: perField * 2 + 1, end: perField * 3 },
-      { field: '수리', start: perField * 3 + 1, end: total },
+      { field: '논리', start: 1, end: perField, questions: Array.from({length: perField}, (_, i) => i + 1) },
+      { field: '논증', start: perField + 1, end: perField * 2, questions: Array.from({length: perField}, (_, i) => i + perField + 1) },
+      { field: '법학', start: perField * 2 + 1, end: perField * 3, questions: Array.from({length: perField}, (_, i) => i + perField * 2 + 1) },
+      { field: '수리', start: perField * 3 + 1, end: total, questions: Array.from({length: total - perField * 3}, (_, i) => i + perField * 3 + 1) },
     ];
   }
 }
@@ -53,7 +93,7 @@ export function gradeAnswers(
   examType: ExamType
 ): GradingResult {
   const correctAnswers = generateCorrectAnswers(year, subject, total, examType);
-  const fieldRanges = getFieldRanges(subject, total);
+  const fieldRanges = getFieldRanges(year, subject, total);
   
   // 전체 정답 개수 계산
   let correct = 0;
@@ -66,15 +106,16 @@ export function gradeAnswers(
   // 분야별 정답 개수 계산
   const fieldAnalysis = fieldRanges.map(range => {
     let fieldCorrect = 0;
-    for (let i = range.start; i <= range.end; i++) {
-      if (userAnswers[i] === correctAnswers[i]) {
+    for (const question of range.questions) {
+      if (userAnswers[question] === correctAnswers[question]) {
         fieldCorrect++;
       }
     }
     return {
       field: range.field,
       correct: fieldCorrect,
-      total: range.end - range.start + 1,
+      total: range.questions.length,
+      questions: range.questions,
     };
   });
   

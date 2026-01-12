@@ -72,6 +72,9 @@ export function ResultPanel({ result }: ResultPanelProps) {
                   ></div>
                 </div>
                 <div className="text-right text-sm text-gray-600 mt-1">{fieldRate}%</div>
+                <div className="text-xs text-gray-500 mt-2">
+                  문제: {field.questions ? field.questions.join(', ') : '정보 없음'}
+                </div>
               </div>
             );
           })}

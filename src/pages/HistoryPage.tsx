@@ -7,9 +7,10 @@ import { useState } from 'react';
 interface HistoryPageProps {
   history: GradingResult[];
   onClearHistory: () => void;
+  onDeleteRecord: (timestamp: number) => void;
 }
 
-export function HistoryPage({ history, onClearHistory }: HistoryPageProps) {
+export function HistoryPage({ history, onClearHistory, onDeleteRecord }: HistoryPageProps) {
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<'date' | 'year'>('date'); // 기본값: 채점 순서
 
@@ -243,7 +244,7 @@ export function HistoryPage({ history, onClearHistory }: HistoryPageProps) {
                         <div className="flex items-center gap-4">
                           <div>
                             <span className="text-xs text-gray-500">합산 표준점수 </span>
-                            <span className="font-bold text-purple-700 text-base">{totalStandardScore}</span>
+                            <span className="font-bold text-purple-700 text-base">{totalStandardScore.toFixed(1)}</span>
                           </div>
                           <div>
                             <span className="text-xs text-gray-500">평균 백분위 </span>
@@ -253,12 +254,21 @@ export function HistoryPage({ history, onClearHistory }: HistoryPageProps) {
                       ) : (
                         <div></div>
                       )}
-                      <button
-                        onClick={() => navigate('/result', { state: isCombined ? { results: group } : { result: firstRecord } })}
-                        className="text-sm text-blue-600 hover:text-blue-700 font-semibold whitespace-nowrap"
-                      >
-                        자세히 보기
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => onDeleteRecord(firstRecord.timestamp)}
+                          className="text-sm text-red-600 hover:text-red-700 font-semibold whitespace-nowrap flex items-center gap-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          삭제
+                        </button>
+                        <button
+                          onClick={() => navigate('/result', { state: isCombined ? { results: group } : { result: firstRecord } })}
+                          className="text-sm text-blue-600 hover:text-blue-700 font-semibold whitespace-nowrap"
+                        >
+                          자세히 보기
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -30,7 +30,7 @@ export interface GradingResult {
   total: number;
   standardScore: number;
   percentile: number;
-  fieldAnalysis: { field: string; correct: number; total: number }[];
+  fieldAnalysis: { field: string; correct: number; total: number; questions: number[] }[];
   timestamp: number;
   userAnswers?: Record<number, number>;
   correctAnswers?: Record<number, number>;
@@ -190,6 +190,34 @@ function AppContent() {
     }
   };
 
+  const handleDeleteRecord = async (timestamp: number) => {
+    if (!currentUser) return;
+    
+    if (window.confirm('이 채점 기록을 삭제하시겠습니까?')) {
+      try {
+        // 서버에서 삭제 (timestamp로 식별)
+        const response = await fetch(`${API_BASE_URL}/history/${currentUser.id}/${timestamp}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`
+          }
+        });
+
+        if (!response.ok) {
+          // 서버 삭제 실패 시 로컬에서만 삭제
+          console.warn('Server delete failed, deleting locally only');
+        }
+
+        // 로컬 상태 업데이트 (항상 수행)
+        setHistory(prev => prev.filter(record => record.timestamp !== timestamp));
+      } catch (error) {
+        console.error('Failed to delete record from server:', error);
+        // 서버 오류 시에도 로컬에서 삭제
+        setHistory(prev => prev.filter(record => record.timestamp !== timestamp));
+      }
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     setHistory([]);
@@ -223,7 +251,7 @@ function AppContent() {
         path="/history"
         element={
           <PrivateRoute>
-            <HistoryPage history={history} onClearHistory={handleClearHistory} />
+            <HistoryPage history={history} onClearHistory={handleClearHistory} onDeleteRecord={handleDeleteRecord} />
           </PrivateRoute>
         }
       />
