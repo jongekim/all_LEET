@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { LawSchoolAnalysis, getSchoolsByChance } from '../utils/lawschool';
 import { ArrowLeft, TrendingUp, AlertCircle, XCircle, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { ToeicInfoNotice } from '../components/ToeicInfoDialog';
 
 export function AdmissionResultPage() {
   const location = useLocation();
@@ -132,6 +133,9 @@ export function AdmissionResultPage() {
             <div className="text-sm text-red-600 mt-1">불가</div>
           </div>
         </div>
+
+        {/* 토익 정보 배너 (다운로드 안내 스타일) */}
+        <ToeicInfoNotice />
 
         {/* 적정권 */}
         {moderate.length > 0 && (
