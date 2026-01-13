@@ -112,7 +112,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">리트 채점은 all LEET</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">리트 채점은_all LEET</h1>
               <div className="flex items-center gap-2 mt-1">
                 <Calendar className="w-4 h-4 text-red-600" />
                 <p className="text-sm font-semibold text-red-600">
