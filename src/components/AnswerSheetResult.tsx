@@ -30,19 +30,22 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers }: Answer
     setRevealedQuestions(newRevealed);
   };
 
+  const getUserAnswer = (questionNum: number): number | undefined => {
+    const answer = userAnswers?.[questionNum];
+    if (answer === undefined || answer === null) return undefined;
+    if (answer === 0) return undefined;
+    return answer;
+  };
+
   const isCorrect = (questionNum: number): boolean | null => {
-    if (!correctAnswers || !userAnswers || !userAnswers[questionNum]) return null;
-    return userAnswers[questionNum] === correctAnswers[questionNum];
+    if (!correctAnswers || !correctAnswers[questionNum]) return null;
+    const userAnswer = getUserAnswer(questionNum);
+    if (userAnswer === undefined) return false;
+    return userAnswer === correctAnswers[questionNum];
   };
 
   const getCellClassName = (questionNum: number): string => {
     const baseClass = "text-center p-3 rounded-lg border-2 font-semibold transition-all";
-    const userAnswer = userAnswers?.[questionNum];
-    
-    if (!userAnswer) {
-      return `${baseClass} bg-gray-50 border-gray-200 text-gray-400`;
-    }
-
     const correct = isCorrect(questionNum);
     if (correct === true) {
       return `${baseClass} bg-green-50 border-green-500 text-green-900`;
@@ -75,7 +78,7 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers }: Answer
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 bg-red-50 border-2 border-red-500 rounded"></div>
-            <span className="text-gray-600">틀림 (클릭하여 정답 보기)</span>
+            <span className="text-gray-600">틀림/미제출 (클릭하여 정답 보기)</span>
           </div>
         </div>
       </div>
@@ -84,7 +87,7 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers }: Answer
         {Array.from({ length: total }, (_, i) => i + 1).map((questionNum) => {
           const correct = isCorrect(questionNum);
           const isRevealed = revealedQuestions.has(questionNum);
-          const userAnswer = userAnswers?.[questionNum];
+          const userAnswer = getUserAnswer(questionNum);
           
           return (
             <div
@@ -119,7 +122,7 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers }: Answer
       </div>
       
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
-        💡 틀린 답(빨간색)을 클릭하면 정답을 확인할 수 있습니다.
+        💡 틀린 답/미제출(빨간색)을 클릭하면 정답을 확인할 수 있습니다.
       </div>
     </div>
   );
