@@ -63,6 +63,20 @@ export function SignupPage() {
     return universityPreset;
   };
 
+  // 단계별 입력 노출
+  const isEmailIdReady = emailId.trim().length > 0;
+  const isEmailDomainReady = emailDomain !== 'custom' || customDomain.trim().length > 0;
+  const canShowPassword = isEmailIdReady && isEmailDomainReady;
+  const canShowConfirmPassword = canShowPassword && password.length > 0;
+  const isPasswordConfirmed =
+    password.length > 0 && confirmPassword.length > 0 && password === confirmPassword;
+  const canShowName = canShowConfirmPassword && isPasswordConfirmed;
+  const canShowBirthDate = canShowName && name.trim().length > 0;
+  const canShowUniversity = canShowBirthDate && Boolean(birthDate);
+  const isUniversityReady =
+    universityPreset.length > 0 && (universityPreset !== '기타' || universityCustom.trim().length > 0);
+  const canShowSubmit = canShowUniversity && isUniversityReady;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -179,13 +193,20 @@ export function SignupPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
               <BookOpen className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">회원가입</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">간편가입</h1>
             <div className="flex items-center justify-center gap-2">
               <Calendar className="w-4 h-4 text-red-600" />
               <p className="text-sm font-semibold text-red-600">
                 {examDate} 시험일 {ddayText}
               </p>
             </div>
+            <p className="mt-3 text-base font-semibold text-gray-900 leading-snug">
+              5초 간단 가입 후
+              <br />
+              간단 채점, 성적 분석, 지원가능 로스쿨 정보로
+              <br />
+              리트 대박!
+            </p>
           </div>
 
           {error && (
@@ -235,118 +256,130 @@ export function SignupPage() {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                비밀번호
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                비밀번호 확인
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="••••••••"
-                required
-              />
-              {confirmPassword && (
-                <div className="mt-2">
-                  {password === confirmPassword ? (
-                    <p className="text-sm text-green-600 flex items-center gap-1">
-                      <span className="text-green-600">✓</span> 비밀번호가 일치합니다
-                    </p>
-                  ) : (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
-                      <span className="text-red-600">✗</span> 비밀번호가 일치하지 않습니다
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                이름
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="홍길동"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                생년월일
-              </label>
-              <input
-                type="date"
-                value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                대학교
-              </label>
-              <select
-                value={universityPreset}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setUniversityPreset(next);
-                  if (next !== '기타') {
-                    setUniversityCustom('');
-                  }
-                }}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                required
-              >
-                <option value="" disabled>
-                  선택해주세요
-                </option>
-                {universityOptions.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-              {universityPreset === '기타' && (
+            {canShowPassword && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  비밀번호
+                </label>
                 <input
-                  type="text"
-                  value={universityCustom}
-                  onChange={(e) => setUniversityCustom(e.target.value)}
-                  className="w-full mt-2 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  placeholder="대학교명을 입력해주세요"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="••••••••"
                   required
                 />
-              )}
-            </div>
+              </div>
+            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              {loading ? '회원가입 중...' : '회원가입'}
-            </button>
+            {canShowConfirmPassword && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  비밀번호 확인
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="••••••••"
+                  required
+                />
+                {confirmPassword && (
+                  <div className="mt-2">
+                    {password === confirmPassword ? (
+                      <p className="text-sm text-green-600 flex items-center gap-1">
+                        <span className="text-green-600">✓</span> 비밀번호가 일치합니다
+                      </p>
+                    ) : (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        <span className="text-red-600">✗</span> 비밀번호가 일치하지 않습니다
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {canShowName && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  이름
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="홍길동"
+                  required
+                />
+              </div>
+            )}
+
+            {canShowBirthDate && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  생년월일
+                </label>
+                <input
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  required
+                />
+              </div>
+            )}
+
+            {canShowUniversity && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  대학교
+                </label>
+                <select
+                  value={universityPreset}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setUniversityPreset(next);
+                    if (next !== '기타') {
+                      setUniversityCustom('');
+                    }
+                  }}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  required
+                >
+                  <option value="" disabled>
+                    선택해주세요
+                  </option>
+                  {universityOptions.map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
+                {universityPreset === '기타' && (
+                  <input
+                    type="text"
+                    value={universityCustom}
+                    onChange={(e) => setUniversityCustom(e.target.value)}
+                    className="w-full mt-2 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    placeholder="대학교명을 입력해주세요"
+                    required
+                  />
+                )}
+              </div>
+            )}
+
+            {canShowSubmit && (
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                {loading ? '회원가입 중...' : '회원가입'}
+              </button>
+            )}
           </form>
 
           <div className="mt-6 text-center">
