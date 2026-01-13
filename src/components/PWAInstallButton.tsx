@@ -130,7 +130,7 @@ export function PWAInstallButton() {
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 z-40"
       >
         <Download className="w-5 h-5" />
-        <span className="text-xs sm:text-sm">앱으로 설치</span>
+        <span className="text-xs sm:text-sm">앱 설치</span>
       </button>
 
       {showIOSGuide && (
