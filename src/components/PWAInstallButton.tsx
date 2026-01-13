@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Share, X, Tablet, Smartphone } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -33,6 +33,49 @@ export function PWAInstallButton() {
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deviceType, setDeviceType] = useState<'iPad' | 'iPhone' | 'Android' | 'Desktop'>('Desktop');
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  // 앱 설치 버튼이 다른 버튼/컨텐츠를 가리는 것을 방지하기 위해,
+  // 버튼이 화면에서 차지하는 하단 영역(버튼 상단~뷰포트 하단)을 CSS 변수로 노출합니다.
+  // 전역 스크롤 컨테이너(body)에 padding-bottom으로 적용되어 추가 스크롤이 가능해집니다.
+  useEffect(() => {
+    const CSS_VAR_NAME = '--pwa-install-bottom-padding';
+
+    if (isInstalled || !showButton) {
+      document.documentElement.style.setProperty(CSS_VAR_NAME, '0px');
+      return;
+    }
+
+    const updatePadding = () => {
+      const button = buttonRef.current;
+      if (!button) return;
+
+      const rect = button.getBoundingClientRect();
+      const bottomInset = Math.max(0, Math.ceil(window.innerHeight - rect.top));
+      document.documentElement.style.setProperty(CSS_VAR_NAME, `${bottomInset}px`);
+    };
+
+    updatePadding();
+
+    window.addEventListener('resize', updatePadding);
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener('resize', updatePadding);
+    visualViewport?.addEventListener('scroll', updatePadding);
+
+    let resizeObserver: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => updatePadding());
+      if (buttonRef.current) resizeObserver.observe(buttonRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', updatePadding);
+      visualViewport?.removeEventListener('resize', updatePadding);
+      visualViewport?.removeEventListener('scroll', updatePadding);
+      resizeObserver?.disconnect();
+      document.documentElement.style.setProperty(CSS_VAR_NAME, '0px');
+    };
+  }, [isInstalled, showButton]);
 
   useEffect(() => {
     const device = getDeviceType();
@@ -126,6 +169,7 @@ export function PWAInstallButton() {
   return (
     <>
       <button
+        ref={buttonRef}
         onClick={handleInstallClick}
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 z-40"
       >

@@ -1798,6 +1798,19 @@ html {
   font-size: var(--font-size);
 }
 
+:root {
+  --pwa-install-bottom-padding: 0px;
+}
+
+/*
+  PWA 설치 버튼이 fixed로 떠 있을 때, 버튼 높이만큼 추가 스크롤이 가능해야 합니다.
+  이 여백을 body에 주면 페이지 컨테이너 배경(bg-gray-50/gradient 등)과 달라 보일 수 있어
+  대부분의 페이지 루트 래퍼로 쓰이는 .min-h-screen에 padding을 적용합니다.
+*/
+.min-h-screen {
+  padding-bottom: var(--pwa-install-bottom-padding);
+}
+
 @keyframes slide-up {
   from {
     opacity: 0;
