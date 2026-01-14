@@ -4,6 +4,7 @@
 
   // Enable Deno language features only for Supabase Edge Functions.
   "deno.enablePaths": [
-    "supabase/functions"
+    "supabase/functions",
+    "src/supabase/functions"
   ]
 }
