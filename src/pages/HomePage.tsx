@@ -205,7 +205,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
               <div>
                 <h3 className="text-xl font-bold mb-1">로스쿨 지원 가능성 분석</h3>
                 <p className="text-sm text-purple-100">
-                  LEET 점수, GPA, 토익으로 25개 로스쿨의 합격 가능성을 확인하요
+                  LEET 점수, GPA, 토익으로 25개 로스쿨의 합격 가능성을 확인해요
                 </p>
               </div>
             </div>
@@ -217,17 +217,22 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
 
         {/* 사설 모의고사 성적 입력 배너 - 로그인 시에만 표시 */}
         {currentUser && (
+          // TODO: 기능 오픈 시 활성화 가능
+          // - 아래 div에 onClick={() => navigate('/mock-input')} 다시 추가
+          // - className에 cursor-pointer / hover:shadow-xl / transition-shadow 다시 추가
           <div
-            onClick={() => navigate('/mock-input')}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:shadow-xl transition-shadow"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white relative"
           >
+            <div className="absolute top-3 right-3 bg-yellow-400 text-blue-900 text-xs font-bold px-3 py-1 rounded-full">
+              오픈 예정
+            </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-white/20 backdrop-blur rounded-full p-3">
                   <BookOpen className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-1">사설 모의고사 성적 입력</h3>
+                  <h3 className="text-xl font-bold mb-1">사설 모의고사 성적 분석 시스템</h3>
                   <p className="text-sm text-blue-100">
                     시험일자/기관/점수를 저장하고 추이를 확인하세요
                   </p>
