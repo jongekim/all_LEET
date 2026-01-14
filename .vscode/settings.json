@@ -1,0 +1,9 @@
+{
+  // Keep Deno from taking over the whole workspace (Vite/React uses Node tooling).
+  "deno.enable": false,
+
+  // Enable Deno language features only for Supabase Edge Functions.
+  "deno.enablePaths": [
+    "supabase/functions"
+  ]
+}
