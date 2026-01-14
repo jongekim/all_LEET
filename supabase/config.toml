@@ -1,0 +1,4 @@
+# Minimal Supabase CLI config for Edge Functions deploy.
+# Project ref is not a secret (it appears in client URLs).
+
+project_id = "jkxxtyaanyhmjbdtybkp"
