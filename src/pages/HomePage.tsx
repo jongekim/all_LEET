@@ -215,6 +215,31 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
           </div>
         </div>
 
+        {/* 사설 모의고사 성적 입력 배너 - 로그인 시에만 표시 */}
+        {currentUser && (
+          <div
+            onClick={() => navigate('/mock-input')}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 backdrop-blur rounded-full p-3">
+                  <BookOpen className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-1">사설 모의고사 성적 입력</h3>
+                  <p className="text-sm text-blue-100">
+                    시험일자/기관/점수를 저장하고 추이를 확인하세요
+                  </p>
+                </div>
+              </div>
+              <div className="hidden sm:block text-white/80">
+                →
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
             <div className="flex-1">

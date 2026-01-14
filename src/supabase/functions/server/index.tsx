@@ -134,4 +134,107 @@ app.delete("/make-server-cd835c22/history/:userId/:timestamp", async (c) => {
   }
 });
 
+// -----------------------------------------------------------------------------
+// Mock exam history (separate storage)
+// -----------------------------------------------------------------------------
+
+// Get user's mock exam history
+app.get("/make-server-cd835c22/mock-history/:userId", async (c) => {
+  try {
+    const userId = c.req.param("userId");
+    const key = `mock_history:${userId}`;
+    const history = await kv.get(key);
+
+    return c.json({
+      success: true,
+      data: history || [],
+    });
+  } catch (error) {
+    console.error("Failed to fetch mock history:", error);
+    return c.json({
+      success: false,
+      error: "Failed to fetch mock history",
+    }, 500);
+  }
+});
+
+// Add mock exam record
+app.post("/make-server-cd835c22/mock-history/:userId", async (c) => {
+  try {
+    const userId = c.req.param("userId");
+    const key = `mock_history:${userId}`;
+    const input = await c.req.json();
+
+    const history = await kv.get(key) || [];
+
+    const generatedId = typeof input?.id === 'string'
+      ? input.id
+      : (globalThis.crypto?.randomUUID
+        ? globalThis.crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+
+    const record = {
+      ...input,
+      id: generatedId,
+      createdAt: Date.now(),
+    };
+
+    const updatedHistory = [...history, record];
+    await kv.set(key, updatedHistory);
+
+    return c.json({
+      success: true,
+      data: record,
+    });
+  } catch (error) {
+    console.error("Failed to add mock history:", error);
+    return c.json({
+      success: false,
+      error: "Failed to add mock history",
+    }, 500);
+  }
+});
+
+// Clear user's mock history
+app.delete("/make-server-cd835c22/mock-history/:userId", async (c) => {
+  try {
+    const userId = c.req.param("userId");
+    const key = `mock_history:${userId}`;
+    await kv.set(key, []);
+
+    return c.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("Failed to clear mock history:", error);
+    return c.json({
+      success: false,
+      error: "Failed to clear mock history",
+    }, 500);
+  }
+});
+
+// Delete specific mock record by id
+app.delete("/make-server-cd835c22/mock-history/:userId/:id", async (c) => {
+  try {
+    const userId = c.req.param("userId");
+    const id = c.req.param("id");
+    const key = `mock_history:${userId}`;
+
+    const history = await kv.get(key) || [];
+    const updatedHistory = history.filter((record: any) => record?.id !== id);
+    await kv.set(key, updatedHistory);
+
+    return c.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("Failed to delete mock history record:", error);
+    return c.json({
+      success: false,
+      error: "Failed to delete mock history record",
+    }, 500);
+  }
+});
+
 Deno.serve(app.fetch);
