@@ -24,12 +24,12 @@ const TOEIC_INFOS: ToeicInfo[] = [
   { schoolName: "고려대학교", minimumRequirement: "815", topTierScore: "P/F" },
 
   { schoolName: "동아대학교", minimumRequirement: "600", topTierScore: "P/F" },
-  { schoolName: "부산대학교", minimumRequirement: "800", topTierScore: "P/F" },
+  { schoolName: "부산대학교", minimumRequirement: "700", topTierScore: "P/F" },
   { schoolName: "서강대학교", minimumRequirement: "700", topTierScore: "P/F" },
   { schoolName: "서울대학교", minimumRequirement: "387 (TEPS)", topTierScore: "P/F" },
   { schoolName: "서울시립대학교", minimumRequirement: "제한 없음", topTierScore: "935" },
 
-  { schoolName: "성균관대학교", minimumRequirement: "800", topTierScore: "P/F" },
+  { schoolName: "성균관대학교", minimumRequirement: "830", topTierScore: "P/F" },
   { schoolName: "아주대학교", minimumRequirement: "제한 없음", topTierScore: "900" },
   { schoolName: "연세대학교", minimumRequirement: "850", topTierScore: "P/F" },
   { schoolName: "영남대학교", minimumRequirement: "600", topTierScore: "950" },
