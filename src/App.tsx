@@ -6,6 +6,7 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
+import { ChatPage } from './pages/ChatPage';
 import { ResultPage } from './pages/ResultPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { AdmissionPage } from './pages/AdmissionPage';
@@ -355,6 +356,8 @@ function AppContent() {
         path="/"
         element={<HomePage user={user} onLogout={handleLogout} onAddToHistory={handleAddToHistory} />}
       />
+
+      <Route path="/chat" element={<ChatPage />} />
       <Route
         path="/result"
         element={<ResultPage />}
