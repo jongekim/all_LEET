@@ -79,8 +79,8 @@ export function RecentChatBanner({ roomId = 'global', limit = 10 }: RecentChatBa
 
   // 새 메시지 유입이 없을 때 최근 10개를 순서대로 순환 표시
   useEffect(() => {
-    const intervalMs = 2500;
-    const idleMs = 8000;
+    const intervalMs = 2000;
+    const idleMs = 2000;
 
     const id = window.setInterval(() => {
       if (messages.length <= 1) return;

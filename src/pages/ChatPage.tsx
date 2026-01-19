@@ -15,6 +15,7 @@ export function ChatPage() {
   const { currentUser } = useAuth();
 
   const [profile, setProfile] = useState<ChatProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -23,8 +24,8 @@ export function ChatPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = useMemo(() => {
-    return Boolean(currentUser && profile && content.trim().length > 0 && !sending);
-  }, [currentUser, profile, content, sending]);
+    return Boolean(currentUser && content.trim().length > 0 && !sending && !profileLoading);
+  }, [currentUser, content, sending, profileLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,14 +56,18 @@ export function ChatPage() {
 
       // Ensure nickname/profile (only for logged in users)
       if (currentUser) {
+        setProfileLoading(true);
         try {
           const p = await ensureChatProfile(currentUser.id);
           if (!cancelled) setProfile(p);
         } catch (e) {
           console.error('Failed to ensure chat profile:', e);
+        } finally {
+          if (!cancelled) setProfileLoading(false);
         }
       } else {
         setProfile(null);
+        setProfileLoading(false);
       }
     };
 
@@ -98,17 +103,31 @@ export function ChatPage() {
       navigate('/login');
       return;
     }
-    if (!profile) return;
 
     const text = content.trim();
     if (!text) return;
+
+    let activeProfile = profile;
+    if (!activeProfile) {
+      setProfileLoading(true);
+      try {
+        activeProfile = await ensureChatProfile(currentUser.id);
+        setProfile(activeProfile);
+      } catch (e) {
+        console.error('Failed to ensure chat profile on send:', e);
+        alert('닉네임 생성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      } finally {
+        setProfileLoading(false);
+      }
+    }
 
     setSending(true);
     try {
       const { error } = await supabase.from('chat_messages').insert({
         room_id: ROOM_ID,
         user_id: currentUser.id,
-        nickname: profile.nickname,
+        nickname: activeProfile.nickname,
         content: text,
       });
 
@@ -141,7 +160,9 @@ export function ChatPage() {
                   전체 채팅
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  {profile ? `${profile.nickname}로 참여 중` : '메시지 보기는 가능, 작성은 로그인 필요'}
+                  {profile
+                    ? `${profile.nickname}로 참여 중`
+                    : (profileLoading ? '닉네임 생성 중…' : '메시지 보기는 가능, 작성은 로그인 필요')}
                 </p>
               </div>
             </div>
@@ -200,7 +221,7 @@ export function ChatPage() {
                   }}
                   placeholder="메시지를 입력하세요"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  disabled={sending}
+                  disabled={sending || profileLoading}
                 />
                 <button
                   onClick={() => void handleSend()}
@@ -210,7 +231,7 @@ export function ChatPage() {
                   }`}
                 >
                   <Send className="w-4 h-4" />
-                  전송
+                  {profileLoading ? '준비 중…' : '전송'}
                 </button>
               </div>
             )}
