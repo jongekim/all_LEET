@@ -178,21 +178,54 @@ export function ChatPage() {
             </p>
           </div>
 
-          <div className="h-[60vh] overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
+          <div className="h-[60vh] overflow-y-auto px-4 sm:px-6 py-4">
             {loading ? (
               <div className="text-sm text-gray-600">채팅 불러오는 중…</div>
             ) : messages.length === 0 ? (
               <div className="text-sm text-gray-600">아직 메시지가 없어요. 첫 메시지를 남겨보세요!</div>
             ) : (
-              messages.map((m) => (
-                <div key={m.id} className="flex flex-col">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-semibold text-gray-900">{m.nickname}</span>
-                    <span className="text-xs text-gray-500">{formatTimeAgoKorean(m.created_at)}</span>
+              messages.map((m, idx) => {
+                const isMine = Boolean(currentUser && m.user_id === currentUser.id);
+                const prev = idx > 0 ? messages[idx - 1] : null;
+                const next = idx < messages.length - 1 ? messages[idx + 1] : null;
+                const isFirstInStreak = !prev || prev.user_id !== m.user_id;
+                const isLastInStreak = !next || next.user_id !== m.user_id;
+                const marginTop = idx === 0 ? 0 : isFirstInStreak ? 12 : 4;
+
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                    style={{ marginTop }}
+                  >
+                    <div
+                      className="max-w-[85%]"
+                      style={{ maxWidth: '85%', display: 'inline-flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start' }}
+                    >
+                      {!isMine && isFirstInStreak && (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-semibold text-gray-900">{m.nickname}</span>
+                        </div>
+                      )}
+
+                      <div
+                        className={`${!isMine && isFirstInStreak ? 'mt-1' : ''} px-3 py-2 rounded-lg text-sm whitespace-pre-wrap break-words ${
+                          isMine ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'
+                        }`}
+                        style={{ display: 'inline-block' }}
+                      >
+                        {m.content}
+                      </div>
+
+                      {isLastInStreak && (
+                        <div className={`mt-1 flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                          <span className="text-xs text-gray-500">{formatTimeAgoKorean(m.created_at)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-800 whitespace-pre-wrap break-words">{m.content}</div>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={bottomRef} />
           </div>
