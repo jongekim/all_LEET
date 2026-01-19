@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { YearSelector } from '../components/YearSelector';
-import { RecentChatBanner } from '../components/RecentChatBanner';
+// NOTE: 채팅 기능 비활성화 중 (배포 시 아래 주석 제거)
+// import { RecentChatBanner } from '../components/RecentChatBanner';
 import { AnswerSheet } from '../components/AnswerSheet';
 import { getQuestionCount, gradeAnswers } from '../utils/grading';
 import { calculateDday, getDdayText } from '../utils/dday';
@@ -246,8 +247,9 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
           </div>
         )}
 
+        {/* 채팅 기능 비활성화 중 (배포 시 아래 주석 제거) */}
         {/* 실시간 채팅 배너 - 학년도 설정 바로 위 */}
-        <RecentChatBanner />
+        {/* <RecentChatBanner /> */}
 
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row gap-4 sm:items-end">

@@ -6,7 +6,8 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
-import { ChatPage } from './pages/ChatPage';
+// NOTE: 채팅 기능 비활성화 중 (배포 시 아래 주석 제거)
+// import { ChatPage } from './pages/ChatPage';
 import { ResultPage } from './pages/ResultPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { AdmissionPage } from './pages/AdmissionPage';
@@ -357,7 +358,9 @@ function AppContent() {
         element={<HomePage user={user} onLogout={handleLogout} onAddToHistory={handleAddToHistory} />}
       />
 
-      <Route path="/chat" element={<ChatPage />} />
+      {/* 채팅 기능 비활성화 중 (배포 시 아래 주석 제거) */}
+      {/* <Route path="/chat" element={<ChatPage />} /> */}
+      <Route path="/chat" element={<Navigate to="/" replace />} />
       <Route
         path="/result"
         element={<ResultPage />}

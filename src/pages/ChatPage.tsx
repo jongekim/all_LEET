@@ -135,7 +135,15 @@ export function ChatPage() {
       setContent('');
     } catch (e) {
       console.error('Failed to send message:', e);
-      alert('메시지 전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      const err = e as { code?: string; message?: string } | null;
+      const code = err?.code;
+      const message = err?.message || '';
+
+      if (code === 'P0001' || message.includes('rate_limited')) {
+        alert('너무 빠르게 메시지를 보냈어요. 1초에 최대 2개까지 보낼 수 있어요.');
+      } else {
+        alert('메시지 전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      }
     } finally {
       setSending(false);
     }
@@ -160,9 +168,16 @@ export function ChatPage() {
                   전체 채팅
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  {profile
-                    ? `${profile.nickname}로 참여 중`
-                    : (profileLoading ? '닉네임 생성 중…' : '메시지 보기는 가능, 작성은 로그인 필요')}
+                  {profile ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg font-semibold">
+                        {profile.nickname}
+                      </span>
+                      <span className="text-gray-700">로 참여 중</span>
+                    </span>
+                  ) : (
+                    (profileLoading ? '닉네임 생성 중…' : '메시지 보기는 가능, 작성은 로그인 필요')
+                  )}
                 </p>
               </div>
             </div>
@@ -178,7 +193,10 @@ export function ChatPage() {
             </p>
           </div>
 
-          <div className="h-[60vh] overflow-y-auto px-4 sm:px-6 py-4">
+          <div
+            className="px-4 sm:px-6 py-4"
+            style={{ height: 'clamp(360px, 60vh, 680px)', overflowY: 'auto', overscrollBehavior: 'contain' }}
+          >
             {loading ? (
               <div className="text-sm text-gray-600">채팅 불러오는 중…</div>
             ) : messages.length === 0 ? (
