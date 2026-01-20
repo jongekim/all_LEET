@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# 로그인/개인 기록 성격의 경로는 크롤링 비권장
+Disallow: /history
+Disallow: /admission
+Disallow: /admission-result
+Disallow: /mock-input
+Disallow: /mock-history
+Disallow: /result
+Disallow: /chat
+
+Sitemap: https://all-leet.vercel.app/sitemap.xml

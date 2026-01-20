@@ -184,7 +184,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="border rounded-lg p-4">
               <h2 className="text-lg font-bold text-gray-900 mb-4">언어이해</h2>
               <div className="space-y-3">

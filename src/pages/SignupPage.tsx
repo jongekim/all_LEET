@@ -377,10 +377,25 @@ export function SignupPage() {
                 disabled={loading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                {loading ? '회원가입 중...' : '회원가입'}
+                {loading ? '가입 처리 중...' : '개인정보 처리방침에 동의하고 가입하기'}
               </button>
             )}
           </form>
+
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-600">
+              회원가입을 진행하면 개인정보 처리방침에 동의한 것으로 간주됩니다.
+              <br />
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-600 hover:text-blue-700 font-semibold"
+              >
+                개인정보 처리방침 보기
+              </a>
+            </p>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">

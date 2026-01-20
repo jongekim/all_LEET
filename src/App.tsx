@@ -13,7 +13,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import { AdmissionPage } from './pages/AdmissionPage';
 import { AdmissionResultPage } from './pages/AdmissionResultPage';
 import { MockExamInputPage } from './pages/MockExamInputPage';
-import { MockHistoryPage } from './pages/MockHistoryPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { projectId, publicAnonKey } from './utils/supabase/info';
 import { Analytics } from "@vercel/analytics/react"
@@ -110,7 +110,28 @@ function AppContent() {
       document.head.appendChild(faviconLink);
     }
 
-    // 6. 페이지 타이틀 설정
+    // 6. 구조화데이터(WebSite) 설정
+    const ldJsonId = 'ldjson-website';
+    let ldJsonScript = document.getElementById(ldJsonId) as HTMLScriptElement | null;
+    if (!ldJsonScript) {
+      ldJsonScript = document.createElement('script');
+      ldJsonScript.id = ldJsonId;
+      ldJsonScript.type = 'application/ld+json';
+      document.head.appendChild(ldJsonScript);
+    }
+
+    const canonicalOrigin = 'https://all-leet.vercel.app';
+    ldJsonScript.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: '올리트',
+      alternateName: ['all LEET', 'ALL LEET', '올리트 (ALL LEET)'],
+      url: canonicalOrigin,
+      inLanguage: 'ko-KR',
+      sameAs: [canonicalOrigin + '/'],
+    });
+
+    // 7. 페이지 타이틀 설정
     document.title = '리트 채점은 all LEET';
   }, []);
 
@@ -351,6 +372,7 @@ function AppContent() {
       <Route path="/signup" element={currentUser ? <Navigate to="/" /> : <SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       
       {/* 메인 페이지 (로그인 상태에 따라 다르게 보일 수 있음) */}
       <Route
@@ -371,7 +393,14 @@ function AppContent() {
         path="/history"
         element={
           <PrivateRoute>
-            <HistoryPage history={history} onClearHistory={handleClearHistory} onDeleteRecord={handleDeleteRecord} />
+            <HistoryPage
+              history={history}
+              onClearHistory={handleClearHistory}
+              onDeleteRecord={handleDeleteRecord}
+              mockHistory={mockHistory}
+              onClearMockHistory={handleClearMockHistory}
+              onDeleteMockRecord={handleDeleteMockRecord}
+            />
           </PrivateRoute>
         }
       />
@@ -404,7 +433,7 @@ function AppContent() {
         path="/mock-history"
         element={
           <PrivateRoute>
-            <MockHistoryPage records={mockHistory} onClear={handleClearMockHistory} onDelete={handleDeleteMockRecord} />
+            <Navigate to="/history?tab=mock" replace />
           </PrivateRoute>
         }
       />

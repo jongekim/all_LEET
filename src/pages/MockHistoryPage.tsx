@@ -157,9 +157,11 @@ export function MockHistoryPage({ records, onClear, onDelete }: MockHistoryPageP
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-lg text-gray-900">{record.examDate}</span>
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                          <span className="font-bold text-lg text-gray-900">
                             {getMockExamDisplayTitle(record) || '사설 모의고사'}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
+                            {record.examDate}
                           </span>
                           {subjects.map(s => (
                             <span

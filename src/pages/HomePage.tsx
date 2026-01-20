@@ -217,17 +217,22 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
           </div>
         </div>
 
-        {/* 사설 모의고사 성적 입력 배너 - 로그인 시에만 표시 */}
-        {currentUser && (
-          // TODO: 기능 오픈 시 활성화 가능
-          // - 아래 div에 onClick={() => navigate('/mock-input')} 다시 추가
-          // - className에 cursor-pointer / hover:shadow-xl / transition-shadow 다시 추가
-          <div
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white relative"
-          >
+        {/* 사설 모의고사 성적(채점) 입력 배너 */}
+        <div
+          onClick={() => {
+            if (currentUser) {
+              navigate('/mock-input');
+            } else {
+              navigate('/signup');
+            }
+          }}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white relative cursor-pointer hover:shadow-xl transition-shadow"
+        >
+          {!currentUser && (
             <div className="absolute top-3 right-3 bg-yellow-400 text-blue-900 text-xs font-bold px-3 py-1 rounded-full">
-              오픈 예정
+              회원가입 필요
             </div>
+          )}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-white/20 backdrop-blur rounded-full p-3">
@@ -244,8 +249,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 →
               </div>
             </div>
-          </div>
-        )}
+        </div>
 
         {/* 채팅 기능 비활성화 중 (배포 시 아래 주석 제거) */}
         {/* 실시간 채팅 배너 - 학년도 설정 바로 위 */}
@@ -349,6 +353,15 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
         </div>
       </main>
 
+      <footer className="max-w-4xl mx-auto px-4 pb-24 sm:pb-28 text-center">
+        <button
+          onClick={() => navigate('/privacy-policy')}
+          className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+        >
+          개인정보 처리방침
+        </button>
+      </footer>
+
       {/* 문의하기 버튼 (우하단 고정, 설치 버튼보다 위) */}
       <button
         onClick={() => setShowContactModal(true)}
@@ -413,7 +426,16 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <button
+                onClick={() => {
+                  setShowContactModal(false);
+                  navigate('/privacy-policy');
+                }}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                개인정보 처리방침 보기
+              </button>
               <button
                 onClick={() => setShowContactModal(false)}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
