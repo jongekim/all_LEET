@@ -114,7 +114,7 @@ export function LoginPage() {
             <div className="flex items-center justify-center gap-2">
               <Calendar className="w-4 h-4 text-red-600" />
               <p className="text-sm font-semibold text-red-600">
-                {examDate} (예상)시험일 {ddayText}
+                {examDate} 시험일 {ddayText}
               </p>
             </div>
           </div>
