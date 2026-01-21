@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Check, X } from 'lucide-react';
+import { useState } from 'react';
+import { Check, X, StickyNote } from 'lucide-react';
 
 interface AnswerSheetResultProps {
   total: number;
   userAnswers: Record<number, number>;
   correctAnswers?: Record<number, number>;
+  notes?: Record<number, string>;
+  onOpenNote?: (questionNum: number) => void;
 }
 
-export function AnswerSheetResult({ total, userAnswers, correctAnswers }: AnswerSheetResultProps) {
+export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, onOpenNote }: AnswerSheetResultProps) {
   const [revealedQuestions, setRevealedQuestions] = useState<Set<number>>(new Set());
 
   // 클릭한 문제의 정답 표시/숨김 토글
@@ -83,19 +85,47 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers }: Answer
         </div>
       </div>
       
-      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 ml-2">
         {Array.from({ length: total }, (_, i) => i + 1).map((questionNum) => {
           const correct = isCorrect(questionNum);
           const isRevealed = revealedQuestions.has(questionNum);
           const userAnswer = getUserAnswer(questionNum);
+          const noteText = (notes?.[questionNum] || '').trim();
+          const hasNote = noteText.length > 0;
           
           return (
             <div
               key={questionNum}
-              className="relative"
-              onClick={() => handleCellClick(questionNum)}
+              className="relative overflow-visible"
             >
-              <div className={getCellClassName(questionNum)}>
+              {onOpenNote && (
+                <button
+                  type="button"
+                  aria-label={`${questionNum}번 문항 메모`}
+                  title={`${questionNum}번 메모 ${hasNote ? '보기/수정' : '작성'}`}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onOpenNote(questionNum);
+                  }}
+                  className={
+                    "pointer-events-auto absolute -top-2 -left-2 z-20 inline-flex h-[22px] w-[22px] items-center justify-center rounded-md border text-xs font-semibold shadow-sm transition-colors cursor-pointer " +
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 active:scale-[0.98] " +
+                    (hasNote
+                      ? "bg-blue-600 border-blue-700 text-white hover:bg-blue-700"
+                      : "bg-transparent border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-gray-900")
+                  }
+                >
+                  <StickyNote className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <div
+                className={getCellClassName(questionNum)}
+                onClick={() => handleCellClick(questionNum)}
+              >
                 <div className="text-xs text-gray-500 mb-1">{questionNum}</div>
                 <div className="text-lg">{userAnswer || '-'}</div>
                 
