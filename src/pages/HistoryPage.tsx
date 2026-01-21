@@ -374,7 +374,7 @@ export function HistoryPage({
                   <select
                     value={providerFilter}
                     onChange={(e) => setProviderFilter(e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm"
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   >
                     <option value="all">전체</option>
                     {allProviders.map(p => (

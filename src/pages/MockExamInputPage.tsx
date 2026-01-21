@@ -140,7 +140,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
                 type="date"
                 value={examDate}
                 onChange={(e) => setExamDate(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
               />
             </div>
 
@@ -149,7 +149,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
               <select
                 value={providerSelect}
                 onChange={(e) => setProviderSelect(e.target.value as ProviderSelectValue)}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
               >
                 {providerOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -161,7 +161,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
                   value={customProvider}
                   onChange={(e) => setCustomProvider(e.target.value)}
                   placeholder="예: 조승우 강사모"
-                  className="mt-2 w-full border rounded-lg px-3 py-2"
+                  className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                 />
               )}
             </div>
@@ -173,7 +173,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
                 value={round}
                 onChange={(e) => setRound(e.target.value)}
                 placeholder="예: 1"
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
               />
             </div>
           </div>
@@ -195,7 +195,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
                     value={verbalStandardScore}
                     onChange={(e) => setVerbalStandardScore(e.target.value)}
                     placeholder="예: 70"
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   />
                 </div>
                 <div>
@@ -205,7 +205,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
                     value={verbalPercentile}
                     onChange={(e) => setVerbalPercentile(e.target.value)}
                     placeholder="예: 85"
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   />
                 </div>
               </div>
@@ -221,7 +221,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
                     value={reasoningStandardScore}
                     onChange={(e) => setReasoningStandardScore(e.target.value)}
                     placeholder="예: 75"
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
                     value={reasoningPercentile}
                     onChange={(e) => setReasoningPercentile(e.target.value)}
                     placeholder="예: 90"
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   />
                 </div>
               </div>
