@@ -116,7 +116,7 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, o
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 active:scale-[0.98] " +
                     (hasNote
                       ? "bg-blue-600 border-blue-700 text-white hover:bg-blue-700"
-                      : "bg-transparent border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-gray-900")
+                      : "bg-gray-50 border-gray-300 text-gray-900 hover:bg-gray-100 hover:border-gray-400")
                   }
                 >
                   <StickyNote className="h-3.5 w-3.5" />
@@ -152,7 +152,8 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, o
       </div>
       
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
-        💡 틀린 답/미제출(빨간색)을 클릭하면 정답을 확인할 수 있습니다.
+        <div>💡 틀린 답/미제출(빨간색)을 클릭하면 정답을 확인할 수 있습니다.</div>
+        <div className="mt-1">💡 메모 아이콘을 클릭하면 문제별로 메모를 작성할 수 있습니다.</div>
       </div>
     </div>
   );
