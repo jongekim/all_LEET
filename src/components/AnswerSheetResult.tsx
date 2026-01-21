@@ -152,8 +152,8 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, o
       </div>
       
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
-        <div>💡 틀린 답/미제출(빨간색)을 클릭하면 정답을 확인할 수 있습니다.</div>
-        <div className="mt-1">💡 메모 아이콘을 클릭하면 문제별로 메모를 작성할 수 있습니다.</div>
+        <div>💡 틀린 답(빨간색)을 클릭하면 정답을 확인할 수 있습니다.</div>
+        <div className="mt-1">💡 메모 아이콘을 클릭하면 메모를 작성할 수 있습니다.</div>
       </div>
     </div>
   );
