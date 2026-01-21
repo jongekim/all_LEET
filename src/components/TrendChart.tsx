@@ -280,9 +280,7 @@ export function TrendChart({ history, sortBy }: TrendChartProps) {
   const maxCorrectRate = hasChartData ? Math.max(...correctRates) : 100;
 
   // Y축 범위를 데이터 중심으로 설정 (위아래 여유 공간 추가)
-  const getYDomain = (min: number, max: number, totalRange: number) => {
-    const range = max - min;
-    const padding = Math.max(range * 0.3, totalRange * 0.1); // 데이터 범위의 30% 또는 전체 범위의 10% 중 큰 값
+  const getYDomain = (min: number, max: number, totalRange: number, padding = 5) => {
     const newMin = Math.max(0, min - padding);
     const newMax = Math.min(totalRange, max + padding);
     return [Math.floor(newMin), Math.ceil(newMax)];

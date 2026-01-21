@@ -65,18 +65,16 @@ function randomUniqueTimestamp(rng: Rng, startMs: number, endMs: number, used: S
   return t;
 }
 
-function randomUniqueTimestampAfter(
+function randomUniqueTimestampAtLeast(
   rng: Rng,
-  startMs: number,
-  endMs: number,
+  minMs: number,
+  maxMs: number,
   used: Set<number>,
-  afterMs: number,
 ): number {
-  const effectiveStart = Math.max(startMs, afterMs + 1);
-  if (effectiveStart >= endMs) {
-    throw new Error('No room to pick a timestamp after the given value');
+  if (minMs > maxMs) {
+    throw new Error('No room to pick a timestamp in the given range');
   }
-  return randomUniqueTimestamp(rng, effectiveStart, endMs, used);
+  return randomUniqueTimestamp(rng, minMs, maxMs, used);
 }
 
 const YEARS: Year[] = [
@@ -103,6 +101,12 @@ const YEARS: Year[] = [
 
 const SUBJECTS: Subject[] = ['verbal', 'reasoning'];
 const EXAM_TYPE: ExamType = 'odd';
+
+type GroupSpec = {
+  year: Year;
+  round: number;
+  groupTimestamp: number;
+};
 
 function pickYearsForSecondPass(rng: Rng, years: Year[], count: number): Set<Year> {
   const pool = [...years];
@@ -162,6 +166,37 @@ function buildOneRecord(params: {
   };
 }
 
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
+function computeAccuracyBand(params: {
+  rng: Rng;
+  progress01: number; // 0..1 (시간순)
+  round: number;
+}): { min: number; max: number } {
+  const { rng, progress01, round } = params;
+
+  // 전체 정답률: 시간에 따라 크게 우상향
+  // 초반: 50~60%대 중심, 후반: 80~90%대 중심
+  const overallMin = 0.5;
+  const overallMax = 0.9;
+
+  // 중심값을 55% -> 85%로 점진 상승
+  const baseCenter = 0.55 + 0.3 * progress01;
+  const roundBoost = round >= 2 ? 0.03 : 0;
+  const noise = (rng() - 0.5) * 0.04; // ±2%
+  const center = clamp(baseCenter + roundBoost + noise, overallMin, overallMax);
+
+  // band를 너무 넓히면 추이가 흐려지므로 좁게 잡음
+  const halfWidth = 0.03 + rng() * 0.02; // 3%~5%
+  const min = clamp(center - halfWidth, overallMin, overallMax);
+  const max = clamp(center + halfWidth, overallMin, overallMax);
+
+  // min<=max 보장
+  return min <= max ? { min, max } : { min: max, max: min };
+}
+
 function main() {
   const seed = parseSeedFromArgs();
   const rng = mulberry32(seed);
@@ -174,6 +209,7 @@ function main() {
   const yearsWithSecondPass = pickYearsForSecondPass(rng, YEARS, secondPassYearCount);
 
   const usedGroupTimestamps = new Set<number>();
+  const groups: GroupSpec[] = [];
   const records: GradingResult[] = [];
 
   for (const year of YEARS) {
@@ -189,42 +225,53 @@ function main() {
       const maxGapMs = 21 * 24 * 60 * 60 * 1000;
 
       // 1회독은 뒤쪽 여유를 조금 남겨서 뽑기 (gap을 적용해도 end를 넘기지 않게)
-      const firstLatest = Math.max(startMs, endMs - minGapMs);
+      const firstLatest = Math.max(startMs, endMs - minGapMs - 1);
       const first = randomUniqueTimestamp(rng, startMs, firstLatest, usedGroupTimestamps);
       const desiredGap = randomInt(rng, minGapMs, maxGapMs);
-      const after = Math.min(endMs - 1, first + desiredGap);
 
-      const second = randomUniqueTimestampAfter(rng, startMs, endMs, usedGroupTimestamps, after);
+      // 가능한 경우 desiredGap 이후로, 불가능하면 최소 gap만이라도 만족하도록
+      let secondMin = first + desiredGap;
+      if (secondMin > endMs - 1) secondMin = first + minGapMs;
+      secondMin = Math.min(secondMin, endMs - 1);
+      if (secondMin <= first) secondMin = first + 1;
+
+      const second = randomUniqueTimestampAtLeast(rng, secondMin, endMs - 1, usedGroupTimestamps);
 
       groupTimestamps.push(first, second);
     }
 
     for (let round = 1; round <= attempts; round++) {
       const groupTimestamp = groupTimestamps[round - 1];
-
-      for (const subject of SUBJECTS) {
-        // 2회독이 조금 더 잘 보는 느낌(그래도 75~95% 범위 준수)
-        const accuracyMin = round === 1 ? 0.75 : 0.8;
-        const accuracyMax = 0.95;
-
-        const timestampOffsetMs = subject === 'verbal' ? 10 : 500;
-
-        records.push(
-          buildOneRecord({
-            rng,
-            year,
-            subject,
-            examType: EXAM_TYPE,
-            round,
-            groupTimestamp,
-            timestampOffsetMs,
-            accuracyMin,
-            accuracyMax,
-          }),
-        );
-      }
+      groups.push({ year, round, groupTimestamp });
     }
   }
+
+  // 시간순(채점일시)으로 정렬해서 우상향 타겟을 계산
+  groups.sort((a, b) => a.groupTimestamp - b.groupTimestamp);
+
+  const denom = Math.max(1, groups.length - 1);
+  groups.forEach((g, index) => {
+    const progress01 = index / denom;
+
+    for (const subject of SUBJECTS) {
+      const band = computeAccuracyBand({ rng, progress01, round: g.round });
+      const timestampOffsetMs = subject === 'verbal' ? 10 : 500;
+
+      records.push(
+        buildOneRecord({
+          rng,
+          year: g.year,
+          subject,
+          examType: EXAM_TYPE,
+          round: g.round,
+          groupTimestamp: g.groupTimestamp,
+          timestampOffsetMs,
+          accuracyMin: band.min,
+          accuracyMax: band.max,
+        }),
+      );
+    }
+  });
 
   // 시간순 정렬(오래된 → 최신). UI에서 기본은 최신순이지만, seed는 정렬해두면 검증이 편함.
   records.sort((a, b) => (a.groupTimestamp ?? a.timestamp) - (b.groupTimestamp ?? b.timestamp));

@@ -7,9 +7,7 @@ interface MockTrendChartProps {
   enforceCompleteRound?: boolean;
 }
 
-function getYDomain(min: number, max: number, totalRange: number) {
-  const range = max - min;
-  const padding = Math.max(range * 0.3, totalRange * 0.1);
+function getYDomain(min: number, max: number, totalRange: number, padding = 5) {
   const newMin = Math.max(0, min - padding);
   const newMax = Math.min(totalRange, max + padding);
   return [Math.floor(newMin), Math.ceil(newMax)] as [number, number];
