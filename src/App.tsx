@@ -392,16 +392,14 @@ function AppContent() {
       <Route
         path="/history"
         element={
-          <PrivateRoute>
-            <HistoryPage
-              history={history}
-              onClearHistory={handleClearHistory}
-              onDeleteRecord={handleDeleteRecord}
-              mockHistory={mockHistory}
-              onClearMockHistory={handleClearMockHistory}
-              onDeleteMockRecord={handleDeleteMockRecord}
-            />
-          </PrivateRoute>
+          <HistoryPage
+            history={history}
+            onClearHistory={handleClearHistory}
+            onDeleteRecord={handleDeleteRecord}
+            mockHistory={mockHistory}
+            onClearMockHistory={handleClearMockHistory}
+            onDeleteMockRecord={handleDeleteMockRecord}
+          />
         }
       />
       <Route
@@ -431,11 +429,7 @@ function AppContent() {
       />
       <Route
         path="/mock-history"
-        element={
-          <PrivateRoute>
-            <Navigate to="/history?tab=mock" replace />
-          </PrivateRoute>
-        }
+        element={<Navigate to="/history?tab=mock" replace />}
       />
     </Routes>
   );

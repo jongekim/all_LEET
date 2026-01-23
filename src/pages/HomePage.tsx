@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { YearSelector } from '../components/YearSelector';
 // NOTE: 채팅 기능 비활성화 중 (배포 시 아래 주석 제거)
@@ -9,6 +9,7 @@ import { calculateDday, getDdayText } from '../utils/dday';
 import { Subject, Year, User, GradingResult, ExamType } from '../App';
 import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/ui/button';
 
 interface HomePageProps {
   user: User;
@@ -25,6 +26,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   const [reasoningAnswers, setReasoningAnswers] = useState<Record<number, number>>({});
   const [isGrading, setIsGrading] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   const verbalQuestionCount = getQuestionCount(selectedYear, 'verbal');
   const reasoningQuestionCount = getQuestionCount(selectedYear, 'reasoning');
@@ -108,6 +110,22 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     }
   };
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    const update = () => setIsSmallScreen(mediaQuery.matches);
+    update();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', update);
+      return () => mediaQuery.removeEventListener('change', update);
+    }
+
+    mediaQuery.addListener(update);
+    return () => mediaQuery.removeListener(update);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -129,13 +147,13 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                     {currentUser?.user_metadata?.name ? `${currentUser.user_metadata.name}님 오늘도 화이팅!` : user.email}
                   </span>
                   <div className="flex items-center gap-3">
-                    <button
+                    <Button
                       onClick={() => navigate('/history')}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                      className="gap-2 whitespace-nowrap bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:shadow-lg"
                     >
                       <History className="w-4 h-4" />
-                      <span className="hidden sm:inline">히스토리</span>
-                    </button>
+                      성적 분석
+                    </Button>
                     <button
                       onClick={onLogout}
                       className="flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
@@ -146,13 +164,114 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                   </div>
                 </>
               ) : (
-                <button
-                  onClick={() => navigate('/login')}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>로그인</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Button
+                      onClick={() => navigate('/history')}
+                      className="gap-2 whitespace-nowrap bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:shadow-lg"
+                      style={
+                        !currentUser
+                          ? {
+                              outline: '3px solid rgba(250, 204, 21, 0.85)',
+                              outlineOffset: '3px',
+                            }
+                          : undefined
+                      }
+                    >
+                      <History className="w-4 h-4" />
+                      성적 분석
+                    </Button>
+
+                    {!currentUser && (
+                      <>
+                        {isSmallScreen ? (
+                          <div
+                            className="pointer-events-none absolute z-50"
+                            style={{ top: '100%', right: 0, marginTop: 8, width: 260 }}
+                          >
+                            <div className="relative">
+                              <div className="bg-gray-50 border border-gray-200 shadow-lg rounded-lg px-3 py-2 text-xs text-gray-700 animate-slide-up">
+                                <span className="font-bold text-gray-900">성적 분석</span> 버튼을 눌러 예시를 먼저 둘러보세요
+                              </div>
+                              {/* 삼각형 테두리 (회색) */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: -7,
+                                  right: 15,
+                                  width: 0,
+                                  height: 0,
+                                  borderLeft: '7px solid transparent',
+                                  borderRight: '7px solid transparent',
+                                  borderBottom: '7px solid rgba(229, 231, 235, 1)',
+                                }}
+                              />
+                              {/* 삼각형 본체 (흰색) */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: -6,
+                                  right: 16,
+                                  width: 0,
+                                  height: 0,
+                                  borderLeft: '6px solid transparent',
+                                  borderRight: '6px solid transparent',
+                                  borderBottom: '6px solid var(--color-gray-50)',
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className="pointer-events-none absolute z-50"
+                            style={{ top: '50%', right: '100%', marginRight: 10, transform: 'translateY(-50%)', width: 260 }}
+                          >
+                            <div className="relative">
+                              <div className="bg-gray-50 border border-gray-200 shadow-lg rounded-lg px-3 py-2 text-xs text-gray-700 animate-slide-up">
+                                <span className="font-bold text-gray-900">성적 분석</span> 버튼을 눌러 예시를 먼저 둘러보세요
+                              </div>
+                              {/* 삼각형 테두리 (회색) */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  right: -7,
+                                  transform: 'translateY(-50%)',
+                                  width: 0,
+                                  height: 0,
+                                  borderTop: '7px solid transparent',
+                                  borderBottom: '7px solid transparent',
+                                  borderLeft: '7px solid rgba(229, 231, 235, 1)',
+                                }}
+                              />
+                              {/* 삼각형 본체 (흰색) */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  right: -6,
+                                  transform: 'translateY(-50%)',
+                                  width: 0,
+                                  height: 0,
+                                  borderTop: '6px solid transparent',
+                                  borderBottom: '6px solid transparent',
+                                  borderLeft: '6px solid var(--color-gray-50)',
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => navigate('/login')}
+                    className="gap-2 whitespace-nowrap bg-blue-100 text-blue-800 hover:bg-blue-50 shadow-sm hover:shadow-md"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>로그인</span>
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -172,12 +291,21 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <p className="text-sm text-blue-100 mb-3">
                   로그인하시면 <strong>채점 기록 저장</strong>, <strong>성적 변화 분석</strong>, <strong>로스쿨 지원 가능성 분석</strong> 기능을 이용하실 수 있습니다.
                 </p>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
-                >
-                  로그인하기
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+                  >
+                    로그인하기
+                  </button>
+                  <Button
+                    onClick={() => navigate('/history')}
+                    className="gap-2 bg-white/20 text-white hover:shadow-lg"
+                  >
+                    <History className="w-4 h-4" />
+                    성적 분석(예시) 보기
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

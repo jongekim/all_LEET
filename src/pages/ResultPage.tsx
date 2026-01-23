@@ -6,6 +6,7 @@ import { AnswerSheetResult } from '../components/AnswerSheetResult';
 import { ArrowLeft, Home, X } from 'lucide-react';
 import { useAuth, supabase } from '../contexts/AuthContext';
 import { Textarea } from '../components/ui/textarea';
+import { Button } from '../components/ui/button';
 
 interface ResultWithAnswers extends GradingResult {
   correctAnswers?: Record<number, number>;
@@ -359,13 +360,13 @@ export function ResultPage() {
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">돌아가기</span>
               </button>
-              <button
-                onClick={() => navigate('/history')}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                <span className="hidden sm:inline">히스토리</span>
-              </button>
+                <Button
+                  onClick={() => navigate('/history')}
+                  className="gap-2 whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+                >
+                  <Home className="w-4 h-4" />
+                  성적 분석
+                </Button>
             </div>
           </div>
         </div>
