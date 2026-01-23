@@ -119,7 +119,10 @@ export function HistoryPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">리트 채점은 all LEET</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                <span className="block sm:inline">리트 채점은 </span>
+                <span className="block sm:inline whitespace-nowrap">all LEET</span>
+              </h1>
               <p className="text-sm text-gray-600 mt-1">
                 {tab === 'official'
                   ? `총 ${history.length}개의 채점 기록${showOfficialExample ? ' (예시 미리보기)' : ''}`

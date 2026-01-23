@@ -132,11 +132,14 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">리트 채점은 all LEET</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                <span className="block sm:inline">리트 채점은 </span>
+                <span className="block sm:inline whitespace-nowrap">all LEET</span>
+              </h1>
               <div className="flex items-center gap-2 mt-1">
                 <Calendar className="w-4 h-4 text-red-600" />
                 <p className="text-sm font-semibold text-red-600">
-                  {examDate} 시험일 {ddayText}
+                  {ddayText}
                 </p>
               </div>
             </div>
@@ -187,7 +190,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                         {isSmallScreen ? (
                           <div
                             className="pointer-events-none absolute z-50"
-                            style={{ top: '100%', right: 0, marginTop: 8, width: 260 }}
+                            style={{ bottom: '100%', right: 0, marginBottom: 8, width: 'min(260px, calc(100vw - 32px))' }}
                           >
                             <div className="relative">
                               <div className="bg-gray-50 border border-gray-200 shadow-lg rounded-lg px-3 py-2 text-xs text-gray-700 animate-slide-up">
@@ -197,26 +200,26 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                               <div
                                 style={{
                                   position: 'absolute',
-                                  top: -7,
+                                  bottom: -7,
                                   right: 15,
                                   width: 0,
                                   height: 0,
                                   borderLeft: '7px solid transparent',
                                   borderRight: '7px solid transparent',
-                                  borderBottom: '7px solid rgba(229, 231, 235, 1)',
+                                  borderTop: '7px solid rgba(229, 231, 235, 1)',
                                 }}
                               />
                               {/* 삼각형 본체 (흰색) */}
                               <div
                                 style={{
                                   position: 'absolute',
-                                  top: -6,
+                                  bottom: -6,
                                   right: 16,
                                   width: 0,
                                   height: 0,
                                   borderLeft: '6px solid transparent',
                                   borderRight: '6px solid transparent',
-                                  borderBottom: '6px solid var(--color-gray-50)',
+                                  borderTop: '6px solid var(--color-gray-50)',
                                 }}
                               />
                             </div>
@@ -291,21 +294,6 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <p className="text-sm text-blue-100 mb-3">
                   로그인하시면 <strong>채점 기록 저장</strong>, <strong>성적 변화 분석</strong>, <strong>로스쿨 지원 가능성 분석</strong> 기능을 이용하실 수 있습니다.
                 </p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
-                  >
-                    로그인하기
-                  </button>
-                  <Button
-                    onClick={() => navigate('/history')}
-                    className="gap-2 bg-white/20 text-white hover:shadow-lg"
-                  >
-                    <History className="w-4 h-4" />
-                    성적 분석(예시) 보기
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
