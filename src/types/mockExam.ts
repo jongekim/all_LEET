@@ -1,9 +1,10 @@
-export type MockExamBaseProvider = '시대인재' | '해커스' | '메가로스쿨';
+export type MockExamBaseProvider = '시대인재' | '해커스' | '메가로스쿨' | '프라임';
 
 export const MOCK_EXAM_BASE_PROVIDERS: MockExamBaseProvider[] = [
   '시대인재',
   '해커스',
   '메가로스쿨',
+  '프라임',
 ];
 
 export interface MockExamSubjectScore {
