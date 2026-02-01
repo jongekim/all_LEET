@@ -258,6 +258,11 @@ export function HistoryPage({
 
               // 두 과목 합산 점수 계산 (같이 채점한 경우)
               const totalStandardScore = group.reduce((sum, r) => sum + r.standardScore, 0);
+              const totalAdjustedScore = group.reduce(
+                (sum, r) => sum + (r.adjustedScore ?? r.standardScore),
+                0
+              );
+              const hasAdjustedScore = group.some(r => typeof r.adjustedScore === 'number');
               const avgPercentile = group.reduce((sum, r) => sum + r.percentile, 0) / group.length;
 
               return (
@@ -268,16 +273,16 @@ export function HistoryPage({
                   <div className="flex flex-col gap-3">
                     {/* 헤더 */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
                         <span className="font-bold text-lg text-gray-900">
                           {firstRecord.year}학년도
                           {firstRecord.round > 1 && (
-                            <span className="ml-2 text-sm font-semibold text-gray-600">
+                            <span className="block sm:inline sm:ml-2 text-sm font-semibold text-gray-600">
                               ({firstRecord.round}회독)
                             </span>
                           )}
                         </span>
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
                           {firstRecord.examType === 'odd' ? '홀수형' : '짝수형'}
                         </span>
                         {group.map((record, idx) => {
@@ -285,7 +290,7 @@ export function HistoryPage({
                           return (
                             <span
                               key={idx}
-                              className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              className={`px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                                 record.subject === 'verbal'
                                   ? 'bg-blue-100 text-blue-700'
                                   : 'bg-purple-100 text-purple-700'
@@ -339,7 +344,14 @@ export function HistoryPage({
                         <div className="flex items-center gap-4">
                           <div>
                             <span className="text-xs text-gray-500">합산 표준점수 </span>
-                            <span className="font-bold text-purple-700 text-base">{totalStandardScore.toFixed(1)}</span>
+                            <span className="font-bold text-purple-700 text-base flex flex-col items-start sm:flex-row sm:items-center">
+                              {totalStandardScore.toFixed(1)}
+                              {hasAdjustedScore && (
+                                <span className="text-xs text-purple-500 sm:ml-1 whitespace-nowrap">
+                                  (보정 {totalAdjustedScore.toFixed(1)})
+                                </span>
+                              )}
+                            </span>
                           </div>
                           <div>
                             <span className="text-xs text-gray-500">평균 백분위 </span>
