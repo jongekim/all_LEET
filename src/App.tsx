@@ -14,6 +14,7 @@ import { AdmissionPage } from './pages/AdmissionPage';
 import { AdmissionResultPage } from './pages/AdmissionResultPage';
 import { MockExamInputPage } from './pages/MockExamInputPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsPage } from './pages/TermsPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { projectId, publicAnonKey } from './utils/supabase/info';
 import { Analytics } from "@vercel/analytics/react"
@@ -373,6 +374,7 @@ function AppContent() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
       
       {/* 메인 페이지 (로그인 상태에 따라 다르게 보일 수 있음) */}
       <Route

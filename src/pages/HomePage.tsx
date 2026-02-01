@@ -470,12 +470,20 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
       </main>
 
       <footer className="max-w-4xl mx-auto px-4 pb-24 sm:pb-28 text-center space-y-3">
-        <button
-          onClick={() => navigate('/privacy-policy')}
-          className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
-        >
-          개인정보 처리방침
-        </button>
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={() => navigate('/privacy-policy')}
+            className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+          >
+            개인정보 처리방침
+          </button>
+          <button
+            onClick={() => navigate('/terms')}
+            className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+          >
+            이용약관
+          </button>
+        </div>
         <p className="text-xs text-gray-500 leading-relaxed">
           본 사이트의 모든 콘텐츠는 저작권법의 보호를 받으며, 저작자의 사전 동의 없는 무단 복제/복사/배포를 금지합니다. Copyright © all LEET | all_leet@naver.com
         </p>
@@ -545,16 +553,27 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
               </div>
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3">
-              <button
-                onClick={() => {
-                  setShowContactModal(false);
-                  navigate('/privacy-policy');
-                }}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors"
-              >
-                개인정보 처리방침 보기
-              </button>
+            <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => {
+                    setShowContactModal(false);
+                    navigate('/privacy-policy');
+                  }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  개인정보 처리방침 보기
+                </button>
+                <button
+                  onClick={() => {
+                    setShowContactModal(false);
+                    navigate('/terms');
+                  }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  이용약관 보기
+                </button>
+              </div>
               <button
                 onClick={() => setShowContactModal(false)}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
