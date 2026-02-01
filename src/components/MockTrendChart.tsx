@@ -129,7 +129,7 @@ export function MockTrendChart({ records, enforceCompleteRound = false }: MockTr
       <div>
         <div className="flex items-end justify-between gap-4 mb-2">
           <h3 className="text-lg font-semibold text-gray-900">
-            표준점수 추이 {shouldFilterToCompleteOnly ? '(두 과목 합)' : ''}
+            표준점수 추이
           </h3>
           {shouldFilterToCompleteOnly && (
             <span className="text-xs text-gray-500">* 두 과목 모두 채점된 회차만 표시</span>

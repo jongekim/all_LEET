@@ -416,12 +416,12 @@ export function HistoryPage({
             <div className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold text-gray-900">성적 추이</h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-700">시험기관:</span>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">시험기관:</span>
                   <select
                     value={providerFilter}
                     onChange={(e) => setProviderFilter(e.target.value)}
-                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
+                    className="flex-1 sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   >
                     <option value="all">전체</option>
                     {allProviders.map(p => (
@@ -452,6 +452,15 @@ export function HistoryPage({
                     if (record.verbal) subjects.push({ key: 'verbal', label: '언어이해', color: 'bg-blue-100 text-blue-700' });
                     if (record.reasoning) subjects.push({ key: 'reasoning', label: '추리논증', color: 'bg-purple-100 text-purple-700' });
 
+                    const subjectScores = [record.verbal, record.reasoning].filter(Boolean) as Array<{
+                      standardScore: number;
+                      percentile: number;
+                    }>;
+                    const totalStandardScore = subjectScores.reduce((sum, s) => sum + s.standardScore, 0);
+                    const avgPercentile = subjectScores.length
+                      ? subjectScores.reduce((sum, s) => sum + s.percentile, 0) / subjectScores.length
+                      : 0;
+
                     return (
                       <div
                         key={record.id}
@@ -459,21 +468,25 @@ export function HistoryPage({
                       >
                         <div className="flex flex-col gap-3">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-lg text-gray-900">
-                                {getMockExamDisplayTitle(record) || '사설 모의고사'}
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
-                                {record.examDate}
-                              </span>
-                              {subjects.map(s => (
-                                <span
-                                  key={s.key}
-                                  className={`px-2 py-1 rounded-full text-xs font-semibold ${s.color}`}
-                                >
-                                  {s.label}
+                            <div className="flex flex-col gap-2">
+                              <div className="flex flex-col items-start sm:flex-row sm:items-center gap-2">
+                                <span className="font-bold text-lg text-gray-900">
+                                  {getMockExamDisplayTitle(record) || '사설 모의고사'}
                                 </span>
-                              ))}
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
+                                  {record.examDate}
+                                </span>
+                                {subjects.map(s => (
+                                  <span
+                                    key={s.key}
+                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${s.color}`}
+                                  >
+                                    {s.label}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                             <div className="text-xs text-gray-600">저장: {createdAtText}</div>
                           </div>
@@ -511,7 +524,21 @@ export function HistoryPage({
                             )}
                           </div>
 
-                          <div className="pt-2 border-t flex items-center justify-end">
+                          <div className="pt-2 border-t flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div>
+                                <span className="text-xs text-gray-500">표준점수합 </span>
+                                <span className="font-bold text-purple-700 text-base">
+                                  {totalStandardScore.toFixed(1)}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-xs text-gray-500">백분위 평균 </span>
+                                <span className="font-bold text-orange-700 text-base">
+                                  {avgPercentile.toFixed(1)}
+                                </span>
+                              </div>
+                            </div>
                             {!showMockExample ? (
                               <button
                                 onClick={() => onDeleteMockRecord([record.id])}
@@ -537,12 +564,12 @@ export function HistoryPage({
             <div className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold text-gray-900">성적 추이</h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-700">시험기관:</span>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">시험기관:</span>
                   <select
                     value={providerFilter}
                     onChange={(e) => setProviderFilter(e.target.value)}
-                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
+                    className="flex-1 sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   >
                     <option value="all">전체</option>
                     {allProviders.map(p => (
@@ -573,6 +600,15 @@ export function HistoryPage({
                     if (record.verbal) subjects.push({ key: 'verbal', label: '언어이해', color: 'bg-blue-100 text-blue-700' });
                     if (record.reasoning) subjects.push({ key: 'reasoning', label: '추리논증', color: 'bg-purple-100 text-purple-700' });
 
+                    const subjectScores = [record.verbal, record.reasoning].filter(Boolean) as Array<{
+                      standardScore: number;
+                      percentile: number;
+                    }>;
+                    const totalStandardScore = subjectScores.reduce((sum, s) => sum + s.standardScore, 0);
+                    const avgPercentile = subjectScores.length
+                      ? subjectScores.reduce((sum, s) => sum + s.percentile, 0) / subjectScores.length
+                      : 0;
+
                     return (
                       <div
                         key={record.id}
@@ -580,21 +616,25 @@ export function HistoryPage({
                       >
                         <div className="flex flex-col gap-3">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-lg text-gray-900">
-                                {getMockExamDisplayTitle(record) || '사설 모의고사'}
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
-                                {record.examDate}
-                              </span>
-                              {subjects.map(s => (
-                                <span
-                                  key={s.key}
-                                  className={`px-2 py-1 rounded-full text-xs font-semibold ${s.color}`}
-                                >
-                                  {s.label}
+                            <div className="flex flex-col gap-2">
+                              <div className="flex flex-col items-start sm:flex-row sm:items-center gap-2">
+                                <span className="font-bold text-lg text-gray-900">
+                                  {getMockExamDisplayTitle(record) || '사설 모의고사'}
                                 </span>
-                              ))}
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
+                                  {record.examDate}
+                                </span>
+                                {subjects.map(s => (
+                                  <span
+                                    key={s.key}
+                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${s.color}`}
+                                  >
+                                    {s.label}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                             <div className="text-xs text-gray-600">저장: {createdAtText}</div>
                           </div>
@@ -632,7 +672,21 @@ export function HistoryPage({
                             )}
                           </div>
 
-                          <div className="pt-2 border-t flex items-center justify-end">
+                          <div className="pt-2 border-t flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div>
+                                <span className="text-xs text-gray-500">표준점수합 </span>
+                                <span className="font-bold text-purple-700 text-base">
+                                  {totalStandardScore.toFixed(1)}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-xs text-gray-500">백분위 평균 </span>
+                                <span className="font-bold text-orange-700 text-base">
+                                  {avgPercentile.toFixed(1)}
+                                </span>
+                              </div>
+                            </div>
                             <button
                               onClick={() => onDeleteMockRecord([record.id])}
                               className="text-sm text-red-600 hover:text-red-700 font-semibold whitespace-nowrap flex items-center gap-1"
