@@ -353,7 +353,7 @@ export function HistoryPage({
                               )}
                             </span>
                           </div>
-                          <div>
+                          <div className="flex flex-col">
                             <span className="text-xs text-gray-500">평균 백분위 </span>
                             <span className="font-bold text-orange-700 text-base">{avgPercentile.toFixed(1)}</span>
                           </div>
@@ -532,7 +532,7 @@ export function HistoryPage({
                                   {totalStandardScore.toFixed(1)}
                                 </span>
                               </div>
-                              <div>
+                              <div className="flex flex-col">
                                 <span className="text-xs text-gray-500">백분위 평균 </span>
                                 <span className="font-bold text-orange-700 text-base">
                                   {avgPercentile.toFixed(1)}
