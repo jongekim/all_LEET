@@ -116,6 +116,7 @@ export function TermsPage() {
             <section className="space-y-2">
               <h3 className="text-sm font-semibold text-gray-900">제11조(개인정보보호)</h3>
               <p>개인정보의 수집·이용·보관·파기에 관한 사항은 개인정보처리방침에 따릅니다.</p>
+              <p>이 약관에 동의하는 경우 개인정보처리방침에도 동의한 것으로 간주합니다.</p>
             </section>
 
             <section className="space-y-2">
