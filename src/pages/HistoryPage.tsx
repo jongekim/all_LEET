@@ -341,13 +341,13 @@ export function HistoryPage({
                     {/* 합산 점수 및 버튼 */}
                     <div className="pt-2 border-t flex items-center justify-between">
                       {isCombined ? (
-                        <div className="flex items-center gap-4">
-                          <div>
+                        <div className="flex items-end gap-4">
+                          <div className="flex flex-col">
                             <span className="text-xs text-gray-500">합산 표준점수 </span>
-                            <span className="font-bold text-purple-700 text-base flex flex-col items-start sm:flex-row sm:items-center">
-                              {totalStandardScore.toFixed(1)}
+                            <span className="inline-flex items-center gap-1 font-bold text-purple-700 text-base tabular-nums">
+                              <span className="leading-none">{totalStandardScore.toFixed(1)}</span>
                               {hasAdjustedScore && (
-                                <span className="text-xs text-purple-500 sm:ml-1 whitespace-nowrap">
+                                <span className="text-xs text-purple-500 whitespace-nowrap tabular-nums leading-none">
                                   (보정 {totalAdjustedScore.toFixed(1)})
                                 </span>
                               )}
@@ -355,7 +355,7 @@ export function HistoryPage({
                           </div>
                           <div className="flex flex-col">
                             <span className="text-xs text-gray-500">평균 백분위 </span>
-                            <span className="font-bold text-orange-700 text-base">{avgPercentile.toFixed(1)}</span>
+                            <span className="font-bold text-orange-700 text-base tabular-nums">{avgPercentile.toFixed(1)}</span>
                           </div>
                         </div>
                       ) : (
@@ -525,16 +525,16 @@ export function HistoryPage({
                           </div>
 
                           <div className="pt-2 border-t flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div>
+                            <div className="flex items-end gap-4">
+                              <div className="flex flex-col">
                                 <span className="text-xs text-gray-500">표준점수합 </span>
-                                <span className="font-bold text-purple-700 text-base">
+                                <span className="font-bold text-purple-700 text-base tabular-nums">
                                   {totalStandardScore.toFixed(1)}
                                 </span>
                               </div>
                               <div className="flex flex-col">
                                 <span className="text-xs text-gray-500">백분위 평균 </span>
-                                <span className="font-bold text-orange-700 text-base">
+                                <span className="font-bold text-orange-700 text-base tabular-nums">
                                   {avgPercentile.toFixed(1)}
                                 </span>
                               </div>
