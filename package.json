@@ -1,6 +1,6 @@
 {
-      "name": "리트 채점 웹 앱",
-      "version": "0.1.0",
+      "name": "all_LEET",
+      "version": "1.0.0",
       "private": true,
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
