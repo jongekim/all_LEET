@@ -7,7 +7,7 @@ import { AnswerSheet } from '../components/AnswerSheet';
 import { getQuestionCount, gradeAnswers } from '../utils/grading';
 import { calculateDday, getDdayText } from '../utils/dday';
 import { Subject, Year, User, GradingResult, ExamType } from '../App';
-import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail } from 'lucide-react';
+import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
 
@@ -366,6 +366,33 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
               </div>
             </div>
         </div>
+
+        {/* 커뮤니티 배너 (현재 비공개 상태)
+            - 다시 오픈하려면 아래 주석을 해제하세요.
+        */}
+        {/*
+        <div
+          onClick={() => navigate('/community')}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:shadow-xl transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 backdrop-blur rounded-full p-3">
+                <MessagesSquare className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1">커뮤니티 게시판</h3>
+                <p className="text-sm text-white/90">
+                  태그별로 글을 작성하고 댓글로 의견을 나눠보세요
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:block text-white/80">
+              →
+            </div>
+          </div>
+        </div>
+        */}
 
         {/* 채팅 기능 비활성화 중 (배포 시 아래 주석 제거) */}
         {/* 실시간 채팅 배너 - 학년도 설정 바로 위 */}

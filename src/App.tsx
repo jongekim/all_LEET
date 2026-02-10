@@ -13,6 +13,8 @@ import { HistoryPage } from './pages/HistoryPage';
 import { AdmissionPage } from './pages/AdmissionPage';
 import { AdmissionResultPage } from './pages/AdmissionResultPage';
 import { MockExamInputPage } from './pages/MockExamInputPage';
+import { CommunityPage } from './pages/CommunityPage';
+import { CommunityPostPage } from './pages/CommunityPostPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
@@ -381,6 +383,9 @@ function AppContent() {
         path="/"
         element={<HomePage user={user} onLogout={handleLogout} onAddToHistory={handleAddToHistory} />}
       />
+
+      <Route path="/community" element={<CommunityPage />} />
+      <Route path="/community/:id" element={<CommunityPostPage />} />
 
       {/* 채팅 기능 비활성화 중 (배포 시 아래 주석 제거) */}
       {/* <Route path="/chat" element={<ChatPage />} /> */}
