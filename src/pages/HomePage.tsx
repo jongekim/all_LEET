@@ -563,6 +563,23 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 </div>
               </div>
 
+              <a
+                href="https://open.kakao.com/o/swiu47fi"
+                target="_blank"
+                rel="noreferrer"
+                className="block bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:bg-yellow-100 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-yellow-400 rounded-full p-2">
+                    <MessagesSquare className="w-5 h-5 text-yellow-900" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-yellow-900">카톡 문의</p>
+                    <p className="text-sm text-yellow-800">오픈채팅으로 바로 문의하기</p>
+                  </div>
+                </div>
+              </a>
+
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-2">📝 안내사항</h4>
                 <ul className="text-sm text-gray-700 space-y-2">
