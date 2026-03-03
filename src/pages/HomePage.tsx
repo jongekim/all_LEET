@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { YearSelector } from '../components/YearSelector';
 // NOTE: 채팅 기능 비활성화 중 (배포 시 아래 주석 제거)
 // import { RecentChatBanner } from '../components/RecentChatBanner';
+import { NoticeBanner } from '../components/NoticeBanner';
 import { AnswerSheet } from '../components/AnswerSheet';
 import { getQuestionCount, gradeAnswers } from '../utils/grading';
 import { calculateDday, getDdayText } from '../utils/dday';
@@ -282,6 +283,8 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <NoticeBanner />
+
         {/* 로그인 안내 배너 - 비로그인 시에만 표시 */}
         {!currentUser && (
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white">

@@ -1827,6 +1827,99 @@ html {
   animation: .3s ease-out slide-up;
 }
 
+@keyframes notice-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes notice-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notice-rotator {
+  position: relative;
+  overflow: hidden;
+  height: 2rem;
+}
+
+.notice-row {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.notice-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@keyframes notice-text-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(var(--notice-marquee-distance, 0px) * -1));
+  }
+}
+
+.notice-row-current {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notice-row-enter {
+  animation: .45s ease both notice-slide-in;
+}
+
+.notice-row-exit {
+  animation: .45s ease both notice-slide-out;
+}
+
+@media (max-width: 639px) {
+  .notice-rotator {
+    height: 2.25rem;
+  }
+
+  .notice-row {
+    gap: .5rem;
+  }
+
+  .notice-text-mobile-marquee-container {
+    text-overflow: clip;
+  }
+
+  .notice-text-marquee-track {
+    display: inline-block;
+    min-width: max-content;
+    animation: var(--notice-marquee-duration, 6s) linear 1 forwards notice-text-marquee;
+    animation-delay: var(--notice-marquee-delay, 1000ms);
+    will-change: transform;
+  }
+}
+
 @property --tw-translate-x {
   syntax: "*";
   inherits: false;
