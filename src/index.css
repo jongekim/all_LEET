@@ -1898,6 +1898,18 @@ html {
   animation: .45s ease both notice-slide-out;
 }
 
+.notice-text-marquee-container {
+  text-overflow: clip;
+}
+
+.notice-text-marquee-track {
+  display: inline-block;
+  min-width: max-content;
+  animation: var(--notice-marquee-duration, 6s) linear 1 forwards notice-text-marquee;
+  animation-delay: var(--notice-marquee-delay, 1000ms);
+  will-change: transform;
+}
+
 @media (max-width: 639px) {
   .notice-rotator {
     height: 2.25rem;
@@ -1905,18 +1917,6 @@ html {
 
   .notice-row {
     gap: .5rem;
-  }
-
-  .notice-text-mobile-marquee-container {
-    text-overflow: clip;
-  }
-
-  .notice-text-marquee-track {
-    display: inline-block;
-    min-width: max-content;
-    animation: var(--notice-marquee-duration, 6s) linear 1 forwards notice-text-marquee;
-    animation-delay: var(--notice-marquee-delay, 1000ms);
-    will-change: transform;
   }
 }
 

@@ -29,7 +29,6 @@ export function NoticeBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [shouldMarquee, setShouldMarquee] = useState(false);
   const [marqueeDistance, setMarqueeDistance] = useState(0);
   const [marqueeDuration, setMarqueeDuration] = useState(6);
@@ -47,27 +46,6 @@ export function NoticeBanner() {
   }, [currentIndex]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const mediaQuery = window.matchMedia('(max-width: 639px)');
-    const update = () => setIsMobile(mediaQuery.matches);
-    update();
-
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', update);
-      return () => mediaQuery.removeEventListener('change', update);
-    }
-
-    mediaQuery.addListener(update);
-    return () => mediaQuery.removeListener(update);
-  }, []);
-
-  useEffect(() => {
-    if (!isMobile) {
-      setShouldMarquee(false);
-      return;
-    }
-
     const frameId = window.requestAnimationFrame(() => {
       const textElement = currentTextRef.current;
       if (!textElement) return;
@@ -78,18 +56,18 @@ export function NoticeBanner() {
       setShouldMarquee(needMarquee);
       if (needMarquee) {
         setMarqueeDistance(overflowDistance);
-        setMarqueeDuration(Math.max(4, overflowDistance / 22));
+        setMarqueeDuration(overflowDistance / 35);
       }
     });
 
     return () => window.cancelAnimationFrame(frameId);
-  }, [currentIndex, isMobile, isAnimating]);
+  }, [currentIndex, isAnimating]);
 
   useEffect(() => {
     if (noticeCount <= 1) return;
     if (isAnimating) return;
 
-    const displayDelay = isMobile && shouldMarquee
+    const displayDelay = shouldMarquee
       ? marqueeStartDelayMs + Math.ceil(marqueeDuration * 1000) + afterMarqueeDelayMs
       : staticDisplayMs;
 
@@ -103,7 +81,7 @@ export function NoticeBanner() {
     }, displayDelay);
 
     return () => window.clearTimeout(timeoutId);
-  }, [noticeCount, isAnimating, isMobile, shouldMarquee, marqueeDuration]);
+  }, [noticeCount, isAnimating, shouldMarquee, marqueeDuration]);
 
   useEffect(() => {
     if (!isAnimating) return;
@@ -145,9 +123,9 @@ export function NoticeBanner() {
           >
             <p
               ref={currentTextRef}
-              className={`notice-text text-sm text-blue-900 font-medium ${isMobile && shouldMarquee ? 'notice-text-mobile-marquee-container' : ''}`}
+              className={`notice-text text-sm text-blue-900 font-medium ${shouldMarquee ? 'notice-text-marquee-container' : ''}`}
             >
-              {isMobile && shouldMarquee ? (
+              {shouldMarquee ? (
                 <span
                   className="notice-text-marquee-track"
                   style={
