@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { GradingResult } from '../App';
 import { TrendChart } from '../components/TrendChart';
 import { MockTrendChart } from '../components/MockTrendChart';
@@ -29,6 +29,7 @@ export function HistoryPage({
   onDeleteMockRecord,
 }: HistoryPageProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const showOfficialExample = history.length === 0;
@@ -37,7 +38,8 @@ export function HistoryPage({
   const mockHistoryForView = showMockExample ? EXAMPLE_MOCK_HISTORY : mockHistory;
 
   const tabFromQuery = (searchParams.get('tab') || '').toLowerCase();
-  const initialTab: HistoryTab = tabFromQuery === 'mock' ? 'mock' : 'official';
+  const tabFromPath: HistoryTab = location.pathname === '/mock-history' ? 'mock' : 'official';
+  const initialTab: HistoryTab = tabFromQuery === 'mock' ? 'mock' : tabFromPath;
   const [tab, setTab] = useState<HistoryTab>(initialTab);
 
   const [sortBy, setSortBy] = useState<'date' | 'year'>('date'); // 기본값: 채점 순서

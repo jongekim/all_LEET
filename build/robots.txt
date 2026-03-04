@@ -1,12 +1,10 @@
 User-agent: *
 Allow: /
 
-# 로그인/개인 기록 성격의 경로는 크롤링 비권장
-Disallow: /history
+# 로그인 필수/개인 성격의 경로는 크롤링 비권장 (history, mock-history는 예시 미리보기 제공으로 허용)
 Disallow: /admission
 Disallow: /admission-result
 Disallow: /mock-input
-Disallow: /mock-history
 Disallow: /result
 Disallow: /chat
 

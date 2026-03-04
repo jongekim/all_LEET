@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
@@ -55,8 +55,47 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-cd835c22`;
+const CANONICAL_ORIGIN = 'https://all-leet.vercel.app';
+
+const ROUTE_SEO: Record<string, { title: string; description: string }> = {
+  '/': {
+    title: '리트 채점은 all LEET',
+    description: '리트 채점, 분석, 로스쿨 합격 예측은 all LEET 올리트에서!',
+  },
+  '/history': {
+    title: '성적 분석 및 히스토리 | all LEET',
+    description: 'LEET 채점 결과를 기반으로 성적 분석과 히스토리를 확인하세요.',
+  },
+  '/mock-history': {
+    title: '사설 모의고사 히스토리 | all LEET',
+    description: '사설 모의고사 기록과 추이를 한눈에 확인하세요.',
+  },
+  '/privacy-policy': {
+    title: '개인정보처리방침 | all LEET',
+    description: 'all LEET 개인정보처리방침 안내 페이지입니다.',
+  },
+  '/terms': {
+    title: '이용약관 | all LEET',
+    description: 'all LEET 이용약관 안내 페이지입니다.',
+  },
+  '/community': {
+    title: '커뮤니티 게시판 | all LEET',
+    description: 'LEET 수험생 커뮤니티 게시판에서 정보를 공유해보세요.',
+  },
+};
+
+const DEFAULT_SEO = ROUTE_SEO['/'];
+
+const normalizePathname = (pathname: string) => {
+  if (!pathname) return '/';
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+};
 
 function AppContent() {
+  const location = useLocation();
   const { currentUser, logout } = useAuth();
   const [history, setHistory] = useState<GradingResult[]>([]);
   const [mockHistory, setMockHistory] = useState<MockExamRecord[]>([]);
@@ -134,9 +173,60 @@ function AppContent() {
       sameAs: [canonicalOrigin + '/'],
     });
 
-    // 7. 페이지 타이틀 설정
-    document.title = '리트 채점은 all LEET';
   }, []);
+
+  useEffect(() => {
+    const normalizedPath = normalizePathname(location.pathname);
+    const seo = ROUTE_SEO[normalizedPath] ?? DEFAULT_SEO;
+    const canonicalUrl = `${CANONICAL_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`;
+
+    document.title = seo.title;
+
+    const upsertMeta = (selector: string, attrs: Record<string, string>) => {
+      let meta = document.head.querySelector(selector) as HTMLMetaElement | null;
+      if (!meta) {
+        meta = document.createElement('meta');
+        Object.entries(attrs).forEach(([key, value]) => meta?.setAttribute(key, value));
+        document.head.appendChild(meta);
+      }
+      if ('content' in attrs) {
+        meta.content = attrs.content;
+      }
+    };
+
+    let canonicalLink = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.rel = 'canonical';
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.href = canonicalUrl;
+
+    upsertMeta("meta[name='description']", {
+      name: 'description',
+      content: seo.description,
+    });
+    upsertMeta("meta[property='og:title']", {
+      property: 'og:title',
+      content: seo.title,
+    });
+    upsertMeta("meta[property='og:description']", {
+      property: 'og:description',
+      content: seo.description,
+    });
+    upsertMeta("meta[property='og:url']", {
+      property: 'og:url',
+      content: canonicalUrl,
+    });
+    upsertMeta("meta[name='twitter:title']", {
+      name: 'twitter:title',
+      content: seo.title,
+    });
+    upsertMeta("meta[name='twitter:description']", {
+      name: 'twitter:description',
+      content: seo.description,
+    });
+  }, [location.pathname]);
 
   // ----------------------------------------------------------------
   // 데이터 로딩 및 핸들러
@@ -436,7 +526,16 @@ function AppContent() {
       />
       <Route
         path="/mock-history"
-        element={<Navigate to="/history?tab=mock" replace />}
+        element={
+          <HistoryPage
+            history={history}
+            onClearHistory={handleClearHistory}
+            onDeleteRecord={handleDeleteRecord}
+            mockHistory={mockHistory}
+            onClearMockHistory={handleClearMockHistory}
+            onDeleteMockRecord={handleDeleteMockRecord}
+          />
+        }
       />
     </Routes>
   );
