@@ -9,6 +9,11 @@ interface NoticeItem {
 
 const notices: NoticeItem[] = [
   {
+    id: '2026-03-04-answer-fix',
+    text: '‼️24년도 언어이해의 일부 정답 오류를 수정했습니다. 3/4 이전 채점 결과는 다시 채점해주세요.',
+    date: '2026.03.04',
+  },
+  {
     id: '2026-03-03-answer-fix',
     text: '‼️09예비 회차의 일부 정답 오류를 수정했습니다. 3/3 이전 채점 결과는 다시 채점해주세요.',
     date: '2026.03.03',
