@@ -6,8 +6,7 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
-// NOTE: 채팅 기능 비활성화 중 (배포 시 아래 주석 제거)
-// import { ChatPage } from './pages/ChatPage';
+import { ChatPage } from './pages/ChatPage';
 import { ResultPage } from './pages/ResultPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { AdmissionPage } from './pages/AdmissionPage';
@@ -18,6 +17,7 @@ import { CommunityPostPage } from './pages/CommunityPostPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
+import { GlobalBottomNav } from './components/GlobalBottomNav';
 import { projectId, publicAnonKey } from './utils/supabase/info';
 import { Analytics } from "@vercel/analytics/react"
 import type { MockExamRecord } from './types/mockExam';
@@ -459,85 +459,88 @@ function AppContent() {
   // 라우팅 렌더링
   // ----------------------------------------------------------------
   return (
-    <Routes>
-      {/* 인증 불필요 페이지 */}
-      <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
-      <Route path="/signup" element={currentUser ? <Navigate to="/" /> : <SignupPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-      <Route path="/terms" element={<TermsPage />} />
-      
-      {/* 메인 페이지 (로그인 상태에 따라 다르게 보일 수 있음) */}
-      <Route
-        path="/"
-        element={<HomePage user={user} onLogout={handleLogout} onAddToHistory={handleAddToHistory} />}
-      />
-
-      <Route path="/community" element={<CommunityPage />} />
-      <Route path="/community/:id" element={<CommunityPostPage />} />
-
-      {/* 채팅 기능 비활성화 중 (배포 시 아래 주석 제거) */}
-      {/* <Route path="/chat" element={<ChatPage />} /> */}
-      <Route path="/chat" element={<Navigate to="/" replace />} />
-      <Route
-        path="/result"
-        element={<ResultPage />}
-      />
-
-      {/* 인증 필요 페이지 (PrivateRoute) */}
-      <Route
-        path="/history"
-        element={
-          <HistoryPage
-            history={history}
-            onClearHistory={handleClearHistory}
-            onDeleteRecord={handleDeleteRecord}
-            mockHistory={mockHistory}
-            onClearMockHistory={handleClearMockHistory}
-            onDeleteMockRecord={handleDeleteMockRecord}
+    <>
+      <div style={{ paddingBottom: '96px' }}>
+        <Routes>
+          {/* 인증 불필요 페이지 */}
+          <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
+          <Route path="/signup" element={currentUser ? <Navigate to="/" /> : <SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          
+          {/* 메인 페이지 (로그인 상태에 따라 다르게 보일 수 있음) */}
+          <Route
+            path="/"
+            element={<HomePage user={user} onLogout={handleLogout} onAddToHistory={handleAddToHistory} />}
           />
-        }
-      />
-      <Route
-        path="/admission"
-        element={
-          <PrivateRoute>
-            <AdmissionPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/admission-result"
-        element={
-          <PrivateRoute>
-            <AdmissionResultPage />
-          </PrivateRoute>
-        }
-      />
 
-      <Route
-        path="/mock-input"
-        element={
-          <PrivateRoute>
-            <MockExamInputPage existingRecords={mockHistory} onAddRecord={handleAddMockRecord} />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/mock-history"
-        element={
-          <HistoryPage
-            history={history}
-            onClearHistory={handleClearHistory}
-            onDeleteRecord={handleDeleteRecord}
-            mockHistory={mockHistory}
-            onClearMockHistory={handleClearMockHistory}
-            onDeleteMockRecord={handleDeleteMockRecord}
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/community/:id" element={<CommunityPostPage />} />
+
+          <Route path="/chat" element={<ChatPage />} />
+          <Route
+            path="/result"
+            element={<ResultPage />}
           />
-        }
-      />
-    </Routes>
+
+          {/* 인증 필요 페이지 (PrivateRoute) */}
+          <Route
+            path="/history"
+            element={
+              <HistoryPage
+                history={history}
+                onClearHistory={handleClearHistory}
+                onDeleteRecord={handleDeleteRecord}
+                mockHistory={mockHistory}
+                onClearMockHistory={handleClearMockHistory}
+                onDeleteMockRecord={handleDeleteMockRecord}
+              />
+            }
+          />
+          <Route
+            path="/admission"
+            element={
+              <PrivateRoute>
+                <AdmissionPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admission-result"
+            element={
+              <PrivateRoute>
+                <AdmissionResultPage />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/mock-input"
+            element={
+              <PrivateRoute>
+                <MockExamInputPage existingRecords={mockHistory} onAddRecord={handleAddMockRecord} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/mock-history"
+            element={
+              <HistoryPage
+                history={history}
+                onClearHistory={handleClearHistory}
+                onDeleteRecord={handleDeleteRecord}
+                mockHistory={mockHistory}
+                onClearMockHistory={handleClearMockHistory}
+                onDeleteMockRecord={handleDeleteMockRecord}
+              />
+            }
+          />
+        </Routes>
+      </div>
+      <GlobalBottomNav />
+    </>
   );
 }
 

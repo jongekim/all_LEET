@@ -17,6 +17,7 @@ export interface CommunityPost {
   tag: CommunityTag;
   title: string;
   content: string;
+  imageUrls: string[];
   author: string;
   createdAt: number;
   comments: CommunityComment[];

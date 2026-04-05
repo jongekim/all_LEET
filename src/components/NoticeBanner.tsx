@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Megaphone } from 'lucide-react';
 
 interface NoticeItem {
   id: string;
@@ -105,20 +104,14 @@ export function NoticeBanner() {
   const previousNotice = prevIndex !== null ? notices[prevIndex] : null;
 
   return (
-    <section className="bg-white rounded-lg shadow p-4 sm:p-5 border border-gray-200">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="bg-blue-100 rounded-full p-2">
-          <Megaphone className="w-4 h-4 text-blue-700" />
-        </div>
-        <h2 className="text-sm font-semibold text-gray-900">공지사항</h2>
-      </div>
-
-      <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 overflow-hidden">
+    <section className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 overflow-hidden">
         <div className="notice-rotator">
           {previousNotice && (
             <div className="notice-row notice-row-exit" key={`prev-${previousNotice.id}`}>
+              <span className="shrink-0" style={{ fontSize: 18, lineHeight: 1 }} aria-hidden>
+                📣
+              </span>
               <p className="notice-text text-sm text-blue-900 font-medium">{previousNotice.text}</p>
-              <span className="hidden sm:inline text-xs text-blue-700 font-medium shrink-0">{previousNotice.date}</span>
             </div>
           )}
 
@@ -126,6 +119,9 @@ export function NoticeBanner() {
             className={`notice-row ${isAnimating ? 'notice-row-enter' : 'notice-row-current'}`}
             key={`current-${currentNotice.id}`}
           >
+            <span className="shrink-0" style={{ fontSize: 18, lineHeight: 1 }} aria-hidden>
+              📣
+            </span>
             <p
               ref={currentTextRef}
               className={`notice-text text-sm text-blue-900 font-medium ${shouldMarquee ? 'notice-text-marquee-container' : ''}`}
@@ -147,9 +143,7 @@ export function NoticeBanner() {
                 currentNotice.text
               )}
             </p>
-            <span className="hidden sm:inline text-xs text-blue-700 font-medium shrink-0">{currentNotice.date}</span>
           </div>
-        </div>
         </div>
     </section>
   );

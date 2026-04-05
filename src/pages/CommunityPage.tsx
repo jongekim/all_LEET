@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessagesSquare, Tag, Send, Heart, Eye, MessageCircle, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MessagesSquare, Tag, Send, Heart, Eye, MessageCircle, ImagePlus, X } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
 import type { CommunityPost, CommunityTag } from '../types/community';
 import { COMMUNITY_TAGS } from '../types/community';
 import { formatTimeAgoKorean } from '../utils/timeAgo';
+import { compressImageFile } from '../utils/imageCompression';
+
+const MAX_POST_IMAGES = 5;
+const MAX_INPUT_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
 export function CommunityPage() {
   const navigate = useNavigate();
@@ -20,15 +25,28 @@ export function CommunityPage() {
   const [newTag, setNewTag] = useState<CommunityTag>(COMMUNITY_TAGS[0]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [images, setImages] = useState<File[]>([]);
   const [isWriteOpen, setIsWriteOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+
+  const imagePreviewUrls = useMemo(
+    () => images.map((file) => URL.createObjectURL(file)),
+    [images]
+  );
+
+  useEffect(() => {
+    return () => {
+      imagePreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviewUrls]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       const { data, error } = await supabase
         .from('community_posts')
         .select(
-          'id,user_id,tag,title,content,created_at,likes_count,views_count,reports_count,comments_count,community_comments(id,user_id,content,created_at,likes_count,reports_count)'
+          'id,user_id,tag,title,content,image_urls,created_at,likes_count,views_count,reports_count,comments_count,community_comments(id,user_id,content,created_at,likes_count,reports_count)'
         )
         .order('created_at', { ascending: false });
 
@@ -54,6 +72,7 @@ export function CommunityPage() {
           tag: row.tag as CommunityTag,
           title: row.title,
           content: row.content,
+          imageUrls: row.image_urls ?? [],
           author: row.user_id,
           createdAt: Date.parse(row.created_at),
           comments,
@@ -131,6 +150,8 @@ export function CommunityPage() {
   }, [filteredPosts, pageSafe]);
 
   const handleCreatePost = async () => {
+    if (isSubmitting) return;
+
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
     if (!trimmedTitle || !trimmedContent) {
@@ -143,46 +164,145 @@ export function CommunityPage() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from('community_posts')
-      .insert({
-        user_id: currentUserId,
-        tag: newTag,
-        title: trimmedTitle,
-        content: trimmedContent,
-      })
-      .select('id,user_id,tag,title,content,created_at,likes_count,views_count,reports_count,comments_count')
-      .single();
+    setIsSubmitting(true);
 
-    if (error || !data) {
-      console.error('Failed to create post:', error);
-      const message = (error as { message?: string } | null)?.message || '';
-      if (message.includes('rate_limited_post')) {
-        alert('글 작성은 1분에 1회만 가능합니다. 잠시 후 다시 시도해주세요.');
-      } else {
-        alert('글 작성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    try {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .insert({
+          user_id: currentUserId,
+          tag: newTag,
+          title: trimmedTitle,
+          content: trimmedContent,
+          image_urls: [],
+        })
+        .select('id,user_id,tag,title,content,image_urls,created_at,likes_count,views_count,reports_count,comments_count')
+        .single();
+
+      if (error || !data) {
+        console.error('Failed to create post:', error);
+        const message = (error as { message?: string } | null)?.message || '';
+        if (message.includes('rate_limited_post')) {
+          alert('글 작성은 1분에 1회만 가능합니다. 잠시 후 다시 시도해주세요.');
+        } else {
+          alert('글 작성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        }
+        return;
       }
-      return;
+
+      const uploadedImageUrls: string[] = [];
+      let failedUploads = 0;
+
+      if (images.length > 0) {
+        for (const image of images) {
+          let uploadFile = image;
+
+          try {
+            uploadFile = await compressImageFile(image, {
+              maxBytes: MAX_IMAGE_SIZE_BYTES,
+              maxDimension: 2400,
+              minDimension: 720,
+            });
+          } catch (compressionError) {
+            console.error('Failed to compress image:', compressionError);
+            failedUploads += 1;
+            continue;
+          }
+
+          const safeFileName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const objectPath = `${currentUserId}/${data.id}/${crypto.randomUUID()}-${safeFileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('community-post-images')
+            .upload(objectPath, uploadFile, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: uploadFile.type,
+            });
+
+          if (uploadError) {
+            failedUploads += 1;
+            continue;
+          }
+
+          const { data: publicUrlData } = supabase.storage
+            .from('community-post-images')
+            .getPublicUrl(objectPath);
+
+          if (publicUrlData.publicUrl) {
+            uploadedImageUrls.push(publicUrlData.publicUrl);
+          }
+        }
+
+        if (uploadedImageUrls.length > 0) {
+          const { error: updateImageError } = await supabase
+            .from('community_posts')
+            .update({ image_urls: uploadedImageUrls })
+            .eq('id', data.id);
+
+          if (updateImageError) {
+            console.error('Failed to update post images:', updateImageError);
+            alert('이미지 저장에 실패했습니다. 텍스트 글만 등록되었습니다.');
+          }
+        }
+
+        if (failedUploads > 0) {
+          alert(`${failedUploads}개 이미지 업로드에 실패했습니다.`);
+        }
+      }
+
+      const nextPost: CommunityPost = {
+        id: data.id,
+        tag: data.tag as CommunityTag,
+        title: data.title,
+        content: data.content,
+        imageUrls: uploadedImageUrls,
+        author: data.user_id,
+        createdAt: Date.parse(data.created_at),
+        comments: [],
+        commentsCount: data.comments_count ?? 0,
+        likes: data.likes_count ?? 0,
+        views: data.views_count ?? 0,
+        reports: data.reports_count ?? 0,
+      };
+
+      setPosts((prev) => [nextPost, ...prev]);
+      setTitle('');
+      setContent('');
+      setImages([]);
+      setIsWriteOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const incoming = Array.from(event.target.files || []);
+    event.target.value = '';
+
+    if (incoming.length === 0) return;
+
+    const valid = incoming.filter((file) => {
+      if (!file.type.startsWith('image/')) return false;
+      if (file.size > MAX_INPUT_IMAGE_SIZE_BYTES) return false;
+      return true;
+    });
+
+    if (valid.length !== incoming.length) {
+      alert('이미지 파일만 업로드할 수 있으며, 원본 파일당 최대 20MB까지 선택할 수 있습니다. 업로드 시 자동 압축됩니다.');
     }
 
-    const nextPost: CommunityPost = {
-      id: data.id,
-      tag: data.tag as CommunityTag,
-      title: data.title,
-      content: data.content,
-      author: data.user_id,
-      createdAt: Date.parse(data.created_at),
-      comments: [],
-      commentsCount: data.comments_count ?? 0,
-      likes: data.likes_count ?? 0,
-      views: data.views_count ?? 0,
-      reports: data.reports_count ?? 0,
-    };
+    setImages((prev) => {
+      const merged = [...prev, ...valid].slice(0, MAX_POST_IMAGES);
+      if (prev.length + valid.length > MAX_POST_IMAGES) {
+        alert(`이미지는 최대 ${MAX_POST_IMAGES}장까지 첨부할 수 있습니다.`);
+      }
+      return merged;
+    });
+  };
 
-    setPosts((prev) => [nextPost, ...prev]);
-    setTitle('');
-    setContent('');
-    setIsWriteOpen(false);
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleToggleLike = async (postId: string) => {
@@ -304,6 +424,44 @@ export function CommunityPage() {
                 />
               </div>
 
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-gray-700">이미지 첨부 (선택)</label>
+                  <span className="text-xs text-gray-500">최대 {MAX_POST_IMAGES}장, 원본 20MB 이하, 업로드 시 5MB 이하로 자동 압축</span>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <label className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer">
+                    <ImagePlus className="w-4 h-4" />
+                    이미지 추가
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-xs text-gray-500">{images.length} / {MAX_POST_IMAGES}</span>
+                </div>
+
+                {images.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {imagePreviewUrls.map((url, index) => (
+                      <div key={url} className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <img src={url} alt={`첨부 이미지 ${index + 1}`} className="w-full h-24 object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-90 hover:opacity-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span className="inline-flex items-center gap-1">
                   <Tag className="w-4 h-4" />
@@ -311,10 +469,15 @@ export function CommunityPage() {
                 </span>
                 <button
                   onClick={handleCreatePost}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                  disabled={isSubmitting}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
+                    isSubmitting
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
                 >
                   <Send className="w-4 h-4" />
-                  등록하기
+                  {isSubmitting ? '등록 중...' : '등록하기'}
                 </button>
               </div>
             </div>
@@ -433,7 +596,7 @@ export function CommunityPage() {
                       }}
                       className="px-4 sm:px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 sm:gap-4">
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-semibold text-blue-600">{post.tag}</div>
                           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1">{post.title}</h3>
@@ -469,12 +632,41 @@ export function CommunityPage() {
                               <Eye className="w-3.5 h-3.5" />
                               {post.views}
                             </span>
+                            <span>{formatTimeAgoKorean(post.createdAt)} · 익명</span>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end gap-3 shrink-0 text-xs text-gray-400">
-                          <span>{formatTimeAgoKorean(post.createdAt)} · 익명</span>
-                          <ChevronRight className="w-4 h-4 text-gray-300" />
-                        </div>
+                        {post.imageUrls.length > 0 && (
+                          <div className="flex-shrink-0" style={{ paddingTop: 4 }}>
+                            <div
+                              className="relative rounded-md overflow-hidden border border-gray-200 bg-white"
+                              style={{ width: 96, height: 72 }}
+                            >
+                              <img
+                                src={post.imageUrls[0]}
+                                alt="첨부 이미지 미리보기"
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-cover"
+                                style={{ display: 'block' }}
+                              />
+                              {post.imageUrls.length > 1 && (
+                                <div
+                                  className="absolute rounded text-white font-semibold"
+                                  style={{
+                                    right: 4,
+                                    bottom: 4,
+                                    padding: '1px 5px',
+                                    fontSize: 10,
+                                    lineHeight: 1.2,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.68)',
+                                  }}
+                                >
+                                  +{post.imageUrls.length - 1}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </article>

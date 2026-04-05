@@ -1,9 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Heart, MessageCircle, Eye, Flag, Trash2 } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Eye, Flag, Trash2, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
 import type { CommunityPost } from '../types/community';
 import { formatTimeAgoKorean } from '../utils/timeAgo';
+
+const COMMUNITY_IMAGE_PUBLIC_PREFIX = '/storage/v1/object/public/community-post-images/';
+
+const getStorageObjectPathFromPublicUrl = (url: string) => {
+  const markerIndex = url.indexOf(COMMUNITY_IMAGE_PUBLIC_PREFIX);
+  if (markerIndex < 0) return null;
+  return decodeURIComponent(url.slice(markerIndex + COMMUNITY_IMAGE_PUBLIC_PREFIX.length));
+};
 
 export function CommunityPostPage() {
   const navigate = useNavigate();
@@ -17,6 +25,7 @@ export function CommunityPostPage() {
   const [commentDraft, setCommentDraft] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -26,7 +35,7 @@ export function CommunityPostPage() {
       const { data, error } = await supabase
         .from('community_posts')
         .select(
-          'id,user_id,tag,title,content,created_at,likes_count,views_count,reports_count,comments_count,community_comments(id,user_id,content,created_at,likes_count,reports_count)'
+          'id,user_id,tag,title,content,image_urls,created_at,likes_count,views_count,reports_count,comments_count,community_comments(id,user_id,content,created_at,likes_count,reports_count)'
         )
         .eq('id', id)
         .single();
@@ -53,6 +62,7 @@ export function CommunityPostPage() {
         tag: data.tag,
         title: data.title,
         content: data.content,
+        imageUrls: data.image_urls ?? [],
         author: data.user_id,
         createdAt: Date.parse(data.created_at),
         comments,
@@ -102,6 +112,42 @@ export function CommunityPostPage() {
 
     fetchLikes();
   }, [currentUserId, id, post]);
+
+  useEffect(() => {
+    if (viewerIndex === null) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!post || post.imageUrls.length === 0) return;
+
+      if (event.key === 'Escape') {
+        setViewerIndex(null);
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setViewerIndex((prev) => {
+          if (prev === null) return prev;
+          return (prev - 1 + post.imageUrls.length) % post.imageUrls.length;
+        });
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setViewerIndex((prev) => {
+          if (prev === null) return prev;
+          return (prev + 1) % post.imageUrls.length;
+        });
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [viewerIndex, post]);
 
   const handleToggleLike = () => {
     if (!id) return;
@@ -228,17 +274,35 @@ export function CommunityPostPage() {
     if (!currentUserId) return;
     const ok = window.confirm('이 글을 삭제하시겠습니까?');
     if (!ok) return;
-    supabase
-      .from('community_posts')
-      .delete()
-      .eq('id', post.id)
-      .then(({ error }) => {
-        if (error) {
-          alert('삭제에 실패했습니다.');
-          return;
+
+    const run = async () => {
+      const paths = post.imageUrls
+        .map((url) => getStorageObjectPathFromPublicUrl(url))
+        .filter((path): path is string => Boolean(path));
+
+      if (paths.length > 0) {
+        const { error: removeError } = await supabase.storage
+          .from('community-post-images')
+          .remove(paths);
+        if (removeError) {
+          console.error('Failed to remove post images:', removeError);
         }
-        navigate('/community');
-      });
+      }
+
+      const { error } = await supabase
+        .from('community_posts')
+        .delete()
+        .eq('id', post.id);
+
+      if (error) {
+        alert('삭제에 실패했습니다.');
+        return;
+      }
+
+      navigate('/community');
+    };
+
+    run();
   };
 
   const handleDeleteComment = (commentId: string) => {
@@ -385,6 +449,17 @@ export function CommunityPostPage() {
     return isPostAuthorLabel ? '익명' : getAnonLabel(author);
   };
 
+  const closeViewer = () => setViewerIndex(null);
+
+  const moveViewer = (delta: number) => {
+    if (!post || post.imageUrls.length === 0) return;
+
+    setViewerIndex((prev) => {
+      if (prev === null) return prev;
+      return (prev + delta + post.imageUrls.length) % post.imageUrls.length;
+    });
+  };
+
   if (!post && !loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -491,6 +566,53 @@ export function CommunityPostPage() {
           <h1 className="text-lg sm:text-xl font-bold text-gray-900 mt-3">{post.title}</h1>
           <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{post.content}</p>
 
+          {post.imageUrls.length > 0 && (
+            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 sm:p-4">
+              <div className="mb-3 flex items-center justify-between text-xs text-gray-500">
+                <span className="inline-flex items-center gap-1 font-semibold text-gray-700">
+                  <Images className="w-4 h-4" />
+                  첨부 이미지 {post.imageUrls.length}장
+                </span>
+                <span>눌러서 크게 보기</span>
+              </div>
+
+              {post.imageUrls.length === 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setViewerIndex(0)}
+                  className="w-full max-w-2xl mx-auto h-64 sm:h-80 rounded-lg overflow-hidden border border-gray-200 bg-white"
+                >
+                  <img
+                    src={post.imageUrls[0]}
+                    alt="첨부 이미지 1"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {post.imageUrls.map((url, index) => (
+                    <button
+                      key={url}
+                      type="button"
+                      onClick={() => setViewerIndex(index)}
+                      className="relative aspect-[4/3] rounded-lg overflow-hidden border border-gray-200 bg-white"
+                    >
+                      <img
+                        src={url}
+                        alt={`첨부 이미지 ${index + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 mt-4">
             <button
               onClick={handleToggleLike}
@@ -596,6 +718,57 @@ export function CommunityPostPage() {
           </div>
         </section>
       </main>
+
+      {viewerIndex !== null && post.imageUrls[viewerIndex] && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={closeViewer}
+        >
+          <button
+            type="button"
+            onClick={closeViewer}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {post.imageUrls.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  moveViewer(-1);
+                }}
+                className="absolute left-3 sm:left-5 p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  moveViewer(1);
+                }}
+                className="absolute right-3 sm:right-5 p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+
+          <img
+            src={post.imageUrls[viewerIndex]}
+            alt={`첨부 이미지 크게 보기 ${viewerIndex + 1}`}
+            className="max-w-[92vw] max-h-[82vh] object-contain rounded-lg border border-white/20 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          />
+
+          <div className="absolute bottom-4 px-3 py-1.5 rounded-full bg-black/60 text-white text-sm">
+            {viewerIndex + 1} / {post.imageUrls.length}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

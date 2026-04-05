@@ -2,3 +2,6 @@
 # Project ref is not a secret (it appears in client URLs).
 
 project_id = "jkxxtyaanyhmjbdtybkp"
+
+[functions.make-server-cd835c22]
+verify_jwt = false

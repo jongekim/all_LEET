@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { YearSelector } from '../components/YearSelector';
-// NOTE: 채팅 기능 비활성화 중 (배포 시 아래 주석 제거)
-// import { RecentChatBanner } from '../components/RecentChatBanner';
 import { NoticeBanner } from '../components/NoticeBanner';
 import { AnswerSheet } from '../components/AnswerSheet';
 import { getQuestionCount, gradeAnswers } from '../utils/grading';
 import { calculateDday, getDdayText } from '../utils/dday';
 import { Subject, Year, User, GradingResult, ExamType } from '../App';
-import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare } from 'lucide-react';
+import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
 
@@ -302,104 +300,118 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
           </div>
         )}
 
-        {/* 로스쿨 지원 가능성 분석 배너 - 항상 표시 */}
-        <div 
-          onClick={() => {
-            if (currentUser) {
-              navigate('/admission');
-            } else {
-              navigate('/signup');
-            }
-          }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:shadow-xl transition-shadow relative"
-        >
-          {!currentUser && (
-            <div className="absolute top-3 right-3 bg-yellow-400 text-purple-900 text-xs font-bold px-3 py-1 rounded-full">
-              회원가입 필요
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 backdrop-blur rounded-full p-3">
-                <GraduationCap className="w-8 h-8" />
+        <section className="bg-white rounded-lg shadow p-4 sm:p-5">
+          <div
+            className="grid gap-3"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fit, minmax(148px, 1fr))',
+              wordBreak: 'keep-all',
+              overflowWrap: 'normal',
+            }}
+          >
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  navigate('/admission');
+                } else {
+                  navigate('/signup');
+                }
+              }}
+              className="w-full text-left border rounded-lg p-3 transition-colors"
+              style={{
+                minHeight: 112,
+                borderColor: '#e5e7eb',
+                borderTop: '2px solid #a855f7',
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-fuchsia-700" />
+                <div className="text-sm font-semibold text-gray-900">로스쿨 지원 가능성 분석</div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold mb-1">로스쿨 지원 가능성 분석</h3>
-                <p className="text-sm text-purple-100">
-                  LEET 점수, GPA, 토익으로 25개 로스쿨의 합격 가능성을 확인해요
-                </p>
+              <div className="text-xs text-gray-500 mt-2">LEET/GPA/토익 기반 예측</div>
+            </button>
+
+            <button
+              onClick={() => navigate('/history')}
+              className="w-full text-left border rounded-lg p-3 transition-colors"
+              style={{
+                minHeight: 112,
+                borderColor: '#e5e7eb',
+                borderTop: '2px solid #3b82f6',
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <History className="w-5 h-5 text-blue-700" />
+                <div className="text-sm font-semibold text-gray-900">성적분석</div>
               </div>
-            </div>
-            <div className="hidden sm:block text-white/80">
-              →
-            </div>
+              <div className="text-xs text-gray-500 mt-2">기록/추이 확인</div>
+            </button>
+
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  navigate('/mock-input');
+                } else {
+                  navigate('/signup');
+                }
+              }}
+              className="w-full text-left border rounded-lg p-3 transition-colors"
+              style={{
+                minHeight: 112,
+                borderColor: '#e5e7eb',
+                borderTop: '2px solid #4f46e5',
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-indigo-700" />
+                <div className="text-sm font-semibold text-gray-900">사설 입력</div>
+              </div>
+              <div className="text-xs text-gray-500 mt-2">시험 기록 저장</div>
+            </button>
+
+            <button
+              onClick={() => navigate('/community')}
+              className="w-full text-left border rounded-lg p-3 transition-colors"
+              style={{
+                minHeight: 112,
+                borderColor: '#e5e7eb',
+                borderTop: '2px solid #d946ef',
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <MessagesSquare className="w-5 h-5 text-fuchsia-700" />
+                <div className="text-sm font-semibold text-gray-900">커뮤니티</div>
+              </div>
+              <div className="text-xs text-gray-500 mt-2">질문/정보 공유</div>
+            </button>
+
+            <button
+              onClick={() => navigate('/chat')}
+              className="w-full text-left border rounded-lg p-3 transition-colors"
+              style={{
+                minHeight: 112,
+                borderColor: '#e5e7eb',
+                borderTop: '2px solid #0ea5e9',
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-cyan-700" />
+                <div className="text-sm font-semibold text-gray-900">채팅</div>
+              </div>
+              <div className="text-xs text-gray-500 mt-2">실시간 대화</div>
+            </button>
           </div>
-        </div>
-
-        {/* 사설 모의고사 성적(채점) 입력 배너 */}
-        <div
-          onClick={() => {
-            if (currentUser) {
-              navigate('/mock-input');
-            } else {
-              navigate('/signup');
-            }
-          }}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white relative cursor-pointer hover:shadow-xl transition-shadow"
-        >
-          {!currentUser && (
-            <div className="absolute top-3 right-3 bg-yellow-400 text-blue-900 text-xs font-bold px-3 py-1 rounded-full">
-              회원가입 필요
-            </div>
-          )}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-white/20 backdrop-blur rounded-full p-3">
-                  <BookOpen className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-1">사설 모의고사 성적 분석 시스템</h3>
-                  <p className="text-sm text-blue-100">
-                    시험일자/기관/점수를 저장하고 추이를 확인하세요
-                  </p>
-                </div>
-              </div>
-              <div className="hidden sm:block text-white/80">
-                →
-              </div>
-            </div>
-        </div>
-
-        {/* 커뮤니티 배너 (현재 비공개 상태)
-            - 다시 오픈하려면 아래 주석을 해제하세요.
-        */}
-        {/*
-        <div
-          onClick={() => navigate('/community')}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:shadow-xl transition-shadow"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 backdrop-blur rounded-full p-3">
-                <MessagesSquare className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-1">커뮤니티 게시판</h3>
-                <p className="text-sm text-white/90">
-                  태그별로 글을 작성하고 댓글로 의견을 나눠보세요
-                </p>
-              </div>
-            </div>
-            <div className="hidden sm:block text-white/80">
-              →
-            </div>
-          </div>
-        </div>
-        */}
-
-        {/* 채팅 기능 비활성화 중 (배포 시 아래 주석 제거) */}
-        {/* 실시간 채팅 배너 - 학년도 설정 바로 위 */}
-        {/* <RecentChatBanner /> */}
+        </section>
 
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
@@ -522,7 +534,8 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
       {/* 문의하기 버튼 (우하단 고정, 설치 버튼보다 위) */}
       <button
         onClick={() => setShowContactModal(true)}
-        className="fixed bottom-20 right-4 sm:bottom-20 sm:right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all z-50"
+        className="fixed right-4 sm:right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all z-50"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 156px)' }}
         aria-label="문의하기"
       >
         <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />
