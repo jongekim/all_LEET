@@ -46,7 +46,7 @@ export function CommunityPage() {
       const { data, error } = await supabase
         .from('community_posts')
         .select(
-          'id,user_id,tag,title,content,image_urls,created_at,likes_count,views_count,reports_count,comments_count,community_comments(id,user_id,content,created_at,likes_count,reports_count)'
+          'id,user_id,tag,title,content,image_urls,created_at,likes_count,views_count,reports_count,comments_count,like_count:community_post_likes(count),comment_count:community_comments(count),community_comments(id,user_id,content,created_at,likes_count,reports_count)'
         )
         .order('created_at', { ascending: false });
 
@@ -55,6 +55,12 @@ export function CommunityPage() {
         setPosts([]);
         return;
       }
+
+      const getCount = (value: unknown) => {
+        if (!Array.isArray(value) || value.length === 0) return undefined;
+        const countValue = (value[0] as { count?: number } | null)?.count;
+        return typeof countValue === 'number' ? countValue : undefined;
+      };
 
       const mapped = (data || []).map((row) => {
         const comments = (row.community_comments || []).map((comment) => ({
@@ -67,6 +73,9 @@ export function CommunityPage() {
           reports: comment.reports_count ?? 0,
         }));
 
+        const likeCount = getCount(row.like_count);
+        const commentCount = getCount(row.comment_count);
+
         return {
           id: row.id,
           tag: row.tag as CommunityTag,
@@ -76,8 +85,8 @@ export function CommunityPage() {
           author: row.user_id,
           createdAt: Date.parse(row.created_at),
           comments,
-          commentsCount: row.comments_count ?? comments.length,
-          likes: row.likes_count ?? 0,
+          commentsCount: commentCount ?? row.comments_count ?? comments.length,
+          likes: likeCount ?? row.likes_count ?? 0,
           views: row.views_count ?? 0,
           reports: row.reports_count ?? 0,
         } as CommunityPost;
