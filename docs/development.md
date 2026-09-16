@@ -14,6 +14,8 @@
 | Playwright UI 모드 | `npm run test:e2e:ui` |
 | 프로덕션 빌드 | `npm run build` |
 | 전체 품질 게이트 | `npm run check` |
+| 서비스 버전 일치 검사 | `npm run version:verify` |
+| PATCH / MINOR / MAJOR 릴리스 준비 | `npm run release:patch` / `npm run release:minor` / `npm run release:major` |
 | 예시 이력 생성 | `npm run gen:example-history` |
 | 예시 이력 시드 | `npm run seed:example-history` |
 
@@ -22,6 +24,8 @@ Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 �
 ## 배포 안전 규칙
 
 `main` 브랜치에 push하면 실서비스 배포가 시작되는 운영 구조다. 따라서 Codex와 개발자는 명시적인 배포 의도 없이 `main`에 직접 push하지 않는다. 가능한 경우 pull request를 만들고 GitHub Actions의 `Quality checks`가 통과한 뒤 병합한다.
+
+서비스 버전과 배포 절차는 [versioning.md](./versioning.md)를 따른다. 배포를 일으키는 모든 `main` push 전에는 변경 영향에 맞게 `npm run release:patch`, `npm run release:minor`, `npm run release:major` 중 하나를 실행해 버전을 올린 뒤, `npm run version:verify`와 `npm run check`를 통과시킨다. 버전 변경은 배포할 변경과 같은 커밋 또는 PR에 포함한다.
 
 직접 push가 불가피할 때도, push 전에 반드시 로컬에서 `npm run check`를 통과시킨다. 이 명령의 성공은 품질 검증일 뿐 Supabase 권한, 외부 서비스, 운영 데이터의 안전을 보장하지 않으므로, 해당 영역 변경에는 별도 검증이 필요하다.
 

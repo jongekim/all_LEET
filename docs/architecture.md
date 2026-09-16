@@ -55,6 +55,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - Vite `outDir`은 `build/`이고 public 디렉터리는 `src/public/`이다.
 - `vercel.json`은 정적 파일 캐시 헤더와 모든 앱 경로의 `/index.html` rewrite를 설정한다.
 - `src/main.tsx`가 `/sw.js`를 등록한다. 서비스 워커는 캐시를 정리하고 네트워크 요청을 가로채지 않는다.
+- 서비스 배포 버전의 단일 기준은 `package.json`의 `version`이며, `main` push 전 갱신 절차는 `docs/versioning.md`에 정의한다.
 
 ## 관찰된 구조상 주의점
 

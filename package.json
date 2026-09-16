@@ -82,6 +82,10 @@
             "test:e2e:ui": "playwright test --ui",
             "build": "vite build",
             "check": "npm run lint && npm run typecheck && npm run test && npm run test:e2e && npm run build",
+            "version:verify": "node scripts/verify-version.mjs",
+            "release:patch": "npm version patch --no-git-tag-version",
+            "release:minor": "npm version minor --no-git-tag-version",
+            "release:major": "npm version major --no-git-tag-version",
             "gen:example-history": "tsx scripts/generate-example-history.ts",
             "seed:example-history": "tsx scripts/seed-example-history.ts"
       }
