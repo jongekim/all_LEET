@@ -145,6 +145,7 @@ export function gradeAnswers(
     percentile,
     fieldAnalysis,
     timestamp: Date.now(),
+    round: 1,
     userAnswers,
     correctAnswers,
     examType,

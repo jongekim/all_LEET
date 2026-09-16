@@ -1,0 +1,33 @@
+import { expect, test } from '@playwright/test';
+
+test.describe('공개 읽기 전용 화면', () => {
+  test('홈에서 채점 입력 UI를 표시한다', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.getByRole('heading', { name: /리트 채점은 all LEET/ })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('button', { name: '채점하기' })).toBeVisible();
+  });
+
+  test('로그인 화면은 제출하지 않고 입력 UI를 표시한다', async ({ page }) => {
+    await page.goto('/login');
+
+    const emailInput = page.getByPlaceholder('your');
+    const passwordInput = page.getByPlaceholder('••••••••');
+    await expect(emailInput).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(page.getByRole('button', { name: '로그인' })).toBeVisible();
+
+    await emailInput.fill('readonly-e2e');
+    await passwordInput.fill('not-submitted');
+    await expect(emailInput).toHaveValue('readonly-e2e');
+    await expect(passwordInput).toHaveValue('not-submitted');
+  });
+
+  test('회원가입과 정책 화면을 표시한다', async ({ page }) => {
+    await page.goto('/signup');
+    await expect(page.getByRole('heading', { name: '간편가입' })).toBeVisible();
+
+    await page.goto('/privacy-policy');
+    await expect(page.getByRole('heading', { name: '개인정보처리방침' })).toBeVisible();
+  });
+});

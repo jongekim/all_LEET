@@ -128,7 +128,9 @@ export function AnswerSheet({ questionCount, userAnswers, onAnswerChange, result
               </label>
               <div className="relative flex-1">
                 <input
-                  ref={(el) => (inputRefs.current[questionNum - 1] = el)}
+                  ref={(el) => {
+                    inputRefs.current[questionNum - 1] = el;
+                  }}
                   type="number"
                   min="1"
                   max="5"
