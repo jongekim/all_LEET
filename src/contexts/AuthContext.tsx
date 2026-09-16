@@ -8,6 +8,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
+  isAdmin: boolean;
+  adminLoading: boolean;
+  adminError: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,6 +36,24 @@ const supabase = createClient(
 export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adminCheck, setAdminCheck] = useState<{ userId: string; allowed: boolean; error: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    const check = async () => {
+      try {
+        const { data, error } = await supabase.rpc('current_user_is_admin');
+        if (error) throw error;
+        if (active) setAdminCheck({ userId: currentUser.id, allowed: data === true, error: false });
+      } catch (error) {
+        console.error('관리자 권한 확인 실패', error);
+        if (active) setAdminCheck({ userId: currentUser.id, allowed: false, error: true });
+      }
+    };
+    void check();
+    return () => { active = false; };
+  }, [currentUser]);
 
   async function signup(email: string, password: string, name: string, birthDate: string, university: string) {
     const { data, error } = await supabase.auth.signUp({
@@ -108,6 +129,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     logout,
     loading,
+    isAdmin: !!currentUser && adminCheck?.userId === currentUser.id && adminCheck.allowed,
+    adminLoading: !!currentUser && adminCheck?.userId !== currentUser.id,
+    adminError: !!currentUser && adminCheck?.userId === currentUser.id && adminCheck.error,
   };
 
   return (

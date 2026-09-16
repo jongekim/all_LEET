@@ -18,7 +18,7 @@ interface HomePageProps {
 
 export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, isAdmin, adminError } = useAuth();
   const [selectedYear, setSelectedYear] = useState<Year>('2026');
   const [examType, setExamType] = useState<ExamType>('odd');
   const [verbalAnswers, setVerbalAnswers] = useState<Record<number, number>>({});
@@ -282,6 +282,12 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <NoticeBanner />
+        {isAdmin && (
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => navigate('/admin')}>관리자 페이지</Button>
+          </div>
+        )}
+        {adminError && <p role="status" className="text-sm text-red-700">관리자 권한을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.</p>}
 
         {/* 로그인 안내 배너 - 비로그인 시에만 표시 */}
         {!currentUser && (

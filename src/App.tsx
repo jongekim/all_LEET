@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { supabase } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -18,6 +17,7 @@ import { CommunityPostPage } from './pages/CommunityPostPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { AdminAnnouncementsPage } from './pages/AdminAnnouncementsPage';
+import { AdminPage } from './pages/AdminPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
 import { projectId, publicAnonKey } from './utils/supabase/info';
@@ -57,29 +57,11 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser } = useAuth();
-  const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const checkAdminRole = async () => {
-      const { data, error } = await supabase.rpc('current_user_is_admin');
-      if (error) {
-        console.error('관리자 권한을 확인하지 못했습니다.', error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(data === true);
-      }
-      setCheckedUserId(currentUser.id);
-    };
-
-    void checkAdminRole();
-  }, [currentUser]);
+  const { currentUser, isAdmin, adminLoading, adminError } = useAuth();
 
   if (!currentUser) return <Navigate to="/login" replace />;
-  if (checkedUserId !== currentUser.id) return <div className="min-h-screen bg-slate-50" aria-label="관리자 권한 확인 중" />;
+  if (adminLoading) return <p role="status" className="p-6">관리자 권한을 확인하고 있습니다.</p>;
+  if (adminError) return <p role="alert" className="p-6">관리자 권한을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.</p>;
   return isAdmin ? <>{children}</> : <Navigate to="/" replace />;
 }
 
@@ -489,7 +471,7 @@ function AppContent() {
   // ----------------------------------------------------------------
   return (
     <>
-      <div style={{ paddingBottom: '96px' }}>
+      <div style={{ paddingBottom: location.pathname.startsWith('/admin') ? 0 : '96px' }}>
         <Routes>
           {/* 인증 불필요 페이지 */}
           <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
@@ -498,6 +480,7 @@ function AppContent() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/admin" element={<PrivateRoute><AdminRoute><AdminPage /></AdminRoute></PrivateRoute>} />
           <Route
             path="/admin/announcements"
             element={
@@ -577,6 +560,7 @@ function AppContent() {
         </Routes>
       </div>
       {!location.pathname.startsWith('/admin') && <GlobalBottomNav />}
+      {!location.pathname.startsWith('/admin') && <PWAInstallButton />}
     </>
   );
 }
@@ -586,8 +570,6 @@ export default function App() {
     <Router>
       <AuthProvider>
         <AppContent />
-        {/* PWA 설치 버튼은 앱 전체에 띄웁니다 */}
-        <PWAInstallButton />
         <Analytics />
       </AuthProvider>
     </Router>

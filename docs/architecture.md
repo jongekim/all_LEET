@@ -28,7 +28,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - 범용 UI 프리미티브: `src/components/ui/`
 - 계산·정적 데이터·보조 기능: `src/utils/`
 
-`/admin/announcements`는 관리자 전용 공지 관리 화면이다. 공지의 공개·배너 노출은 `home_announcements`에서 읽으며, 페이지 접근과 DB 변경 모두 관리자 역할 확인을 거친다.
+홈의 관리자 버튼 → `/admin` 관리 메뉴 → `/admin/announcements` 공지 목록·편집 순으로 이동한다. 관리자 여부는 `AuthContext`가 기존 RPC로 확인해 버튼과 라우트에 공유한다. DB 변경 권한은 기존 RLS가 강제한다. 관리자 전용 반응형 스타일은 `src/styles/admin.css`에 있으며, 미리 생성된 `src/index.css`에 없는 Tailwind 유틸리티에 의존하지 않는다.
 
 `App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. 공식/사설 이력 배열과 이력 CRUD 핸들러도 이 파일에 있으며, `HistoryPage`와 `MockExamInputPage`로 props를 전달한다.
 
