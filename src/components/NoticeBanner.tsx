@@ -1,52 +1,13 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { supabase } from '../contexts/AuthContext';
 
 interface NoticeItem {
   id: string;
   text: string;
-  date: string;
 }
 
-const notices: NoticeItem[] = [
-  {
-    id: '2026-04-06-notice-new-feature',
-    text: '커뮤니티, 채팅 기능이 추가되었습니다! 이제 사용자들끼리 소통하며 정보를 공유할 수 있습니다. 많은 이용 부탁드립니다.',
-    date: '2026.04.06',
-  },
-  {
-    id: '2026-05-23-visit-user',
-    text: '지난 한달 간 all LEET에 방문한 사용자 수가 4,000명을 돌파했습니다! 앞으로도 유용한 정보와 서비스를 제공하기 위해 노력하겠습니다.',
-    date: '2026.05.23',
-  },
-  {
-    id: '2026-05-23-notice-test',
-    text: '5/26(월)부터 6/4(수)까지 LEET 접수기간 입니다! all LEET와 함께 준비하신 모든 분들의 건투를 빕니다!',
-    date: '2026.05.23',
-  },
-  /*
-  {
-    id: '2026-03-04-answer-fix',
-    text: '‼️24년도 언어이해의 일부 정답 오류를 수정했습니다. 3/4 이전 채점 결과는 다시 채점해주세요.',
-    date: '2026.03.04',
-  },
-  {
-    id: '2026-03-03-answer-fix',
-    text: '‼️09예비 회차의 일부 정답 오류를 수정했습니다. 3/3 이전 채점 결과는 다시 채점해주세요.',
-    date: '2026.03.03',
-  },
-  {
-    id: '2026-03-03-visit-user',
-    text: '지난 한달 간 all LEET에 방문한 사용자 수가 1,000명을 돌파했습니다! 앞으로도 유용한 정보와 서비스를 제공하기 위해 노력하겠습니다.',
-    date: '2026.03.03',
-  },
-  */
-  {
-    id: '2026-03-03-notice-device',
-    text: 'all LEET는 PC와 태블릿에서 가장 쾌적하게 이용하실 수 있습니다!',
-    date: '2026.03.03',
-  },
-];
-
 export function NoticeBanner() {
+  const [notices, setNotices] = useState<NoticeItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -61,6 +22,31 @@ export function NoticeBanner() {
   const staticDisplayMs = 4000;
   const afterMarqueeDelayMs = 2000;
   const marqueeStartDelayMs = 1000;
+
+  useEffect(() => {
+    const loadNotices = async () => {
+      const { data, error } = await supabase
+        .from('home_announcements')
+        .select('id,title,banner_text')
+        .eq('is_published', true)
+        .eq('show_in_banner', true)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('홈 공지를 불러오지 못했습니다.', error);
+        setNotices([]);
+        return;
+      }
+
+      setNotices((data ?? []).map((notice) => ({
+        id: notice.id,
+        text: notice.banner_text.trim() || notice.title,
+      })));
+    };
+
+    void loadNotices();
+  }, []);
 
   useEffect(() => {
     currentIndexRef.current = currentIndex;

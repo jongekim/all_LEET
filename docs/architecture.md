@@ -28,6 +28,8 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - 범용 UI 프리미티브: `src/components/ui/`
 - 계산·정적 데이터·보조 기능: `src/utils/`
 
+`/admin/announcements`는 관리자 전용 공지 관리 화면이다. 공지의 공개·배너 노출은 `home_announcements`에서 읽으며, 페이지 접근과 DB 변경 모두 관리자 역할 확인을 거친다.
+
 `App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. 공식/사설 이력 배열과 이력 CRUD 핸들러도 이 파일에 있으며, `HistoryPage`와 `MockExamInputPage`로 props를 전달한다.
 
 ### 백엔드

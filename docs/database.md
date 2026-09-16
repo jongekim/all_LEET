@@ -20,6 +20,8 @@ Supabase 클라이언트는 `src/contexts/AuthContext.tsx`에서 생성된다. �
 | 공지 | `home_announcements` | 발행 상태를 가진 홈 공지 |
 | 공지 | `home_announcement_comments`, `home_announcement_likes` | 공지 댓글·좋아요 |
 
+관리자 역할은 노출되지 않는 `private.admin_roles`에 저장한다. `private.is_admin()`은 이 역할을 확인하며, `public.current_user_is_admin()`은 로그인 사용자가 자기 자신의 관리자 여부만 확인할 수 있는 RPC다.
+
 원격 조회 시 위 `public` 테이블의 RLS는 모두 활성화되어 있었다.
 
 ## 관계와 제약
@@ -34,7 +36,7 @@ Supabase 클라이언트는 `src/contexts/AuthContext.tsx`에서 생성된다. �
 - 채팅 프로필과 메시지는 공개 조회다. 프로필 생성/수정과 메시지 작성은 `auth.uid() = user_id` 조건을 사용한다.
 - `grading_notes`는 조회·삽입·수정·삭제 모두 소유자만 허용한다.
 - 커뮤니티 게시글·댓글·좋아요·신고는 공개 조회다. 생성·수정·삭제는 해당 행의 `user_id`와 `auth.uid()`를 비교한다.
-- 공지는 `is_published = true`인 행만 공개 조회된다. 공지 댓글은 발행된 공지에만 작성할 수 있고, 소유자만 수정·삭제할 수 있다.
+- 공지는 `is_published = true`인 행만 공개 조회된다. `show_in_banner = true`인 발행 공지만 홈 배너에 표시되며 `display_order`, `created_at desc` 순으로 정렬한다. 공지 생성·수정·삭제와 발행 전 공지 조회는 `private.admin_roles`의 `admin` 역할만 허용한다.
 - Storage 버킷 `community-post-images`는 공개 읽기이며, 인증 사용자는 자신의 `<uid>/...` 경로에만 업로드·수정·삭제할 수 있다.
 
 ## 이력 KV 데이터

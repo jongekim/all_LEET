@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { supabase } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -16,6 +17,7 @@ import { CommunityPage } from './pages/CommunityPage';
 import { CommunityPostPage } from './pages/CommunityPostPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
+import { AdminAnnouncementsPage } from './pages/AdminAnnouncementsPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
 import { projectId, publicAnonKey } from './utils/supabase/info';
@@ -52,6 +54,33 @@ export interface GradingResult {
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
   return currentUser ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser } = useAuth();
+  const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const checkAdminRole = async () => {
+      const { data, error } = await supabase.rpc('current_user_is_admin');
+      if (error) {
+        console.error('관리자 권한을 확인하지 못했습니다.', error);
+        setIsAdmin(false);
+      } else {
+        setIsAdmin(data === true);
+      }
+      setCheckedUserId(currentUser.id);
+    };
+
+    void checkAdminRole();
+  }, [currentUser]);
+
+  if (!currentUser) return <Navigate to="/login" replace />;
+  if (checkedUserId !== currentUser.id) return <div className="min-h-screen bg-slate-50" aria-label="관리자 권한 확인 중" />;
+  return isAdmin ? <>{children}</> : <Navigate to="/" replace />;
 }
 
 const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-cd835c22`;
@@ -469,6 +498,14 @@ function AppContent() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route
+            path="/admin/announcements"
+            element={
+              <AdminRoute>
+                <AdminAnnouncementsPage />
+              </AdminRoute>
+            }
+          />
           
           {/* 메인 페이지 (로그인 상태에 따라 다르게 보일 수 있음) */}
           <Route
@@ -539,7 +576,7 @@ function AppContent() {
           />
         </Routes>
       </div>
-      <GlobalBottomNav />
+      {!location.pathname.startsWith('/admin') && <GlobalBottomNav />}
     </>
   );
 }

@@ -30,4 +30,11 @@ test.describe('공개 읽기 전용 화면', () => {
     await page.goto('/privacy-policy');
     await expect(page.getByRole('heading', { name: '개인정보처리방침' })).toBeVisible();
   });
+
+  test('로그인하지 않은 사용자는 관리자 공지 화면에 접근할 수 없다', async ({ page }) => {
+    await page.goto('/admin/announcements');
+
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByRole('button', { name: '로그인' })).toBeVisible();
+  });
 });

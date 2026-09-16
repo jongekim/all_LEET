@@ -30,4 +30,4 @@ LEET 합산 표준점수와 GPA를 받아 `src/utils/lawschool.ts`의 학교별 
 
 ## 공지
 
-원격 DB에는 홈 공지와 댓글·좋아요 테이블이 존재한다. 현재 `src/`의 검색 결과에서는 이 테이블을 직접 사용하는 화면 코드는 확인되지 않았다.
+홈 공지는 `home_announcements`에서 읽어 배너로 순환 노출한다. 운영자는 `/admin/announcements`에서 제목·본문·배너 문구, 발행 상태, 홈 배너 노출 여부와 순서를 관리한다. 상세 운영 절차는 `docs/admin-announcements.md`를 따른다.
