@@ -8,20 +8,22 @@ const YEARS = [
 interface YearSelectorProps {
   selectedYear: Year;
   onYearChange: (year: Year) => void;
+  years?: readonly Year[];
 }
 
-export function YearSelector({ selectedYear, onYearChange }: YearSelectorProps) {
+export function YearSelector({ selectedYear, onYearChange, years = YEARS }: YearSelectorProps) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
+      <label htmlFor="exam-year" className="block text-sm font-semibold text-gray-700 mb-2">
         시험 학년도
       </label>
       <select
+        id="exam-year"
         value={selectedYear}
         onChange={(e) => onYearChange(e.target.value)}
         className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
       >
-        {YEARS.map((year) => (
+        {years.map((year) => (
           <option key={year} value={year}>
             {year === '09예비' ? '09학년도예비' : `${year}학년도`}
           </option>

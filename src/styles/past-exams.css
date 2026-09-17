@@ -1,0 +1,39 @@
+.past-exam-back, .past-exam-link { display: inline-flex; align-items: center; gap: 6px; }
+.past-exam-answer-title { word-break: keep-all; }
+.past-exam-filters { display: grid; gap: 20px; }
+.past-exam-filters > *, .past-exam-filters fieldset { min-width: 0; }
+.past-exam-filters select { width: 100%; min-height: 44px; }
+.past-exam-choice {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.past-exam-choice:hover { background: #e5e7eb; }
+.past-exam-choice[aria-pressed="true"] { background: #2563eb; color: white; }
+.past-exam-choice:focus-visible, .past-exam-link:focus-visible, .past-exam-back:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+.answer-key-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.answer-key-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 0; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 8px; }
+.past-exam-file { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.past-exam-file-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.past-exam-link { min-height: 44px; padding: 8px 12px; border: 1px solid #dbeafe; border-radius: 8px; color: #1d4ed8; font-size: 14px; }
+.past-exam-link:hover { background: #eff6ff; }
+.score-conversion-table { table-layout: fixed; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.score-conversion-table th, .score-conversion-table td { width: 33.333%; padding: 10px 8px; text-align: center; }
+.score-conversion-table thead { background: #eff6ff; }
+.score-conversion-table thead th { color: #1e3a8a; font-weight: 600; }
+.score-conversion-table tbody tr { border-bottom: 1px solid #f3f4f6; }
+.score-conversion-table tbody tr:nth-child(even) { background: #f9fafb; }
+.score-conversion-table tbody tr:hover { background: #eff6ff; }
+@media (min-width: 640px) {
+  .past-exam-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .answer-key-grid { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+}

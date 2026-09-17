@@ -6,6 +6,7 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
+import { PastExamsPage } from './pages/PastExamsPage';
 import { ChatPage } from './pages/ChatPage';
 import { ResultPage } from './pages/ResultPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -69,6 +70,10 @@ const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-
 const CANONICAL_ORIGIN = 'https://all-leet.vercel.app';
 
 const ROUTE_SEO: Record<string, { title: string; description: string }> = {
+  '/past-exams': {
+    title: 'LEET 기출문제·정답표 | all LEET',
+    description: '학년도별 LEET 언어이해·추리논증 기출문제와 홀수형·짝수형 정답표를 확인하세요.',
+  },
   '/': {
     title: '리트 채점은 all LEET',
     description: '리트 채점, 분석, 로스쿨 합격 예측은 all LEET 올리트에서!',
@@ -497,6 +502,7 @@ function AppContent() {
           />
 
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/past-exams" element={<PastExamsPage />} />
           <Route path="/community/:id" element={<CommunityPostPage />} />
 
           <Route path="/chat" element={<ChatPage />} />

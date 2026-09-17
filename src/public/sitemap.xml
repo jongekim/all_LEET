@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://all-leet.vercel.app/past-exams</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://all-leet.vercel.app/</loc>
     <lastmod>2026-01-20</lastmod>
     <changefreq>daily</changefreq>

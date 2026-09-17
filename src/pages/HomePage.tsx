@@ -6,7 +6,7 @@ import { AnswerSheet } from '../components/AnswerSheet';
 import { getQuestionCount, gradeAnswers } from '../utils/grading';
 import { calculateDday, getDdayText } from '../utils/dday';
 import { Subject, Year, User, GradingResult, ExamType } from '../App';
-import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare, MessageCircle } from 'lucide-react';
+import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare, MessageCircle, Files } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
 
@@ -306,7 +306,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
           </div>
         )}
 
-        <section className="bg-white rounded-lg shadow p-4 sm:p-5">
+        <section aria-label="기능 바로가기" className="bg-white rounded-lg shadow p-4 sm:p-5">
           <div
             className="grid gap-3"
             style={{
@@ -355,6 +355,24 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <div className="text-sm font-semibold text-gray-900">성적분석</div>
               </div>
               <div className="text-xs text-gray-500 mt-2">기록/추이 확인</div>
+            </button>
+
+            <button
+              onClick={() => navigate('/past-exams')}
+              className="w-full text-left border rounded-lg p-3 transition-colors"
+              style={{
+                minHeight: 112,
+                borderColor: '#e5e7eb',
+                borderTop: '2px solid #2563eb',
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Files className="w-5 h-5 text-blue-700" />
+                <div className="text-sm font-semibold text-gray-900">기출문제</div>
+              </div>
+              <div className="text-xs text-gray-500 mt-2">문제지 PDF / 정답표 확인</div>
             </button>
 
             <button
