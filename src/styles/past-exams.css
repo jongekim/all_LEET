@@ -37,7 +37,10 @@
   outline-offset: 3px;
 }
 .answer-key-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-.answer-key-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 0; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 8px; }
+.answer-key-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 0 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; }
+.answer-key-question { font-size: 11px; color: #64748b; line-height: 16px; }
+.answer-key-value { margin-bottom: 4px; font-size: 20px; line-height: 28px; font-weight: 700; color: #0f172a; }
+.answer-key-value:last-child { margin-bottom: 12px; }
 .past-exam-file { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .past-exam-file-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .past-exam-link { min-height: 44px; padding: 8px 12px; border: 1px solid #dbeafe; border-radius: 8px; color: #1d4ed8; font-size: 14px; }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, X, StickyNote } from 'lucide-react';
+import { QuestionRate } from './QuestionStatistics';
 
 interface AnswerSheetResultProps {
   total: number;
@@ -85,7 +86,7 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, o
         </div>
       </div>
       
-      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 ml-2">
+      <div className="answer-sheet-result-grid grid grid-cols-5 sm:grid-cols-10 gap-2 ml-2">
         {Array.from({ length: total }, (_, i) => i + 1).map((questionNum) => {
           const correct = isCorrect(questionNum);
           const isRevealed = revealedQuestions.has(questionNum);
@@ -101,6 +102,7 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, o
               {onOpenNote && (
                 <button
                   type="button"
+                  style={{ zIndex: 2, left: -8, top: -8, width: 24, height: 24 }}
                   aria-label={`${questionNum}번 문항 메모`}
                   title={`${questionNum}번 메모 ${hasNote ? '보기/수정' : '작성'}`}
                   onPointerDown={(e) => {
@@ -122,7 +124,12 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, o
                   <StickyNote className="h-3.5 w-3.5" />
                 </button>
               )}
-              <div
+              <div className="relative">
+              <button
+                type="button"
+                disabled={correct !== false}
+                style={{ width: '100%' }}
+                aria-label={`${questionNum}번 입력 답안 ${userAnswer || '미응답'}${correct === false ? ', 정답 보기' : ''}`}
                 className={getCellClassName(questionNum)}
                 onClick={() => handleCellClick(questionNum)}
               >
@@ -138,14 +145,16 @@ export function AnswerSheetResult({ total, userAnswers, correctAnswers, notes, o
                     )}
                   </div>
                 )}
-              </div>
+              </button>
               
               {isRevealed && correctAnswers && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-blue-600 text-white rounded-lg shadow-lg border-2 border-blue-700">
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-blue-600 text-white rounded-lg shadow-lg border-2 border-blue-700">
                   <div className="text-xs opacity-80">정답</div>
                   <div className="text-2xl font-bold">{correctAnswers[questionNum]}</div>
                 </div>
               )}
+              </div>
+              <QuestionRate question={questionNum} />
             </div>
           );
         })}

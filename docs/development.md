@@ -18,6 +18,7 @@
 | PATCH / MINOR / MAJOR 릴리스 준비 | `npm run release:patch` / `npm run release:minor` / `npm run release:major` |
 | 예시 이력 생성 | `npm run gen:example-history` |
 | 예시 이력 시드 | `npm run seed:example-history` |
+| 문항 통계 생성/발행/확인/롤백 | `npm run statistics -- prepare/publish/status/rollback ...` |
 
 Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 있다. 빌드 산출물은 `build/`다.
 
@@ -99,6 +100,8 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 게시글 생성, Storage 업로드, `image_urls` 갱신은 별도 요청으로 실행된다. 실패 시 일부 단계만 성공할 수 있으므로 성공·실패·삭제 경로를 함께 검증한다.
 
 ## 위험도가 높은 변경
+
+문항 통계는 [수동 갱신 가이드](question-statistics.md)의 status → prepare(읽기 전용 집계·파일 검증) → 개발자 검토 → publish(검증 파일 전체 발행) → status/공개 조회 순서로 갱신한다. 문제 시 명시적 rollback을 사용한다. 프로젝트 확인·예상 현재 세대·수행자·사유가 필요하며 원본 KV를 수정하지 않는다. 자동/예약 갱신은 없다. 운영 DB 최초 구조/발행은 적용했고 화면 기능은 v1.2.0에 포함한다. 웹 배포 시 DB 재적용이나 Edge Function 배포는 하지 않는다. 격리 SQL/RLS 검증과 모의 API 화면 테스트 방법도 해당 가이드에 명시한다.
 
 - `supabase/config.toml`의 Edge Function JWT 설정 및 Edge Function의 사용자 식별
 - 현재 `verify_jwt = false`인 성적 이력 Edge Function과 URL `userId` 기반 접근

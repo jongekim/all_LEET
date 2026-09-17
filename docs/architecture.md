@@ -7,7 +7,7 @@ all_LEET은 Vite로 빌드되는 React 단일 페이지 애플리케이션(SPA)�
 ```text
 브라우저 (React / React Router)
  ├─ Supabase Auth
- ├─ Supabase Postgres (채팅, 커뮤니티, 오답 메모)
+ ├─ Supabase Postgres (채팅, 커뮤니티, 오답 메모, 발행된 문항 통계)
  ├─ Supabase Realtime (채팅 INSERT 구독)
  ├─ Supabase Storage (커뮤니티 이미지)
  └─ Edge Function make-server-cd835c22
@@ -39,6 +39,12 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 `src/supabase/functions/server/`에도 Hono/KV 구현이 존재하지만, 이 경로는 현재 `supabase/config.toml`에 등록되어 있지 않다.
 
 ## 라우팅
+
+### 문항 통계 조회·수동 발행
+
+`QuestionStatistics`/`QuestionRate`와 `useQuestionStatistics`를 결과 답안 및 기출 정답표가 공유한다. 동일 학년도·유형의 두 과목은 한 공개 SELECT로 읽고 5분간 공유 캐시한다. RLS가 현재 발행 세대만 허용한다. 통계 오류·정답 버전 불일치가 개인 결과·메모·정답표를 막지 않는다.
+
+개발자 전용 `scripts/question-statistics.ts`는 브라우저와 분리된 Supabase Management API로 읽기 전용 집계 파일 생성, 검증 파일의 원자적 전체 발행, 상태 확인, 롤백을 수행한다. 주기 작업·Edge Function·원본 이력 API 변경은 없다. 구조와 운영 절차는 [문항 통계 설계](question-statistics-design.md) 및 [수동 갱신](question-statistics.md)을 따른다.
 
 공개 라우트는 홈(`/`), 결과, 로그인/회원가입/비밀번호 재설정, 약관, 커뮤니티, 채팅이다. `PrivateRoute`가 적용된 라우트는 지원 분석(`/admission`, `/admission-result`)과 사설 모의고사 입력(`/mock-input`)이다. `/history`와 `/mock-history`는 라우트 가드 없이 렌더링되며, 이력 로딩 자체는 현재 사용자 유무에 따라 동작한다.
 

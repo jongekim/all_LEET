@@ -1,0 +1,1598 @@
+[
+  {
+    "year": "2026",
+    "subject": "reasoning",
+    "exam_type": "even",
+    "question_count": 40,
+    "answer_key_version": "v1:2325231452311513513211524433221443255354",
+    "sample_count": "31",
+    "items": [
+      {
+        "question_no": 1,
+        "choice_counts": [
+          4,
+          20,
+          0,
+          6,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 2,
+        "choice_counts": [
+          0,
+          0,
+          17,
+          1,
+          13
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 3,
+        "choice_counts": [
+          2,
+          16,
+          0,
+          13,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 4,
+        "choice_counts": [
+          1,
+          2,
+          1,
+          1,
+          26
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 5,
+        "choice_counts": [
+          3,
+          17,
+          0,
+          10,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 6,
+        "choice_counts": [
+          8,
+          1,
+          22,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 7,
+        "choice_counts": [
+          13,
+          1,
+          14,
+          0,
+          3
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 8,
+        "choice_counts": [
+          0,
+          2,
+          0,
+          29,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 9,
+        "choice_counts": [
+          0,
+          3,
+          2,
+          5,
+          21
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 10,
+        "choice_counts": [
+          1,
+          27,
+          0,
+          3,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 11,
+        "choice_counts": [
+          1,
+          2,
+          23,
+          2,
+          0
+        ],
+        "unanswered_count": 3
+      },
+      {
+        "question_no": 12,
+        "choice_counts": [
+          26,
+          1,
+          3,
+          0,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 13,
+        "choice_counts": [
+          27,
+          0,
+          4,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 14,
+        "choice_counts": [
+          1,
+          1,
+          4,
+          4,
+          21
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 15,
+        "choice_counts": [
+          28,
+          1,
+          2,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 16,
+        "choice_counts": [
+          1,
+          0,
+          22,
+          7,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 17,
+        "choice_counts": [
+          0,
+          3,
+          2,
+          12,
+          14
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 18,
+        "choice_counts": [
+          26,
+          4,
+          1,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 19,
+        "choice_counts": [
+          2,
+          0,
+          27,
+          0,
+          2
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 20,
+        "choice_counts": [
+          1,
+          24,
+          0,
+          5,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 21,
+        "choice_counts": [
+          27,
+          0,
+          4,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 22,
+        "choice_counts": [
+          28,
+          0,
+          1,
+          1,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 23,
+        "choice_counts": [
+          10,
+          2,
+          1,
+          3,
+          15
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 24,
+        "choice_counts": [
+          0,
+          31,
+          0,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 25,
+        "choice_counts": [
+          2,
+          1,
+          0,
+          27,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 26,
+        "choice_counts": [
+          1,
+          3,
+          6,
+          20,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 27,
+        "choice_counts": [
+          2,
+          0,
+          29,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 28,
+        "choice_counts": [
+          0,
+          0,
+          28,
+          1,
+          1
+        ],
+        "unanswered_count": 1
+      },
+      {
+        "question_no": 29,
+        "choice_counts": [
+          0,
+          21,
+          1,
+          9,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 30,
+        "choice_counts": [
+          0,
+          30,
+          0,
+          1,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 31,
+        "choice_counts": [
+          16,
+          1,
+          5,
+          2,
+          4
+        ],
+        "unanswered_count": 3
+      },
+      {
+        "question_no": 32,
+        "choice_counts": [
+          0,
+          2,
+          3,
+          21,
+          2
+        ],
+        "unanswered_count": 3
+      },
+      {
+        "question_no": 33,
+        "choice_counts": [
+          1,
+          1,
+          3,
+          22,
+          2
+        ],
+        "unanswered_count": 2
+      },
+      {
+        "question_no": 34,
+        "choice_counts": [
+          3,
+          2,
+          16,
+          0,
+          5
+        ],
+        "unanswered_count": 5
+      },
+      {
+        "question_no": 35,
+        "choice_counts": [
+          0,
+          30,
+          0,
+          1,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 36,
+        "choice_counts": [
+          1,
+          0,
+          5,
+          7,
+          17
+        ],
+        "unanswered_count": 1
+      },
+      {
+        "question_no": 37,
+        "choice_counts": [
+          1,
+          0,
+          2,
+          3,
+          25
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 38,
+        "choice_counts": [
+          4,
+          0,
+          25,
+          1,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 39,
+        "choice_counts": [
+          3,
+          0,
+          0,
+          8,
+          19
+        ],
+        "unanswered_count": 1
+      },
+      {
+        "question_no": 40,
+        "choice_counts": [
+          1,
+          3,
+          5,
+          16,
+          1
+        ],
+        "unanswered_count": 5
+      }
+    ],
+    "snapshot_id": "1",
+    "aggregation_version": "all_saved_records_v1",
+    "source_snapshot_at": "2026-09-17 07:56:30.614111+00",
+    "published_at": "2026-09-17T08:01:41.568172Z"
+  },
+  {
+    "year": "2026",
+    "subject": "reasoning",
+    "exam_type": "odd",
+    "question_count": 40,
+    "answer_key_version": "v1:2325321452131513512311524433221443255354",
+    "sample_count": "263",
+    "items": [
+      {
+        "question_no": 1,
+        "choice_counts": [
+          25,
+          170,
+          7,
+          20,
+          9
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 2,
+        "choice_counts": [
+          4,
+          3,
+          121,
+          10,
+          92
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 3,
+        "choice_counts": [
+          7,
+          125,
+          3,
+          88,
+          10
+        ],
+        "unanswered_count": 30
+      },
+      {
+        "question_no": 4,
+        "choice_counts": [
+          10,
+          4,
+          13,
+          8,
+          197
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 5,
+        "choice_counts": [
+          50,
+          5,
+          176,
+          0,
+          1
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 6,
+        "choice_counts": [
+          11,
+          147,
+          12,
+          57,
+          4
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 7,
+        "choice_counts": [
+          109,
+          5,
+          98,
+          3,
+          16
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 8,
+        "choice_counts": [
+          2,
+          13,
+          5,
+          208,
+          2
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 9,
+        "choice_counts": [
+          2,
+          15,
+          20,
+          31,
+          164
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 10,
+        "choice_counts": [
+          4,
+          217,
+          2,
+          7,
+          2
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 11,
+        "choice_counts": [
+          169,
+          3,
+          50,
+          6,
+          2
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 12,
+        "choice_counts": [
+          33,
+          5,
+          167,
+          12,
+          9
+        ],
+        "unanswered_count": 37
+      },
+      {
+        "question_no": 13,
+        "choice_counts": [
+          206,
+          2,
+          18,
+          3,
+          2
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 14,
+        "choice_counts": [
+          1,
+          5,
+          24,
+          21,
+          179
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 15,
+        "choice_counts": [
+          191,
+          8,
+          28,
+          0,
+          5
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 16,
+        "choice_counts": [
+          16,
+          12,
+          161,
+          40,
+          2
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 17,
+        "choice_counts": [
+          1,
+          6,
+          9,
+          85,
+          131
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 18,
+        "choice_counts": [
+          173,
+          41,
+          7,
+          5,
+          4
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 19,
+        "choice_counts": [
+          10,
+          187,
+          5,
+          18,
+          11
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 20,
+        "choice_counts": [
+          19,
+          3,
+          189,
+          8,
+          10
+        ],
+        "unanswered_count": 34
+      },
+      {
+        "question_no": 21,
+        "choice_counts": [
+          217,
+          5,
+          8,
+          2,
+          0
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 22,
+        "choice_counts": [
+          196,
+          6,
+          28,
+          1,
+          0
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 23,
+        "choice_counts": [
+          83,
+          13,
+          9,
+          10,
+          115
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 24,
+        "choice_counts": [
+          11,
+          204,
+          2,
+          6,
+          7
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 25,
+        "choice_counts": [
+          22,
+          11,
+          2,
+          192,
+          5
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 26,
+        "choice_counts": [
+          13,
+          38,
+          43,
+          131,
+          5
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 27,
+        "choice_counts": [
+          10,
+          2,
+          188,
+          21,
+          9
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 28,
+        "choice_counts": [
+          25,
+          3,
+          191,
+          3,
+          7
+        ],
+        "unanswered_count": 34
+      },
+      {
+        "question_no": 29,
+        "choice_counts": [
+          6,
+          144,
+          1,
+          71,
+          9
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 30,
+        "choice_counts": [
+          5,
+          213,
+          4,
+          7,
+          1
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 31,
+        "choice_counts": [
+          149,
+          18,
+          12,
+          26,
+          10
+        ],
+        "unanswered_count": 48
+      },
+      {
+        "question_no": 32,
+        "choice_counts": [
+          5,
+          17,
+          3,
+          183,
+          15
+        ],
+        "unanswered_count": 40
+      },
+      {
+        "question_no": 33,
+        "choice_counts": [
+          17,
+          9,
+          12,
+          163,
+          16
+        ],
+        "unanswered_count": 46
+      },
+      {
+        "question_no": 34,
+        "choice_counts": [
+          32,
+          19,
+          95,
+          33,
+          23
+        ],
+        "unanswered_count": 61
+      },
+      {
+        "question_no": 35,
+        "choice_counts": [
+          14,
+          189,
+          2,
+          20,
+          5
+        ],
+        "unanswered_count": 33
+      },
+      {
+        "question_no": 36,
+        "choice_counts": [
+          4,
+          3,
+          59,
+          26,
+          136
+        ],
+        "unanswered_count": 35
+      },
+      {
+        "question_no": 37,
+        "choice_counts": [
+          1,
+          2,
+          23,
+          24,
+          181
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 38,
+        "choice_counts": [
+          26,
+          5,
+          182,
+          7,
+          12
+        ],
+        "unanswered_count": 31
+      },
+      {
+        "question_no": 39,
+        "choice_counts": [
+          7,
+          18,
+          6,
+          43,
+          153
+        ],
+        "unanswered_count": 36
+      },
+      {
+        "question_no": 40,
+        "choice_counts": [
+          30,
+          27,
+          31,
+          101,
+          25
+        ],
+        "unanswered_count": 49
+      }
+    ],
+    "snapshot_id": "1",
+    "aggregation_version": "all_saved_records_v1",
+    "source_snapshot_at": "2026-09-17 07:56:30.614111+00",
+    "published_at": "2026-09-17T08:01:41.568172Z"
+  },
+  {
+    "year": "2026",
+    "subject": "verbal",
+    "exam_type": "even",
+    "question_count": 30,
+    "answer_key_version": "v1:423254234131233254325215143412",
+    "sample_count": "38",
+    "items": [
+      {
+        "question_no": 1,
+        "choice_counts": [
+          2,
+          1,
+          1,
+          33,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 2,
+        "choice_counts": [
+          0,
+          34,
+          4,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 3,
+        "choice_counts": [
+          1,
+          2,
+          31,
+          4,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 4,
+        "choice_counts": [
+          0,
+          25,
+          4,
+          3,
+          3
+        ],
+        "unanswered_count": 3
+      },
+      {
+        "question_no": 5,
+        "choice_counts": [
+          4,
+          1,
+          7,
+          4,
+          19
+        ],
+        "unanswered_count": 3
+      },
+      {
+        "question_no": 6,
+        "choice_counts": [
+          0,
+          6,
+          7,
+          10,
+          10
+        ],
+        "unanswered_count": 5
+      },
+      {
+        "question_no": 7,
+        "choice_counts": [
+          1,
+          37,
+          0,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 8,
+        "choice_counts": [
+          1,
+          0,
+          27,
+          7,
+          3
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 9,
+        "choice_counts": [
+          0,
+          0,
+          2,
+          33,
+          3
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 10,
+        "choice_counts": [
+          29,
+          0,
+          4,
+          4,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 11,
+        "choice_counts": [
+          0,
+          0,
+          38,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 12,
+        "choice_counts": [
+          25,
+          2,
+          10,
+          0,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 13,
+        "choice_counts": [
+          0,
+          35,
+          2,
+          0,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 14,
+        "choice_counts": [
+          0,
+          0,
+          34,
+          3,
+          1
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 15,
+        "choice_counts": [
+          3,
+          1,
+          20,
+          0,
+          14
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 16,
+        "choice_counts": [
+          0,
+          22,
+          8,
+          2,
+          6
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 17,
+        "choice_counts": [
+          3,
+          0,
+          16,
+          1,
+          18
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 18,
+        "choice_counts": [
+          3,
+          0,
+          3,
+          30,
+          1
+        ],
+        "unanswered_count": 1
+      },
+      {
+        "question_no": 19,
+        "choice_counts": [
+          0,
+          0,
+          34,
+          1,
+          3
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 20,
+        "choice_counts": [
+          0,
+          38,
+          0,
+          0,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 21,
+        "choice_counts": [
+          1,
+          0,
+          0,
+          9,
+          28
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 22,
+        "choice_counts": [
+          1,
+          35,
+          0,
+          2,
+          0
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 23,
+        "choice_counts": [
+          27,
+          2,
+          2,
+          5,
+          2
+        ],
+        "unanswered_count": 0
+      },
+      {
+        "question_no": 24,
+        "choice_counts": [
+          1,
+          1,
+          0,
+          5,
+          29
+        ],
+        "unanswered_count": 2
+      },
+      {
+        "question_no": 25,
+        "choice_counts": [
+          25,
+          0,
+          2,
+          3,
+          3
+        ],
+        "unanswered_count": 5
+      },
+      {
+        "question_no": 26,
+        "choice_counts": [
+          6,
+          2,
+          2,
+          18,
+          5
+        ],
+        "unanswered_count": 5
+      },
+      {
+        "question_no": 27,
+        "choice_counts": [
+          1,
+          6,
+          14,
+          6,
+          6
+        ],
+        "unanswered_count": 5
+      },
+      {
+        "question_no": 28,
+        "choice_counts": [
+          1,
+          1,
+          0,
+          35,
+          0
+        ],
+        "unanswered_count": 1
+      },
+      {
+        "question_no": 29,
+        "choice_counts": [
+          33,
+          3,
+          1,
+          0,
+          0
+        ],
+        "unanswered_count": 1
+      },
+      {
+        "question_no": 30,
+        "choice_counts": [
+          2,
+          32,
+          1,
+          1,
+          1
+        ],
+        "unanswered_count": 1
+      }
+    ],
+    "snapshot_id": "1",
+    "aggregation_version": "all_saved_records_v1",
+    "source_snapshot_at": "2026-09-17 07:56:30.614111+00",
+    "published_at": "2026-09-17T08:01:41.568172Z"
+  },
+  {
+    "year": "2026",
+    "subject": "verbal",
+    "exam_type": "odd",
+    "question_count": 30,
+    "answer_key_version": "v1:423214234131233454325215523412",
+    "sample_count": "254",
+    "items": [
+      {
+        "question_no": 1,
+        "choice_counts": [
+          4,
+          19,
+          6,
+          199,
+          12
+        ],
+        "unanswered_count": 14
+      },
+      {
+        "question_no": 2,
+        "choice_counts": [
+          5,
+          222,
+          10,
+          1,
+          3
+        ],
+        "unanswered_count": 13
+      },
+      {
+        "question_no": 3,
+        "choice_counts": [
+          8,
+          5,
+          205,
+          15,
+          6
+        ],
+        "unanswered_count": 15
+      },
+      {
+        "question_no": 4,
+        "choice_counts": [
+          9,
+          164,
+          4,
+          17,
+          31
+        ],
+        "unanswered_count": 29
+      },
+      {
+        "question_no": 5,
+        "choice_counts": [
+          111,
+          24,
+          22,
+          22,
+          43
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 6,
+        "choice_counts": [
+          15,
+          17,
+          29,
+          97,
+          54
+        ],
+        "unanswered_count": 42
+      },
+      {
+        "question_no": 7,
+        "choice_counts": [
+          11,
+          226,
+          0,
+          3,
+          0
+        ],
+        "unanswered_count": 14
+      },
+      {
+        "question_no": 8,
+        "choice_counts": [
+          5,
+          2,
+          178,
+          35,
+          19
+        ],
+        "unanswered_count": 15
+      },
+      {
+        "question_no": 9,
+        "choice_counts": [
+          6,
+          5,
+          15,
+          204,
+          9
+        ],
+        "unanswered_count": 15
+      },
+      {
+        "question_no": 10,
+        "choice_counts": [
+          157,
+          0,
+          31,
+          21,
+          29
+        ],
+        "unanswered_count": 16
+      },
+      {
+        "question_no": 11,
+        "choice_counts": [
+          5,
+          3,
+          221,
+          2,
+          8
+        ],
+        "unanswered_count": 15
+      },
+      {
+        "question_no": 12,
+        "choice_counts": [
+          156,
+          11,
+          61,
+          7,
+          5
+        ],
+        "unanswered_count": 14
+      },
+      {
+        "question_no": 13,
+        "choice_counts": [
+          9,
+          202,
+          22,
+          2,
+          4
+        ],
+        "unanswered_count": 15
+      },
+      {
+        "question_no": 14,
+        "choice_counts": [
+          7,
+          0,
+          203,
+          21,
+          9
+        ],
+        "unanswered_count": 14
+      },
+      {
+        "question_no": 15,
+        "choice_counts": [
+          20,
+          6,
+          116,
+          11,
+          84
+        ],
+        "unanswered_count": 17
+      },
+      {
+        "question_no": 16,
+        "choice_counts": [
+          13,
+          23,
+          42,
+          148,
+          10
+        ],
+        "unanswered_count": 18
+      },
+      {
+        "question_no": 17,
+        "choice_counts": [
+          31,
+          11,
+          78,
+          24,
+          92
+        ],
+        "unanswered_count": 18
+      },
+      {
+        "question_no": 18,
+        "choice_counts": [
+          15,
+          7,
+          11,
+          186,
+          20
+        ],
+        "unanswered_count": 15
+      },
+      {
+        "question_no": 19,
+        "choice_counts": [
+          4,
+          1,
+          198,
+          2,
+          32
+        ],
+        "unanswered_count": 17
+      },
+      {
+        "question_no": 20,
+        "choice_counts": [
+          5,
+          228,
+          2,
+          3,
+          0
+        ],
+        "unanswered_count": 16
+      },
+      {
+        "question_no": 21,
+        "choice_counts": [
+          9,
+          7,
+          7,
+          43,
+          169
+        ],
+        "unanswered_count": 19
+      },
+      {
+        "question_no": 22,
+        "choice_counts": [
+          2,
+          219,
+          4,
+          8,
+          5
+        ],
+        "unanswered_count": 16
+      },
+      {
+        "question_no": 23,
+        "choice_counts": [
+          163,
+          11,
+          16,
+          28,
+          19
+        ],
+        "unanswered_count": 17
+      },
+      {
+        "question_no": 24,
+        "choice_counts": [
+          13,
+          14,
+          8,
+          17,
+          182
+        ],
+        "unanswered_count": 20
+      },
+      {
+        "question_no": 25,
+        "choice_counts": [
+          20,
+          2,
+          10,
+          12,
+          184
+        ],
+        "unanswered_count": 26
+      },
+      {
+        "question_no": 26,
+        "choice_counts": [
+          27,
+          93,
+          27,
+          43,
+          32
+        ],
+        "unanswered_count": 32
+      },
+      {
+        "question_no": 27,
+        "choice_counts": [
+          20,
+          20,
+          113,
+          35,
+          26
+        ],
+        "unanswered_count": 40
+      },
+      {
+        "question_no": 28,
+        "choice_counts": [
+          10,
+          2,
+          9,
+          199,
+          14
+        ],
+        "unanswered_count": 20
+      },
+      {
+        "question_no": 29,
+        "choice_counts": [
+          211,
+          7,
+          10,
+          2,
+          4
+        ],
+        "unanswered_count": 20
+      },
+      {
+        "question_no": 30,
+        "choice_counts": [
+          14,
+          187,
+          5,
+          5,
+          22
+        ],
+        "unanswered_count": 21
+      }
+    ],
+    "snapshot_id": "1",
+    "aggregation_version": "all_saved_records_v1",
+    "source_snapshot_at": "2026-09-17 07:56:30.614111+00",
+    "published_at": "2026-09-17T08:01:41.568172Z"
+  }
+]

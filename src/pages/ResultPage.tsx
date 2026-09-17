@@ -5,6 +5,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { GradingResult, Subject } from '../App';
 import { ResultPanel } from '../components/ResultPanel';
 import { AnswerSheetResult } from '../components/AnswerSheetResult';
+import { QuestionStatistics } from '../components/QuestionStatistics';
+import { hasMatchingAnswers } from '../utils/questionStatisticsModel';
 import { Home, X } from 'lucide-react';
 import { useAuth, supabase } from '../contexts/AuthContext';
 import { Textarea } from '../components/ui/textarea';
@@ -403,6 +405,11 @@ export function ResultPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 {result.subject === 'verbal' ? '언어이해' : '추리논증'} - 입력한 답안
               </h3>
+              <QuestionStatistics
+                key={`${result.year}:${result.subject}:${result.examType}`}
+                selection={{ year: result.year, subject: result.subject, examType: result.examType }}
+                compatible={hasMatchingAnswers({ year: result.year, subject: result.subject, examType: result.examType }, result.correctAnswers)}
+              >
               <AnswerSheetResult
                 total={result.total}
                 userAnswers={result.userAnswers ?? {}}
@@ -410,6 +417,7 @@ export function ResultPage() {
                 notes={notesBySubject[result.subject]}
                 onOpenNote={(q) => openNoteModal(result.subject, q)}
               />
+              </QuestionStatistics>
             </div>
           </div>
         ))}

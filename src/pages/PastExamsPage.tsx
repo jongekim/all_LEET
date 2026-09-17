@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Files } from 'lucide-react';
 import { YearSelector } from '../components/YearSelector';
 import { AnswerKeyTable } from '../components/AnswerKeyTable';
+import { QuestionStatistics } from '../components/QuestionStatistics';
 import { PastExamFiles } from '../components/PastExamFiles';
 import { ScoreConversionTable } from '../components/ScoreConversionTable';
 import { PastExamReview } from '../components/PastExamReview';
@@ -80,7 +81,9 @@ export function PastExamsPage() {
               <p className="text-sm text-blue-100 mt-1">총 {total}문항 · 문제지의 학년도와 유형을 확인해주세요.</p>
             </div>
             <div className="p-4 sm:p-6">
-              <AnswerKeyTable answers={getCorrectAnswers(year, subject, examType)} total={total} />
+              <QuestionStatistics selection={{ year, subject, examType }}>
+                <AnswerKeyTable answers={getCorrectAnswers(year, subject, examType)} total={total} />
+              </QuestionStatistics>
             </div>
           </section>
           <section aria-labelledby="score-conversion-heading" className="bg-white rounded-lg shadow p-4 sm:p-6">
