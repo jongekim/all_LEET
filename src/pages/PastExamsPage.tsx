@@ -5,6 +5,7 @@ import { YearSelector } from '../components/YearSelector';
 import { AnswerKeyTable } from '../components/AnswerKeyTable';
 import { PastExamFiles } from '../components/PastExamFiles';
 import { ScoreConversionTable } from '../components/ScoreConversionTable';
+import { PastExamReview } from '../components/PastExamReview';
 import { getCorrectAnswers } from '../utils/answerData';
 import { SCORE_DATA } from '../utils/scoreData';
 import { getQuestionCount } from '../utils/grading';
@@ -77,22 +78,24 @@ export function PastExamsPage() {
           <h2 id="past-exam-pdf-heading" className="text-lg font-bold text-gray-900 mb-2">문제지 PDF</h2>
           <PastExamFiles documents={documents} />
         </section>
-        <section aria-labelledby="answer-key-heading" className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="bg-blue-600 px-4 sm:px-6 py-3">
-            <h2 id="answer-key-heading" className="past-exam-answer-title text-lg font-bold text-white">{yearLabel} {subjectLabel} {typeLabel} 정답표</h2>
-            <p className="text-sm text-blue-100 mt-1">총 {total}문항 · 문제지의 학년도와 유형을 확인해주세요.</p>
-          </div>
-          <div className="p-4 sm:p-6">
-            <AnswerKeyTable answers={getCorrectAnswers(year, subject, examType)} total={total} />
-          </div>
-        </section>
-        <section aria-labelledby="score-conversion-heading" className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <h2 id="score-conversion-heading" className="past-exam-answer-title text-lg font-bold text-gray-900">{yearLabel} {subjectLabel} 점수 환산표</h2>
-          <p className="text-sm text-gray-600 mt-2">홀수형·짝수형 공통 · 맞은 개수 많은 순</p>
-          <p id="score-estimate-notice" className="text-xs text-gray-500 mt-2 mb-4">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다. 참고용으로 확인해주세요.</p>
-          <ScoreConversionTable scores={SCORE_DATA[year]?.[subject]} total={total} />
-        </section>
-        <p className="text-xs text-gray-500">정답표는 all LEET 채점에 사용하는 정답 데이터와 동일합니다.</p>
+        <PastExamReview key={`${year}:${subject}:${examType}`}>
+          <section aria-labelledby="answer-key-heading" className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-blue-600 px-4 sm:px-6 py-3">
+              <h2 id="answer-key-heading" className="past-exam-answer-title text-lg font-bold text-white">{yearLabel} {subjectLabel} {typeLabel} 정답표</h2>
+              <p className="text-sm text-blue-100 mt-1">총 {total}문항 · 문제지의 학년도와 유형을 확인해주세요.</p>
+            </div>
+            <div className="p-4 sm:p-6">
+              <AnswerKeyTable answers={getCorrectAnswers(year, subject, examType)} total={total} />
+            </div>
+          </section>
+          <section aria-labelledby="score-conversion-heading" className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <h2 id="score-conversion-heading" className="past-exam-answer-title text-lg font-bold text-gray-900">{yearLabel} {subjectLabel} 점수 환산표</h2>
+            <p className="text-sm text-gray-600 mt-2">홀수형·짝수형 공통 · 맞은 개수 많은 순</p>
+            <p id="score-estimate-notice" className="text-xs text-gray-500 mt-2 mb-4">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다. 참고용으로 확인해주세요.</p>
+            <ScoreConversionTable scores={SCORE_DATA[year]?.[subject]} total={total} />
+          </section>
+          <p className="text-xs text-gray-500">정답표는 all LEET 채점에 사용하는 정답 데이터와 동일합니다.</p>
+        </PastExamReview>
       </main>
     </div>
   );
