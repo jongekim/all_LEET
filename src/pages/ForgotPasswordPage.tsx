@@ -1,6 +1,7 @@
+import { PageHeader } from '../components/PageHeader';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Mail, ArrowLeft } from 'lucide-react';
+import { BookOpen, Mail } from 'lucide-react';
 import { supabase } from '../contexts/AuthContext';
 
 export function ForgotPasswordPage() {
@@ -65,8 +66,9 @@ export function ForgotPasswordPage() {
   if (success) {
     const displayEmail = getFullEmail();
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-        <div className="max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+        <PageHeader title="비밀번호 찾기" backTo="/login" />
+        <div className="max-w-md w-full px-4 py-6" style={{ margin: 'auto' }}>
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
@@ -110,8 +112,9 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      <PageHeader title="비밀번호 찾기" backTo="/login" />
+      <div className="max-w-md w-full px-4 py-6" style={{ margin: 'auto' }}>
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
@@ -181,16 +184,6 @@ export function ForgotPasswordPage() {
               {loading ? '전송 중...' : '비밀번호 재설정 이메일 받기'}
             </button>
           </form>
-
-          <div className="mt-6">
-            <button
-              onClick={() => navigate('/login')}
-              className="flex items-center justify-center gap-2 w-full text-gray-600 hover:text-gray-800 font-semibold"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              로그인으로 돌아가기
-            </button>
-          </div>
 
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-xs text-blue-800 font-semibold mb-1">💡 안내</p>

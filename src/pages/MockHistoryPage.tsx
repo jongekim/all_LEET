@@ -1,9 +1,10 @@
+import { PageBackButton } from '../components/PageBackButton';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { MockExamRecord } from '../types/mockExam';
 import { getMockExamDisplayTitle, MOCK_EXAM_BASE_PROVIDERS } from '../types/mockExam';
 import { MockTrendChart } from '../components/MockTrendChart';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 interface MockHistoryPageProps {
   records: MockExamRecord[];
@@ -46,13 +47,7 @@ export function MockHistoryPage({ records, onClear, onDelete }: MockHistoryPageP
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">사설 모의고사 히스토리</h1>
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">돌아가기</span>
-              </button>
+              <PageBackButton />
             </div>
           </div>
         </header>
@@ -82,13 +77,7 @@ export function MockHistoryPage({ records, onClear, onDelete }: MockHistoryPageP
               <p className="text-sm text-gray-600 mt-1">총 {records.length}개의 기록</p>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">돌아가기</span>
-              </button>
+              <PageBackButton />
               <button
                 onClick={() => navigate('/mock-input')}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"

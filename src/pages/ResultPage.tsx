@@ -1,9 +1,11 @@
+import { PageHeader } from '../components/PageHeader';
+import { PageBackButton } from '../components/PageBackButton';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { GradingResult, Subject } from '../App';
 import { ResultPanel } from '../components/ResultPanel';
 import { AnswerSheetResult } from '../components/AnswerSheetResult';
-import { ArrowLeft, Home, X } from 'lucide-react';
+import { Home, X } from 'lucide-react';
 import { useAuth, supabase } from '../contexts/AuthContext';
 import { Textarea } from '../components/ui/textarea';
 import { Button } from '../components/ui/button';
@@ -104,16 +106,11 @@ export function ResultPage() {
 
   if (!finalResults || finalResults.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">결과를 찾을 수 없습니다</h2>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
-            홈으로 돌아가기
-          </button>
-        </div>
+      <div className="min-h-screen bg-gray-50">
+        <PageHeader title="채점 결과" />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
+          <h2 className="text-2xl font-bold text-gray-900">결과를 찾을 수 없습니다</h2>
+        </main>
       </div>
     );
   }
@@ -356,13 +353,7 @@ export function ResultPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">돌아가기</span>
-              </button>
+              <PageBackButton />
                 <Button
                   onClick={() => navigate('/history')}
                   className="gap-2 whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 shadow-md"

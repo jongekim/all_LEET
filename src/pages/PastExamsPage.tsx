@@ -1,6 +1,7 @@
+import { PageHeader } from '../components/PageHeader';
 import { useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Files } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Files } from 'lucide-react';
 import { YearSelector } from '../components/YearSelector';
 import { AnswerKeyTable } from '../components/AnswerKeyTable';
 import { PastExamFiles } from '../components/PastExamFiles';
@@ -38,16 +39,10 @@ export function PastExamsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-          <Link to="/" className="past-exam-back text-sm text-gray-600"><ArrowLeft size={16} aria-hidden="true" />홈으로</Link>
-          <div className="flex items-center gap-2 mt-3">
-            <Files className="w-6 h-6 text-blue-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-gray-900">기출문제·정답표</h1>
-          </div>
-          <p className="text-sm text-gray-600 mt-2">학년도와 시험 유형을 선택해 문제지와 정답표를 확인하세요.</p>
-        </div>
-      </header>
+      <PageHeader
+        title={<span className="flex items-center gap-2"><Files className="w-6 h-6 text-blue-600" aria-hidden="true" />기출문제·정답표</span>}
+        description="학년도와 시험 유형을 선택해 문제지와 정답표를 확인하세요."
+      />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         <section aria-label="시험 선택" className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="past-exam-filters">

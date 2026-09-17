@@ -1,6 +1,7 @@
+import { PageHeader } from '../components/PageHeader';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LawSchoolAnalysis, getSchoolsByChance } from '../utils/lawschool';
-import { ArrowLeft, TrendingUp, AlertCircle, XCircle, MapPin } from 'lucide-react';
+import { TrendingUp, AlertCircle, XCircle, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ToeicInfoNotice } from '../components/ToeicInfoDialog';
 
@@ -97,25 +98,11 @@ export function AdmissionResultPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">합격 가능성 분석 결과</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                LEET {input.leet} / GPA {input.gpa}
-              </p>
-            </div>
-            <button
-              onClick={() => navigate('/admission')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">다시 분석</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="합격 가능성 분석 결과"
+        description={`LEET ${input.leet} / GPA ${input.gpa}`}
+        backTo="/admission"
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* 요약 통계 */}
@@ -195,12 +182,6 @@ export function AdmissionResultPage() {
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
             다른 점수로 다시 분석하기
-          </button>
-          <button
-            onClick={() => navigate('/')}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
-          >
-            홈으로 돌아가기
           </button>
         </div>
       </main>

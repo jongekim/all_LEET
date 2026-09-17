@@ -1,6 +1,7 @@
+import { PageHeader } from '../components/PageHeader';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Heart, MessageCircle, Eye, Flag, Trash2, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, MessageCircle, Eye, Flag, Trash2, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
 import type { CommunityPost } from '../types/community';
 import { formatTimeAgoKorean } from '../utils/timeAgo';
@@ -472,17 +473,7 @@ export function CommunityPostPage() {
   if (!post && !loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <button
-              onClick={() => navigate('/community')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              돌아가기
-            </button>
-          </div>
-        </header>
+        <PageHeader title="커뮤니티 게시글" backTo="/community" />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center text-gray-600">
           존재하지 않는 글입니다.
         </main>
@@ -493,17 +484,7 @@ export function CommunityPostPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <button
-              onClick={() => navigate('/community')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              목록
-            </button>
-          </div>
-        </header>
+        <PageHeader title="커뮤니티 게시글" backTo="/community" />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center text-gray-600">
           불러오는 중…
         </main>
@@ -514,17 +495,7 @@ export function CommunityPostPage() {
   if (!post) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <button
-              onClick={() => navigate('/community')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              돌아가기
-            </button>
-          </div>
-        </header>
+        <PageHeader title="커뮤니티 게시글" backTo="/community" />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center text-gray-600">
           존재하지 않는 글입니다.
         </main>
@@ -536,18 +507,7 @@ export function CommunityPostPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
-          <button
-            onClick={() => navigate('/community')}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            목록
-          </button>
-          <div className="text-sm text-gray-500">{post.tag}</div>
-        </div>
-      </header>
+      <PageHeader title="커뮤니티 게시글" backTo="/community" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <section className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">

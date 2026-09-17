@@ -1,6 +1,7 @@
+import { PageHeader } from '../components/PageHeader';
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessagesSquare, Tag, Send, Heart, Eye, MessageCircle, ImagePlus, X } from 'lucide-react';
+import { MessagesSquare, Tag, Send, Heart, Eye, MessageCircle, ImagePlus, X } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
 import type { CommunityPost, CommunityTag } from '../types/community';
 import { COMMUNITY_TAGS } from '../types/community';
@@ -364,28 +365,10 @@ export function CommunityPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">돌아가기</span>
-              </button>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <MessagesSquare className="w-6 h-6" />
-                  커뮤니티 게시판
-                </h1>
-                <p className="text-sm text-gray-600 mt-1">태그별로 글을 보고 댓글을 남겨보세요.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title={<span className="flex items-center gap-2"><MessagesSquare className="w-6 h-6" />커뮤니티 게시판</span>}
+        description="태그별로 글을 보고 댓글을 남겨보세요."
+      />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {isWriteOpen && (

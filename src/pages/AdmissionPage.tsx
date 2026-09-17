@@ -1,6 +1,7 @@
+import { PageBackButton } from '../components/PageBackButton';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Calculator, TrendingUp } from 'lucide-react';
+import { GraduationCap, Calculator, TrendingUp } from 'lucide-react';
 import { analyzeLawSchools } from '../utils/lawschool';
 
 export function AdmissionPage() {
@@ -79,13 +80,7 @@ export function AdmissionPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">로스쿨 지원 가능성 분석</h1>
               <p className="text-sm text-gray-600 mt-1">나의 점수로 지원 가능한 로스쿨을 확인하세요</p>
             </div>
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">홈으로</span>
-            </button>
+            <PageBackButton />
           </div>
         </div>
       </header>

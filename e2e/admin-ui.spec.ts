@@ -54,7 +54,7 @@ for (const width of [390, 1280]) {
     await page.screenshot({ path: testInfo.outputPath('admin-editor.png'), fullPage: true });
     page.once('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: '목록으로', exact: true }).click();
-    await page.getByRole('link', { name: '관리자 홈', exact: true }).click();
+    await page.locator('header').getByRole('button', { name: '돌아가기', exact: true }).click();
     await expect(page).toHaveURL(/\/admin$/);
   });
 }

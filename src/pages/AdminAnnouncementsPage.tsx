@@ -1,6 +1,6 @@
+import { PageHeader } from '../components/PageHeader';
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Pencil } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 import { supabase } from '../contexts/AuthContext';
 import type { Announcement, AnnouncementForm } from '../types/announcement';
 import { Button } from '../components/ui/button';
@@ -97,18 +97,17 @@ export function AdminAnnouncementsPage() {
   }
 
   return (
-    <main className="admin-shell">
-      <div className="admin-container">
-        {editing
-          ? <button className="admin-back" onClick={cancel} disabled={saving}><ArrowLeft size={16} /> 공지 목록</button>
-          : <Link className="admin-back" to="/admin"><ArrowLeft size={16} /> 관리자 홈</Link>}
-        <header className="admin-heading">
-          <div><p className="admin-eyebrow">ALL LEET · 공지 관리</p>
-            <h1>{editing ? (selected ? '공지 수정' : '새 공지 작성') : '공지 관리'}</h1>
-            <p>{editing ? '내용과 공개 설정을 확인한 후 저장해주세요.' : '수정할 공지를 선택하거나 새 공지를 작성하세요.'}</p>
-          </div>
-          {!editing && <Button className="admin-primary" onClick={() => start(null)}><Plus size={16} /> 새 공지</Button>}
-        </header>
+    <div className="min-h-screen bg-gray-50">
+      <PageHeader
+        title={editing ? (selected ? '공지 수정' : '새 공지 작성') : '공지 관리'}
+        description={editing ? '내용과 공개 설정을 확인한 후 저장해주세요.' : '수정할 공지를 선택하거나 새 공지를 작성하세요.'}
+        backTo="/admin"
+        onBack={editing ? cancel : undefined}
+        backDisabled={saving}
+      />
+      <main className="admin-shell">
+        <div className="admin-container">
+          {!editing && <Button className="admin-primary mb-4" onClick={() => start(null)}><Plus size={16} /> 새 공지</Button>}
         {error && <div className="admin-notice" role="alert">{error}
           {!editing && <Button variant="outline" onClick={() => { setError(''); setLoading(true); setReload(value => value + 1); }}>다시 시도</Button>}
         </div>}
@@ -171,7 +170,8 @@ export function AdminAnnouncementsPage() {
             </fieldset>
           </form>
         )}
-      </div>
-    </main>
+        </div>
+      </main>
+    </div>
   );
 }

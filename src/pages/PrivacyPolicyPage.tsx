@@ -1,32 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
+import { Shield } from 'lucide-react';
 
 export function PrivacyPolicyPage() {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900"
-            aria-label="뒤로가기"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">뒤로</span>
-          </button>
-          <div className="flex items-center gap-2 ml-auto text-gray-900">
-            <Shield className="w-5 h-5" />
-            <span className="font-semibold">개인정보 처리방침</span>
-          </div>
-        </div>
-      </header>
+      <PageHeader title={<span className="flex items-center gap-2"><Shield className="w-5 h-5" />개인정보처리방침</span>} />
 
       <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-6 sm:p-8 space-y-6">
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-gray-900">개인정보처리방침</h1>
             <p className="text-sm text-gray-600">시행일: 2026.01.20.</p>
           </div>
 
@@ -398,15 +380,6 @@ export function PrivacyPolicyPage() {
               <p>제1조 본 방침은 2026.01.20.부터 시행됩니다.</p>
             </section>
           </article>
-
-          <div className="pt-2">
-            <button
-              onClick={() => navigate('/')}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-            >
-              홈으로 돌아가기
-            </button>
-          </div>
         </div>
       </main>
     </div>

@@ -1,6 +1,7 @@
+import { PageHeader } from '../components/PageHeader';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../contexts/AuthContext';
 import type { ChatMessage, ChatProfile } from '../types/chat';
@@ -151,39 +152,19 @@ export function ChatPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">돌아가기</span>
-              </button>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <MessageCircle className="w-6 h-6" />
-                  전체 채팅
-                </h1>
-                <p className="text-sm text-gray-600 mt-1">
-                  {profile ? (
-                    <span className="inline-flex items-center gap-2">
-                      <span className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg font-semibold">
-                        {profile.nickname}
-                      </span>
-                      <span className="text-gray-700">로 참여 중</span>
-                    </span>
-                  ) : (
-                    (profileLoading ? '닉네임 생성 중…' : '메시지 보기는 가능, 작성은 로그인 필요')
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title={<span className="flex items-center gap-2"><MessageCircle className="w-6 h-6" />전체 채팅</span>}
+        description={profile ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg font-semibold">
+              {profile.nickname}
+            </span>
+            <span className="text-gray-700">로 참여 중</span>
+          </span>
+        ) : (
+          profileLoading ? '닉네임 생성 중…' : '메시지 보기는 가능, 작성은 로그인 필요'
+        )}
+      />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white rounded-lg shadow overflow-hidden">
