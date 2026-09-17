@@ -67,6 +67,8 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 ## 문서 갱신 원칙
 
+오픈소스 의존성, 복사한 UI·CSS, 폰트·이미지 변경 시에는 [라이선스 준수 관리](./open-source-compliance.md)에 따라 [의존성 목록](./licenses/dependency-inventory.md)과 `src/public/third-party-notices.txt`의 실제 버전·원문 고지를 함께 갱신한다. 고지 텍스트는 기존 public 디렉터리 설정으로 빌드에 포함된다. 개발 의존성 고지 근거는 `docs/licenses/development-notices.txt`에서 관리하며, 원문 미수집 항목은 준수 완료로 판정하지 않는다.
+
 새로운 기능을 개발하거나 아키텍처를 변경할 때는 관련 문서 수정도 필수 작업에 포함한다. 코드 변경과 문서 갱신은 같은 작업 및 커밋 또는 PR에 포함하고, 작업 완료 전에 문서가 실제 구현과 일치하는지 확인한다.
 
 - 기능 동작·사용자 흐름 변경: `docs/domain.md` 및 해당 기능별 문서

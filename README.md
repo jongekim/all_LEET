@@ -3,6 +3,10 @@
 
   This is a code bundle for all LEET.
 
+  ## 오픈소스 고지
+
+  사용한 제3자 소프트웨어에는 각 권리자의 라이선스가 적용됩니다. [제3자 고지](./THIRD_PARTY_NOTICES.md)와 [라이선스 준수 관리](./docs/open-source-compliance.md)에서 원문, 실제 의존성 버전, Vercel Analytics 소스 취득 안내 및 후속 사항을 확인할 수 있습니다. 배포용 고지 텍스트는 `src/public/third-party-notices.txt`에 있으며 다음 빌드에서 `/third-party-notices.txt`로 복사됩니다.
+
   ## Running the code
 
   Run `npm i` to install the dependencies.
