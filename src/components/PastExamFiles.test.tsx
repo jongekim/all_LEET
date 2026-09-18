@@ -12,24 +12,35 @@ function render(element: ReactNode) {
 }
 
 describe('기출 자료 표시', () => {
-  it('PDF가 없으면 링크를 만들지 않고 준비 중임을 안내한다', () => {
+  it('문제지가 없으면 링크를 만들지 않고 준비 중임을 안내한다', () => {
     const container = render(<PastExamFiles documents={[]} />);
-    expect(container).toHaveTextContent('문제지 PDF 준비 중');
+    expect(container).toHaveTextContent('선택한 유형의 문제지는 아직 준비 중');
     expect(container.querySelector('a')).toBeNull();
   });
 
-  it('등록된 PDF의 열기·다운로드·출처를 제공한다', () => {
+  it('변환된 예비 짝수형도 PDF 열기와 다운로드를 제공한다', () => {
     const container = render(<PastExamFiles documents={[{
-      year: '2026', subject: 'verbal', examType: 'odd', title: '테스트 문제지',
-      url: '/past-exams/2026/test.pdf', fileName: 'LEET-test.pdf', sizeLabel: '1 MB',
-      sourceUrl: 'https://example.test/source',
+      year: '09예비', subject: 'verbal', examType: 'even', format: 'pdf', title: '예비 짝수형 문제지',
+      url: 'https://example.test/LEET-preliminary.pdf', fileName: 'LEET-preliminary.pdf',
     }]} />);
-    const [open, download, source] = container.querySelectorAll('a');
+    expect(container).not.toHaveTextContent('HWP');
+    expect(container).toHaveTextContent('PDF 열기');
+    expect(container.querySelectorAll('a')).toHaveLength(2);
+    expect(container.querySelector('a[download]')).toHaveAttribute('href', 'https://example.test/LEET-preliminary.pdf?download=LEET-preliminary.pdf');
+  });
+
+  it('등록된 PDF의 열기·다운로드만 제공하고 출처 표시는 제거한다', () => {
+    const container = render(<PastExamFiles documents={[{
+      year: '2026', subject: 'verbal', examType: 'odd', format: 'pdf', title: '테스트 문제지',
+      url: '/past-exams/2026/test.pdf', fileName: 'LEET-test.pdf', sizeLabel: '1 MB',
+    }]} />);
+    const [open, download] = container.querySelectorAll('a');
     expect(open).toHaveTextContent('PDF 열기');
     expect(open).toHaveAttribute('href', '/past-exams/2026/test.pdf');
     expect(open).toHaveAttribute('target', '_blank');
     expect(download).toHaveAttribute('download', 'LEET-test.pdf');
-    expect(source).toHaveAttribute('href', 'https://example.test/source');
+    expect(container.querySelectorAll('a')).toHaveLength(2);
+    expect(container).not.toHaveTextContent('출처');
     expect(container).toHaveTextContent('PDF · 1 MB');
   });
 

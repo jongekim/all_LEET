@@ -3,3 +3,8 @@ node_modules/
 coverage/
 playwright-report/
 test-results/
+downloads/
+/build/past-exams/
+/output/**/*.pdf
+/.DS_Store
+/**/.DS_Store

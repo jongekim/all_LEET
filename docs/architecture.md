@@ -9,7 +9,7 @@ all_LEET은 Vite로 빌드되는 React 단일 페이지 애플리케이션(SPA)�
  ├─ Supabase Auth
  ├─ Supabase Postgres (채팅, 커뮤니티, 오답 메모, 발행된 문항 통계)
  ├─ Supabase Realtime (채팅 INSERT 구독)
- ├─ Supabase Storage (커뮤니티 이미지)
+ ├─ Supabase Storage (커뮤니티 이미지, 공개 기출문제 PDF)
  └─ Edge Function make-server-cd835c22
       └─ kv_store_cd835c22 (공식·사설 성적 이력 JSONB)
 
@@ -59,7 +59,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 ## 배포 및 PWA
 
 - Vite `outDir`은 `build/`이고 public 디렉터리는 `src/public/`이다.
-- `vercel.json`은 정적 파일 캐시 헤더와 모든 앱 경로의 `/index.html` rewrite를 설정한다.
+- `vercel.json`은 정적 파일 캐시 헤더와 앱 경로의 `/index.html` rewrite를 설정한다. `pastExamDocuments.ts`의 78개 문제지는 Supabase 공개 버킷 `past-exams/watermarked/v1/`의 워터마크 PDF를 직접 참조한다. 원본 PDF·HWP는 로컬 다운로드 보관 영역에 유지하고 웹 빌드에 포함하지 않는다. `pastExamData.ts`가 정답 학년도와 문제지 학년도를 합쳐 선택 목록을 구성한다. 기출 PDF 유형은 단일 문형도 지원하되 기존 채점 타입은 홀수형·짝수형을 유지한다.
 - `src/main.tsx`가 `/sw.js`를 등록한다. 서비스 워커는 캐시를 정리하고 네트워크 요청을 가로채지 않는다.
 - 서비스 배포 버전의 단일 기준은 `package.json`의 `version`이며, `main` push 전 갱신 절차는 `docs/versioning.md`에 정의한다.
 

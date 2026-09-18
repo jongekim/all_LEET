@@ -1,0 +1,71 @@
+{
+  "files": 78,
+  "pages": 1292,
+  "watermark": "리트 채점은 all LEET",
+  "fontSizePt": 9,
+  "grayRGB": [
+    0.78,
+    0.78,
+    0.78
+  ],
+  "baselinePt": 6,
+  "allSourceInsertionRegionsBlank": true,
+  "allPagesRendered": true,
+  "watermarkDetectedOnEveryPage": true,
+  "sourcePDFsUnchanged": true,
+  "pageSizesAndCountsUnchanged": true,
+  "streamCompressionLossless": true,
+  "unreferencedDataRemoved": true,
+  "firstAndLastPageVisualReview": true,
+  "all78WatermarkCropsVisuallyReviewed": true,
+  "rawBitmapComparisonFlags": 9,
+  "pngSnapshotRechecks": [
+    {
+      "fileName": "LEET-2010-verbal-odd.pdf",
+      "page": 5,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2010-verbal-odd.pdf",
+      "page": 6,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2010-verbal-odd.pdf",
+      "page": 14,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2011-verbal-odd.pdf",
+      "page": 5,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2011-verbal-odd.pdf",
+      "page": 8,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2011-verbal-odd.pdf",
+      "page": 11,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2011-verbal-odd.pdf",
+      "page": 12,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2011-verbal-odd.pdf",
+      "page": 13,
+      "outsideWatermarkChangedPixels": 0
+    },
+    {
+      "fileName": "LEET-2020-reasoning-odd.pdf",
+      "page": 3,
+      "outsideWatermarkChangedPixels": 0
+    }
+  ],
+  "remainingUnexpectedVisualChanges": 0,
+  "totalPDFBytes": 440169064
+}

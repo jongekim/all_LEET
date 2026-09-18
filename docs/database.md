@@ -41,6 +41,10 @@ Supabase 클라이언트는 `src/contexts/AuthContext.tsx`에서 생성된다. �
 - 공지는 `is_published = true`인 행만 공개 조회된다. `show_in_banner = true`인 발행 공지만 홈 배너에 표시되며 `display_order`, `created_at desc` 순으로 정렬한다. 공지 생성·수정·삭제와 발행 전 공지 조회는 `private.admin_roles`의 `admin` 역할만 허용한다.
 - Storage 버킷 `community-post-images`는 공개 읽기이며, 인증 사용자는 자신의 `<uid>/...` 경로에만 업로드·수정·삭제할 수 있다.
 
+## 기출문제 Storage
+
+기존 공개 버킷 `past-exams`의 `watermarked/v1/`에 워터마크 PDF 78개를 보관하며, 기출문제 화면이 이 공개 URL을 직접 사용한다. `storage.objects`의 RLS와 기존 정책을 유지하며, 관리자 업로드 및 공개 객체 URL 다운로드를 사용한다. 객체 사용자 메타데이터에 학년도·과목·문형·워터마크·원본 및 출력 SHA-256을 기록한다. 전체 공개 다운로드와 객체 메타데이터를 검증했다. 다운로드 링크에는 `?download=<파일명>`을 사용해 별도 인증이나 브라우저 내 Blob 복사 없이 저장을 지원한다. 경로·접근·검증 내역은 [기출문제 Storage](past-exam-storage.md)를 따른다.
+
 ## 이력 KV 데이터
 
 Edge Function의 키 규칙은 다음과 같다.

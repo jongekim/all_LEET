@@ -1,4 +1,23 @@
 .past-exam-back, .past-exam-link { display: inline-flex; align-items: center; gap: 6px; }
+.past-exam-main { max-width: 896px; margin: 0 auto; padding: 28px 24px 40px; display: grid; gap: 20px; }
+.past-exam-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 2px 6px rgb(15 23 42 / 3%); overflow: hidden; }
+.past-exam-selection, .past-exam-documents, .past-exam-score-panel { padding: 24px; }
+.past-exam-section-heading { display: flex; align-items: center; gap: 10px; color: #2563eb; }
+.past-exam-section-heading h2 { color: #0f172a; font-size: 17px; font-weight: 700; line-height: 1.5; }
+.past-exam-section-heading > svg { flex-shrink: 0; }
+.past-exam-section-caption { margin-left: auto; color: #64748b; font-size: 12px; }
+.past-exam-section-description { color: #64748b; font-size: 13px; margin-top: 8px; line-height: 1.7; }
+.past-exam-badge { margin-left: auto; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; color: #1d4ed8; background: #eff6ff; }
+.past-exam-segment { display: flex; gap: 4px; padding: 4px; background: #f1f5f9; border-radius: 10px; }
+.past-exam-single { margin: 0; padding: 8px; font-size: 12px; line-height: 1.7; color: #475569; word-break: keep-all; }
+.past-exam-notice { border-top: 1px solid #edf2f7; margin-top: 20px; padding-top: 16px; color: #64748b; font-size: 12px; line-height: 1.8; word-break: keep-all; }
+.past-exam-table-heading { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+.past-exam-review-action { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; color: #64748b; font-size: 13px; }
+.past-exam-file-list { padding: 0; margin: 20px 0 0; list-style: none; }
+.past-exam-file-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.past-exam-file-icon { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0; color: #2563eb; background: #eff6ff; border-radius: 12px; }
+.past-exam-file-title { font-size: 15px; font-weight: 600; color: #0f172a; line-height: 1.6; word-break: keep-all; }
+.past-exam-file-meta { margin-top: 4px; color: #64748b; font-size: 12px; }
 .past-exam-answer-title { word-break: keep-all; }
 .past-exam-review-trigger {
   display: flex;
@@ -8,30 +27,31 @@
   padding: 20px 16px;
   text-align: left;
   cursor: pointer;
-  border: 1px solid transparent;
+  transition: border-color 160ms, background-color 160ms;
 }
-.past-exam-review-trigger:hover { border-color: #dbeafe; }
+.past-exam-review-trigger:hover { border-color: #bfdbfe; background: #fbfdff; }
 .past-exam-review-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
 .past-exam-review-icon, .past-exam-review-chevron { flex-shrink: 0; }
 .past-exam-review-description { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 6px; word-break: keep-all; }
 .past-exam-review-trigger[data-state="open"] .past-exam-review-chevron { transform: rotate(180deg); }
-.past-exam-review-content[data-state="open"] { padding-top: 24px; }
-.past-exam-filters { display: grid; gap: 20px; }
+.past-exam-review-content[data-state="open"] { padding-top: 20px; }
+.past-exam-filters { display: grid; gap: 20px; margin-top: 20px; }
 .past-exam-filters > *, .past-exam-filters fieldset { min-width: 0; }
-.past-exam-filters select { width: 100%; min-height: 44px; }
+.past-exam-filters select { width: 100%; min-height: 52px; border-color: #e2e8f0; border-radius: 10px; font-size: 14px; }
 .past-exam-choice {
   flex: 1;
   min-height: 44px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: #f3f4f6;
+  background: transparent;
   color: #374151;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
-.past-exam-choice:hover { background: #e5e7eb; }
-.past-exam-choice[aria-pressed="true"] { background: #2563eb; color: white; }
+.past-exam-choice { transition: background-color 160ms, color 160ms; }
+.past-exam-choice:hover { background: #e2e8f0; }
+.past-exam-choice[aria-pressed="true"] { background: white; color: #1d4ed8; box-shadow: 0 1px 4px rgb(15 23 42 / 10%); }
 .past-exam-choice:focus-visible, .past-exam-link:focus-visible, .past-exam-back:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 3px;
@@ -45,6 +65,8 @@
 .past-exam-file-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .past-exam-link { min-height: 44px; padding: 8px 12px; border: 1px solid #dbeafe; border-radius: 8px; color: #1d4ed8; font-size: 14px; }
 .past-exam-link:hover { background: #eff6ff; }
+.past-exam-download { background: #2563eb; color: white; border-color: #2563eb; }
+.past-exam-download:hover { background: #1d4ed8; border-color: #1d4ed8; }
 .score-conversion-table { table-layout: fixed; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .score-conversion-table th, .score-conversion-table td { width: 33.333%; padding: 10px 8px; text-align: center; }
 .score-conversion-table thead { background: #eff6ff; }
@@ -56,4 +78,21 @@
   .past-exam-review-trigger { padding: 24px; }
   .past-exam-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .answer-key-grid { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) {
+  .past-exam-main { padding: 20px 16px 32px; gap: 16px; }
+  .past-exam-selection, .past-exam-documents, .past-exam-score-panel { padding: 20px 16px; }
+  .past-exam-section-caption { font-size: 11px; }
+  .past-exam-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
+  .past-exam-filters > :first-child { grid-column: 1 / -1; }
+  .past-exam-choice { padding: 10px 4px; font-size: 13px; }
+  .past-exam-file { gap: 20px; }
+  .past-exam-file-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .past-exam-link { justify-content: center; }
+  .past-exam-table-heading { padding: 20px 16px; }
+  .past-exam-review-description > :first-child { font-size: 16px; }
+  .past-exam-review-description > :nth-child(2) { font-size: 12px; }
+  .past-exam-review-trigger { gap: 10px; }
+  .past-exam-review-icon { width: 40px; height: 40px; }
+  .past-exam-review-action { font-size: 12px; gap: 2px; }
 }

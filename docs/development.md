@@ -52,6 +52,10 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 - 화면 E2E: Playwright Chromium이 `e2e/`의 공개 읽기 전용 흐름을 실행한다. 로컬 최초 실행 전에는 `npx playwright install chromium`으로 브라우저를 설치한다.
 - CI: `.github/workflows/quality.yml`은 pull request와 수동 실행에서 Node 20.19.0으로 lint, typecheck, unit test, 읽기 전용 화면 E2E, build를 실행한다. lockfile의 설치 전략에 맞춰 `npm ci --legacy-peer-deps`를 사용한다. `main` push 이후가 아니라 PR 단계에서 실패를 발견하도록 구성했다.
 
+기출문제 78개는 Supabase Storage의 워터마크 PDF를 직접 참조하므로 빌드에 PDF·HWP를 복사하지 않는다. 이전 정적 원본은 `downloads/past-exams-original-archive/`에 보존하며, `downloads/`의 원본·ZIP은 git에서 제외한다. 공개 파일 URL·등록 목록·검증 기록은 버전 관리한다. 문제지 정정 시 기존 파일을 덮어쓰지 않고 새 Storage 버전 경로로 등록한다. [등록 절차](past-exams.md)를 따른다.
+
+`output/`의 가공 PDF도 중복 바이너리 산출물이므로 git에서 제외하고, 파일 목록·해시·변환 및 Storage 업로드 기록은 버전 관리한다. 워터마크 PDF 78개의 보관 경로는 [기출문제 Storage](past-exam-storage.md)에 기록한다.
+
 빌드는 `build/` 파일을 갱신한다. 검증 뒤에는 의도하지 않은 산출물 변경이 있는지 확인한다.
 
 ## 코드 스타일에서 관찰되는 규칙

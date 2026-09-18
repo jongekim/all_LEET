@@ -372,7 +372,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <Files className="w-5 h-5 text-blue-700" />
                 <div className="text-sm font-semibold text-gray-900">기출문제</div>
               </div>
-              <div className="text-xs text-gray-500 mt-2">문제지 PDF / 정답표 확인</div>
+              <div className="text-xs text-gray-500 mt-2">문제지 다운로드 / 정답표 확인</div>
             </button>
 
             <button

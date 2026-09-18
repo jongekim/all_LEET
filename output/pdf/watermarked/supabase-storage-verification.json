@@ -1,0 +1,13 @@
+{
+  "projectRef": "jkxxtyaanyhmjbdtybkp",
+  "bucket": "past-exams",
+  "prefix": "watermarked/v1/",
+  "files": 78,
+  "bytes": 440169064,
+  "pages": 1292,
+  "verifiedAt": "2026-09-18T12:19:09.659426+00:00",
+  "publicDownloadHashesVerified": true,
+  "storageMetadataVerified": true,
+  "existingObjectsOverwritten": false,
+  "bucketAndRlsPoliciesChanged": false
+}
