@@ -84,6 +84,7 @@ test('통계 오류·재시도 중에도 정답표와 환산표는 사용할 수
 test('채점 결과의 통계·2초 정답 보기·메모 버튼을 분리한다',async({page})=>{
   await mock(page);
   await page.goto('/');
+  await page.getByLabel('시험 학년도').selectOption('2026');
   await page.getByRole('spinbutton').first().fill('1');
   await page.getByRole('main').getByRole('button',{name:'채점하기',exact:true}).click();
   await expect(page).toHaveURL('/result');
@@ -99,6 +100,7 @@ test('채점 결과의 통계·2초 정답 보기·메모 버튼을 분리한다
 });
 for(const width of [320,390]) test(`${width}px 결과 화면의 문항 행을 분리하고 건수를 숨긴다`,async({page},testInfo)=>{
   await page.setViewportSize({width,height:900});await mock(page);await page.goto('/');
+  await page.getByLabel('시험 학년도').selectOption('2026');
   await page.getByRole('spinbutton').first().fill('1');
   await page.getByRole('main').getByRole('button',{name:'채점하기',exact:true}).click();
   await expect(page.getByRole('button',{name:/^1번 정답률 78.3%/})).toBeVisible();

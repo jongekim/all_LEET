@@ -1,3 +1,4 @@
+import { isSingleFormYear } from './examType';
 import { Subject, Year, GradingResult, ExamType } from '../App';
 import { getCorrectAnswers, getFieldMapping } from './answerData';
 import { getScoreConversion } from './scoreData';
@@ -65,6 +66,9 @@ function getFieldRanges(year: Year, subject: Subject, total: number) {
     }));
   }
   
+  // 2027학년도는 분야 자료가 없으므로 임의 분류를 제공하지 않습니다.
+  if (isSingleFormYear(year)) return [];
+
   // fieldMapping이 없으면 모의 데이터 사용
   if (subject === 'verbal') {
     const perField = Math.floor(total / 3);

@@ -1,3 +1,4 @@
+import { getExamTypeLabel } from '../utils/examType';
 import { PageHeader } from '../components/PageHeader';
 import { PageBackButton } from '../components/PageBackButton';
 import { useEffect, useMemo, useState } from 'react';
@@ -350,7 +351,7 @@ export function ResultPage() {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">채점 결과</h1>
               <p className="text-sm text-gray-600 mt-1">
-                {finalResults[0].year}학년도 - {finalResults[0].examType === 'odd' ? '홀수형' : '짝수형'}
+                {finalResults[0].year}학년도 - {getExamTypeLabel(finalResults[0].year, finalResults[0].examType)}
                 {hasMultipleSubjects && ' (언어이해 + 추리논증)'}
               </p>
             </div>
@@ -520,7 +521,7 @@ export function ResultPage() {
         onClose={() => setAllNotesOpen(false)}
         size="lg"
         title="메모 한번에 보기"
-        description={`${finalResults[0].year}학년도 - ${finalResults[0].examType === 'odd' ? '홀수형' : '짝수형'}`}
+        description={`${finalResults[0].year}학년도 - ${getExamTypeLabel(finalResults[0].year, finalResults[0].examType)}`}
       >
         {!currentUser ? (
           <div className="space-y-3">

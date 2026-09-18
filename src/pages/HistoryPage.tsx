@@ -1,3 +1,4 @@
+import { getExamTypeLabel } from '../utils/examType';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { GradingResult } from '../App';
 import { TrendChart } from '../components/TrendChart';
@@ -285,7 +286,7 @@ export function HistoryPage({
                           )}
                         </span>
                         <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
-                          {firstRecord.examType === 'odd' ? '홀수형' : '짝수형'}
+                          {getExamTypeLabel(firstRecord.year, firstRecord.examType)}
                         </span>
                         {group.map((record, idx) => {
                           const subjectName = record.subject === 'verbal' ? '언어이해' : '추리논증';

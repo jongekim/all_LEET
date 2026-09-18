@@ -1,3 +1,4 @@
+import { getExamTypeLabel, isSingleFormYear } from '../utils/examType';
 import { createContext, useContext, type ReactNode } from 'react';
 import { useQuestionStatistics } from '../hooks/useQuestionStatistics';
 import type { ExamStatisticsSelection, StatisticsSnapshot } from '../types/questionStatistics';
@@ -20,7 +21,7 @@ export function QuestionStatistics({ selection, compatible = true, children }: {
       {snapshot ? <>
         <p>문항별 정답률</p>
         <p>정답률을 누르면 선지별 선택률과 미응답률을 볼 수 있습니다. 미응답은 오답으로 포함합니다.</p>
-        {snapshot.exam_type === 'even' && <p>{evenFormNotice}</p>}
+        {snapshot.exam_type === 'even' && !isSingleFormYear(snapshot.year) && <p>{evenFormNotice}</p>}
         {snapshot.sample_count <= 30 && <p className="question-statistics-warning">{warning}</p>}
         {snapshot.sample_count === 0 && <p>아직 채점 기록이 없어 정답률을 계산할 수 없습니다.</p>}
       </> : !compatible || state.status === 'mismatch' ? <p>정답 버전이 달라 문항 통계를 표시하지 않습니다. 기존 답안과 메모는 그대로 사용할 수 있습니다.</p>
@@ -51,10 +52,10 @@ export function QuestionRate({ question, variant = 'result' }: { question: numbe
     <DialogContent className="question-statistics-dialog" overlayClassName="question-statistics-overlay" closeLabel="닫기">
       <DialogTitle>{question}번 응답 분포</DialogTitle>
       <DialogDescription>
-        {snapshot.year === '09예비' ? '09예비' : `${snapshot.year.slice(-2)}학년도`} · {snapshot.subject === 'verbal' ? '언어이해' : '추리논증'} · {snapshot.exam_type === 'odd' ? '홀수형' : '짝수형'}<br />
+        {snapshot.year === '09예비' ? '09예비' : `${snapshot.year.slice(-2)}학년도`} · {snapshot.subject === 'verbal' ? '언어이해' : '추리논증'} · {getExamTypeLabel(snapshot.year, snapshot.exam_type)}<br />
         정답 {correct}번 · 정답률 {rate}
       </DialogDescription>
-      {snapshot.exam_type === 'even' && <p className="question-statistics-footnote">{evenFormNotice}</p>}
+      {snapshot.exam_type === 'even' && !isSingleFormYear(snapshot.year) && <p className="question-statistics-footnote">{evenFormNotice}</p>}
       {n <= 30 && <p className="question-statistics-warning">{warning}</p>}
       <ul className="question-distribution" aria-label="선지별 선택과 미응답 분포">
         {rows.map((count, index) => <li key={index} className={index + 1 === correct ? 'distribution-correct' : ''}>

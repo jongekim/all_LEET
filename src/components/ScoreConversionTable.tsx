@@ -26,8 +26,8 @@ export function ScoreConversionTable({ scores, total }: ScoreConversionTableProp
             return (
               <TableRow key={count}>
                 <TableHead scope="row">{count}개</TableHead>
-                <TableCell>{score ? score.standardScore.toFixed(1) : '—'}</TableCell>
-                <TableCell>{score ? score.percentile.toFixed(1) : '—'}</TableCell>
+                <TableCell title={score?.estimatedStandardScore ? '추정 표준점수' : undefined}>{score ? score.standardScore.toFixed(1) : '—'}</TableCell>
+                <TableCell title={score?.estimatedPercentile ? '추정 백분위' : undefined}>{score ? score.percentile.toFixed(1) : '—'}</TableCell>
               </TableRow>
             );
           })}

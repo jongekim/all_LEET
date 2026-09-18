@@ -171,6 +171,8 @@ for (const width of [320, 390, 1280]) {
 }
 
 test('전개년·전과목·전문형 선택이 워터마크 PDF에 연결되고 출처가 없다', async ({ page }) => {
+  // 78개 선택을 순회하므로 일반 단일 화면 테스트보다 여유를 둔다.
+  test.setTimeout(60_000);
   await page.goto('/past-exams');
   await expect(page.getByText('전개년·전과목 문제지는 모두 PDF로 제공합니다.')).toBeVisible();
   await expect(page.getByText('법학적성시험 문제의 저작권은 법학전문대학원협의회에 있습니다.')).toBeVisible();
@@ -184,7 +186,7 @@ test('전개년·전과목·전문형 선택이 워터마크 PDF에 연결되고
   }
 });
 
-test('2027학년도 단일 문형 PDF를 다운로드하고 미등록 정답·환산표를 안내한다', async ({ page }, testInfo) => {
+test('2027학년도 단일 문형 PDF와 정답·환산표를 제공한다', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto('/past-exams?year=2027&subject=verbal&type=even');
   await expect(page).toHaveURL('/past-exams?year=2027&subject=verbal&type=odd');
@@ -200,11 +202,23 @@ test('2027학년도 단일 문형 PDF를 다운로드하고 미등록 정답·�
   expect(download.suggestedFilename()).toBe('LEET-2027-verbal-single.pdf');
   expect(await download.failure()).toBeNull();
   await revealReview(page);
-  await expect(page.getByText('이 시험의 정답표는 아직 준비 중입니다.')).toBeVisible();
-  await expect(page.getByText('이 시험의 점수 환산표는 아직 준비 중입니다.')).toBeVisible();
-  await expect(page.getByRole('list', { name: '문항별 정답' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '2027학년도 언어이해 단일 문형 정답표' })).toBeVisible();
+  await expect(page.getByRole('list', { name: '문항별 정답' }).getByRole('listitem')).toHaveCount(30);
+  await expect(page.getByRole('listitem', { name: '1번 정답 5', exact: true })).toBeVisible();
+  const table = page.getByRole('table', { name: '맞은 개수별 표준점수와 백분위' });
+  await expect(table.getByRole('row')).toHaveCount(32);
+  await expect(table.getByRole('row', { name: '29개 69.3 99.9', exact: true })).toBeVisible();
+  await expect(table.getByRole('row', { name: '30개 71.5 100.0', exact: true })).toBeVisible();
+  await expect(page.getByText('이 시험의 문항 통계가 아직 준비되지 않았습니다.')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('single-form-expanded.png'), fullPage: true });
   await page.getByRole('button', { name: '추리논증', exact: true }).click();
   await expect(page.getByRole('link', { name: '다운로드', exact: true })).toHaveAttribute('href', downloadUrl('LEET-2027-reasoning-single.pdf'));
+  await revealReview(page);
+  await expect(page.getByRole('list', { name: '문항별 정답' }).getByRole('listitem')).toHaveCount(40);
+  await expect(table.getByRole('row')).toHaveCount(42);
+  await expect(table.getByRole('row', { name: '21개 54.3 29.3', exact: true })).toBeVisible();
+  await expect(table.getByRole('row', { name: '22개 56.3 35.6', exact: true })).toBeVisible();
 });
 
 test('2025학년도 추리논증은 선택한 홀수형·짝수형 파일을 각각 연결한다', async ({ page }) => {
@@ -232,4 +246,24 @@ test('09예비 짝수형도 모바일에서 워터마크 PDF로 다운로드한�
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('LEET-2009-preliminary-verbal-even.pdf');
   expect(await download.failure()).toBeNull();
+});
+
+
+test('홈에서 2027학년도 단일 문형 답안을 입력하고 과거 문형에서 전환한다', async ({ page }, testInfo) => {
+  await page.goto('/');
+  await expect(page.getByLabel('시험 학년도')).toHaveValue('2027');
+  await expect(page.getByText('단일 문형 (홀수형·짝수형 구분 없음)', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^(홀수형|짝수형)$/ })).toHaveCount(0);
+  await expect(page.getByRole('spinbutton')).toHaveCount(70);
+  await page.getByRole('spinbutton').first().fill('5');
+  await expect(page.getByRole('spinbutton').first()).toHaveValue('5');
+  await expect(page.getByRole('main').getByRole('button', { name: '채점하기', exact: true })).toBeEnabled();
+  await page.getByLabel('시험 학년도').selectOption('2026');
+  await page.getByRole('button', { name: '짝수형', exact: true }).click();
+  await page.getByRole('spinbutton').first().fill('4');
+  await page.getByLabel('시험 학년도').selectOption('2027');
+  await expect(page.getByRole('spinbutton').first()).toBeEmpty();
+  await expect(page.getByRole('button', { name: /^(홀수형|짝수형)$/ })).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath('grading-2027.png'), fullPage: true });
+  // 운영 이력 쓰기는 실행하지 않고 입력 및 제출 직전 상태까지만 검증한다.
 });

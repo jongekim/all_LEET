@@ -4,6 +4,8 @@ import { Year, Subject } from '../App';
 export interface ScoreConversion {
   standardScore: number;
   percentile: number;
+  estimatedStandardScore?: boolean;
+  estimatedPercentile?: boolean;
 }
 
 // 과목별 점수 변환 테이블 (정답 개수 -> 표준점수/백분위)
@@ -1650,6 +1652,85 @@ export const SCORE_DATA: ScoreDatabase = {
     2: { standardScore: 12.0, percentile: 0.0 },
     1: { standardScore: 9.7, percentile: 0.0 },
     0: { standardScore: 7.4, percentile: 0.0 },
+    },
+  },
+  // 첨부 자료 전사·추정 근거: docs/grading-2027.md
+  '2027': {
+    verbal: {
+      30: { standardScore: 71.5, percentile: 100.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      29: { standardScore: 69.3, percentile: 99.9 },
+      28: { standardScore: 67.1, percentile: 99.8 },
+      27: { standardScore: 64.9, percentile: 99.4 },
+      26: { standardScore: 62.7, percentile: 98.5 },
+      25: { standardScore: 60.6, percentile: 96.8 },
+      24: { standardScore: 58.4, percentile: 94.0 },
+      23: { standardScore: 56.2, percentile: 89.8 },
+      22: { standardScore: 54.0, percentile: 84.0 },
+      21: { standardScore: 51.8, percentile: 77.0 },
+      20: { standardScore: 49.7, percentile: 68.3 },
+      19: { standardScore: 47.5, percentile: 58.7 },
+      18: { standardScore: 45.3, percentile: 49.1 },
+      17: { standardScore: 43.1, percentile: 38.9, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      16: { standardScore: 40.9, percentile: 29.5, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      15: { standardScore: 38.8, percentile: 21.2, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      14: { standardScore: 36.6, percentile: 14.5, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      13: { standardScore: 34.4, percentile: 9.4, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      12: { standardScore: 32.2, percentile: 5.8, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      11: { standardScore: 30.0, percentile: 3.3, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      10: { standardScore: 27.8, percentile: 1.8, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      9: { standardScore: 25.7, percentile: 0.9, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      8: { standardScore: 23.5, percentile: 0.5, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      7: { standardScore: 21.3, percentile: 0.2, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      6: { standardScore: 19.1, percentile: 0.1, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      5: { standardScore: 16.9, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      4: { standardScore: 14.8, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      3: { standardScore: 12.6, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      2: { standardScore: 10.4, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      1: { standardScore: 8.2, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      0: { standardScore: 6.0, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+    },
+    reasoning: {
+      40: { standardScore: 93.6, percentile: 100.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      39: { standardScore: 91.5, percentile: 100.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      38: { standardScore: 89.5, percentile: 99.9 },
+      37: { standardScore: 87.5, percentile: 99.7 },
+      36: { standardScore: 85.4, percentile: 99.4 },
+      35: { standardScore: 83.3, percentile: 98.6 },
+      34: { standardScore: 81.2, percentile: 97.4 },
+      33: { standardScore: 79.2, percentile: 95.7 },
+      32: { standardScore: 77.1, percentile: 93.2 },
+      31: { standardScore: 75.0, percentile: 90.0 },
+      30: { standardScore: 72.9, percentile: 86.0 },
+      29: { standardScore: 70.9, percentile: 81.1 },
+      28: { standardScore: 68.8, percentile: 75.6 },
+      27: { standardScore: 66.7, percentile: 69.3 },
+      26: { standardScore: 64.6, percentile: 62.6 },
+      25: { standardScore: 62.6, percentile: 55.7 },
+      24: { standardScore: 60.5, percentile: 49.0 },
+      23: { standardScore: 58.4, percentile: 42.4 },
+      22: { standardScore: 56.3, percentile: 35.6, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      21: { standardScore: 54.3, percentile: 29.3, estimatedPercentile: true }, // 백분위 추정
+      20: { standardScore: 52.2, percentile: 23.5, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      19: { standardScore: 50.1, percentile: 18.4, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      18: { standardScore: 48.0, percentile: 14.1, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      17: { standardScore: 46.0, percentile: 10.5, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      16: { standardScore: 43.9, percentile: 7.6, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      15: { standardScore: 41.8, percentile: 5.4, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      14: { standardScore: 39.8, percentile: 3.7, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      13: { standardScore: 37.7, percentile: 2.5, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      12: { standardScore: 35.6, percentile: 1.6, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      11: { standardScore: 33.6, percentile: 1.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      10: { standardScore: 31.5, percentile: 0.6, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      9: { standardScore: 29.4, percentile: 0.4, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      8: { standardScore: 27.3, percentile: 0.2, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      7: { standardScore: 25.3, percentile: 0.1, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      6: { standardScore: 23.2, percentile: 0.1, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      5: { standardScore: 21.1, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      4: { standardScore: 19.1, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      3: { standardScore: 17.0, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      2: { standardScore: 14.9, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      1: { standardScore: 12.8, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
+      0: { standardScore: 10.8, percentile: 0.0, estimatedStandardScore: true, estimatedPercentile: true }, // 추정
     },
   },
 };

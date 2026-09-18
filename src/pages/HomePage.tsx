@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { YearSelector } from '../components/YearSelector';
 import { NoticeBanner } from '../components/NoticeBanner';
 import { AnswerSheet } from '../components/AnswerSheet';
+import { isSingleFormYear } from '../utils/examType';
 import { getQuestionCount, gradeAnswers } from '../utils/grading';
 import { calculateDday, getDdayText } from '../utils/dday';
 import { Subject, Year, User, GradingResult, ExamType } from '../App';
@@ -19,7 +20,7 @@ interface HomePageProps {
 export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   const navigate = useNavigate();
   const { currentUser, isAdmin, adminError } = useAuth();
-  const [selectedYear, setSelectedYear] = useState<Year>('2026');
+  const [selectedYear, setSelectedYear] = useState<Year>('2027');
   const [examType, setExamType] = useState<ExamType>('odd');
   const [verbalAnswers, setVerbalAnswers] = useState<Record<number, number>>({});
   const [reasoningAnswers, setReasoningAnswers] = useState<Record<number, number>>({});
@@ -35,6 +36,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
 
   const handleYearChange = (year: Year) => {
     setSelectedYear(year);
+    if (isSingleFormYear(year)) setExamType('odd');
     setVerbalAnswers({});
     setReasoningAnswers({});
   };
@@ -447,7 +449,9 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 시험 유형
               </label>
-              <div className="flex gap-2">
+              {isSingleFormYear(selectedYear) ? (
+                <p className="text-sm text-gray-700 py-2">단일 문형 (홀수형·짝수형 구분 없음)</p>
+              ) : <div className="flex gap-2">
                 <button
                   onClick={() => handleExamTypeChange('odd')}
                   className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
@@ -468,7 +472,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 >
                   짝수형
                 </button>
-              </div>
+              </div>}
             </div>
           </div>
         </div>

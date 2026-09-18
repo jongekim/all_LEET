@@ -52,8 +52,10 @@ export function ResultPanel({ result }: ResultPanelProps) {
         </div>
       </div>
 
+      {result.year === '2027' && <p className="text-xs text-gray-500">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다.</p>}
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-3">분야별 분석</h3>
+        {result.fieldAnalysis.length === 0 && <p className="text-sm text-gray-500">분야별 분류 자료가 아직 준비되지 않았습니다.</p>}
         <div className="space-y-3">
           {result.fieldAnalysis.map((field, index) => {
             const fieldRate = ((field.correct / field.total) * 100).toFixed(0);
