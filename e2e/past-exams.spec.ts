@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { getCorrectAnswers } from '../src/utils/answerData';
+import { getQuestionCount, gradeAnswers } from '../src/utils/grading';
 import { SCORE_DATA } from '../src/utils/scoreData';
 import { PAST_EXAM_DOCUMENTS } from '../src/utils/pastExamData';
 
@@ -267,3 +268,32 @@ test('홈에서 2027학년도 단일 문형 답안을 입력하고 과거 문형
   await page.screenshot({ path: testInfo.outputPath('grading-2027.png'), fullPage: true });
   // 운영 이력 쓰기는 실행하지 않고 입력 및 제출 직전 상태까지만 검증한다.
 });
+
+
+for (const subject of ['verbal', 'reasoning'] as const) {
+  test(`2027 ${subject} 분야별 결과를 운영 제출 없이 표시한다`, async ({ page }, testInfo) => {
+    const total = getQuestionCount('2027', subject);
+    const answers = getCorrectAnswers('2027', subject, 'odd');
+    const userAnswers = Object.fromEntries([1,2,3,4].map(question => [question, answers[question]]));
+    const result = gradeAnswers('2027', subject, userAnswers, total, 'odd');
+    // 결과 라우트에 로컬 채점값만 주입한다. 홈 제출이나 운영 이력 쓰기는 실행하지 않는다.
+    await page.addInitScript(result => {
+      window.history.replaceState({ usr: { results: [result] }, key: 'readonly-2027', idx: 0 }, '');
+    }, result);
+    await page.goto('/result');
+    await expect(page.getByText('2027학년도 - 단일 문형', { exact: true })).toBeVisible();
+    const analysis = page.locator('div').filter({ has: page.getByRole('heading', { name: '분야별 분석', exact: true }) })
+      .filter({ hasNot: page.getByRole('heading', { name: '채점 결과', exact: true }) }).last();
+    const expected = subject === 'verbal'
+      ? [['규범', '3 / 6'], ['사회', '1 / 6'], ['인문', '0 / 9'], ['과학기술', '0 / 6'], ['문예', '0 / 3']]
+      : [['법규범', '4 / 12'], ['인문', '0 / 12'], ['사회', '0 / 6'], ['논리학수학', '0 / 4'], ['과학기술', '0 / 6']];
+    const rows = analysis.locator('.border.rounded-lg');
+    await expect(rows).toHaveCount(5);
+    for (const [field, count] of expected) {
+      const row = rows.filter({ has: page.getByText(field, { exact: true }) });
+      await expect(row.getByText(count, { exact: true })).toBeVisible();
+    }
+    await expect(page.getByText('분야별 분류 자료가 아직 준비되지 않았습니다.')).toHaveCount(0);
+    await analysis.screenshot({ path: testInfo.outputPath('field-analysis-2027.png') });
+  });
+}

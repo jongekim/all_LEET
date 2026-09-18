@@ -14,6 +14,24 @@ const supplied = {
   reasoning: [[38,89.5,99.9],[37,87.5,99.7],[36,85.4,99.4],[35,83.3,98.6],[34,81.2,97.4],[33,79.2,95.7],[32,77.1,93.2],[31,75,90],[30,72.9,86],[29,70.9,81.1],[28,68.8,75.6],[27,66.7,69.3],[26,64.6,62.6],[25,62.6,55.7],[24,60.5,49],[23,58.4,42.4]],
 };
 
+const range = (start: number, end: number) => Array.from({ length: end - start + 1 }, (_, index) => start + index);
+const fields = {
+  verbal: [
+    { field: '규범', questions: [...range(1,3), ...range(28,30)] },
+    { field: '사회', questions: [...range(4,6), ...range(16,18)] },
+    { field: '인문', questions: [...range(7,9), ...range(13,15), ...range(19,21)] },
+    { field: '과학기술', questions: [...range(10,12), ...range(25,27)] },
+    { field: '문예', questions: range(22,24) },
+  ],
+  reasoning: [
+    { field: '법규범', questions: range(1,12) },
+    { field: '인문', questions: range(13,24) },
+    { field: '사회', questions: range(25,30) },
+    { field: '논리학수학', questions: range(31,34) },
+    { field: '과학기술', questions: range(35,40) },
+  ],
+};
+
 describe('2027학년도 채점', () => {
   for (const subject of ['verbal', 'reasoning'] as const) {
     it(`${subject} 정답과 제공된 환산값을 그대로 보존한다`, () => {
@@ -34,7 +52,10 @@ describe('2027학년도 채점', () => {
         const conversion = getScoreConversion('2027', subject, count);
         for (const type of ['odd', 'even'] as const) {
           expect(gradeAnswers('2027', subject, userAnswers, total, type)).toMatchObject({
-            correct: count, total, standardScore: conversion.standardScore, percentile: conversion.percentile, fieldAnalysis: [],
+            correct: count, total, standardScore: conversion.standardScore, percentile: conversion.percentile,
+            fieldAnalysis: fields[subject].map(({ field, questions }) => ({
+              field, questions, total: questions.length, correct: questions.filter(question => question <= count).length,
+            })),
           });
         }
         expect(Number.isFinite(conversion.standardScore)).toBe(true);

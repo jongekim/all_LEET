@@ -66,7 +66,7 @@ function getFieldRanges(year: Year, subject: Subject, total: number) {
     }));
   }
   
-  // 2027학년도는 분야 자료가 없으므로 임의 분류를 제공하지 않습니다.
+  // 단일 문형 시험의 분야 자료가 없으면 임의 분류를 제공하지 않습니다.
   if (isSingleFormYear(year)) return [];
 
   // fieldMapping이 없으면 모의 데이터 사용
