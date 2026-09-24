@@ -3,7 +3,6 @@ import { getCorrectAnswers } from '../src/utils/answerData';
 import { getQuestionCount, gradeAnswers } from '../src/utils/grading';
 import { SCORE_DATA } from '../src/utils/scoreData';
 import { PAST_EXAM_DOCUMENTS } from '../src/utils/pastExamData';
-import seoRates from '../src/data/seoQuestionRates.json';
 
 test.beforeEach(async ({ page }) => {
   // 기존 인증 초기화와 홈 배너를 포함한 모든 Supabase 요청을 모의 처리한다.
@@ -42,7 +41,7 @@ test('홈 바로가기, 시험 선택, 새로고침과 뒤로가기', async ({ p
   await page.getByRole('region', { name: '기능 바로가기' }).getByRole('button', { name: /기출문제/ }).click();
   await expect(page.getByRole('heading', { name: '기출문제·정답표', exact: true })).toBeVisible();
   await expect(page).toHaveURL(/year=2027/);
-  await expect(page).toHaveTitle('리트 기출문제·정답표 | all LEET');
+  await expect(page).toHaveTitle('LEET 기출문제·정답표 | all LEET');
   await expect(page.getByText('문제를 푼 뒤 눌러서 확인하세요.')).toBeVisible();
   await page.getByLabel('시험 학년도').selectOption('2026');
   await revealReview(page);
@@ -78,36 +77,6 @@ test('홈 바로가기, 시험 선택, 새로고침과 뒤로가기', async ({ p
   await expect(page.getByText('HWP 원본', { exact: false })).toHaveCount(0);
   await expect(page.getByRole('link', { name: /PDF 열기/ })).toHaveCount(1);
   await expect(page.getByRole('link', { name: '다운로드', exact: true })).toHaveAttribute('href', downloadUrl('LEET-2009-preliminary-reasoning-even.pdf'));
-});
-
-test('2025학년도 기출 검색 페이지에서 문제지와 정답표로 이동한다', async ({ page }) => {
-  await page.goto('/past-exams/2025');
-  await expect(page).toHaveTitle('2025학년도 리트 기출문제·정답표 | all LEET');
-  await expect(page.getByRole('heading', { name: '2025학년도 리트 기출문제와 정답표' })).toBeVisible();
-  await expect(page.getByRole('link', { name: '홀수형 PDF 열기' })).toHaveCount(2);
-  await page.getByText('홀수형 정답표 펼치기').first().click();
-  await expect(page.getByRole('list', { name: '2025학년도 언어이해 홀수형 정답표' }).getByRole('listitem')).toHaveCount(30);
-  await page.getByRole('link', { name: '정답률·점수 환산표 보기' }).first().click();
-  await expect(page).toHaveURL('/past-exams?year=2025&subject=verbal&type=odd');
-  await page.getByRole('link', { name: '리트 정답률 안내' }).click();
-  await expect(page).toHaveURL('/question-rates?year=2025&subject=verbal&type=odd');
-  await expect(page.getByRole('heading', { name: '리트 문항별 정답률', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: '정답·점수표 숨기기' })).toBeVisible();
-});
-
-test('검색용 정답률 요약은 앱 로딩 뒤에도 실제 수치와 표본을 유지한다', async ({ page }) => {
-  const verbal = seoRates.cohorts.find(cohort => cohort.year === '2025' && cohort.subject === 'verbal' && cohort.examType === 'odd')!;
-  await page.goto('/question-rates');
-  await expect(page.getByRole('heading', { name: '2025학년도 문항별 정답률' })).toBeVisible();
-  await expect(page.getByText(`언어이해 홀수형 · 채점 기록 ${verbal.sampleCount.toLocaleString('ko-KR')}건`)).toBeVisible();
-  const rates = page.getByRole('list', { name: '2025학년도 언어이해 홀수형 문항별 정답률' });
-  await expect(rates.getByRole('listitem')).toHaveCount(verbal.rates.length);
-  await expect(rates.getByRole('listitem').first()).toContainText(verbal.rates[0]);
-  await page.setViewportSize({ width: 320, height: 700 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.goto('/past-exams/2027');
-  await expect(page.getByText('이 학년도의 문항별 정답률은 이 공개 요약 발행본에 포함되지 않았습니다.')).toBeVisible();
-  await expect(page.getByText('언어이해 30문항, 추리논증 40문항의 단일 문형 문제지 PDF 2종을 제공합니다.', { exact: false })).toBeVisible();
 });
 
 test('잘못된 URL은 정상 선택으로 보정하고 합격예측은 기존 로그인 화면으로 연결한다', async ({ page }) => {

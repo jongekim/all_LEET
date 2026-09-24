@@ -7,7 +7,6 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { PastExamsPage } from './pages/PastExamsPage';
-import { PastExamYearPage } from './pages/PastExamYearPage';
 import { ChatPage } from './pages/ChatPage';
 import { ResultPage } from './pages/ResultPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -25,7 +24,6 @@ import { GlobalBottomNav } from './components/GlobalBottomNav';
 import { projectId, publicAnonKey } from './utils/supabase/info';
 import { Analytics } from "@vercel/analytics/react"
 import type { MockExamRecord } from './types/mockExam';
-import { getRouteSeo, SITE_ORIGIN } from './seo/routeSeo';
 
 // --- 타입 정의 ---
 export type Subject = 'verbal' | 'reasoning';
@@ -69,6 +67,48 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-cd835c22`;
+const CANONICAL_ORIGIN = 'https://all-leet.vercel.app';
+
+const ROUTE_SEO: Record<string, { title: string; description: string }> = {
+  '/past-exams': {
+    title: 'LEET 기출문제·정답표 | all LEET',
+    description: '학년도별 LEET 언어이해·추리논증 기출문제와 홀수형·짝수형 정답표를 확인하세요.',
+  },
+  '/': {
+    title: '리트 채점은 all LEET',
+    description: '리트 채점, 분석, 로스쿨 합격 예측은 all LEET 올리트에서!',
+  },
+  '/history': {
+    title: '성적 분석 및 히스토리 | all LEET',
+    description: 'LEET 채점 결과를 기반으로 성적 분석과 히스토리를 확인하세요.',
+  },
+  '/mock-history': {
+    title: '사설 모의고사 히스토리 | all LEET',
+    description: '사설 모의고사 기록과 추이를 한눈에 확인하세요.',
+  },
+  '/privacy-policy': {
+    title: '개인정보처리방침 | all LEET',
+    description: 'all LEET 개인정보처리방침 안내 페이지입니다.',
+  },
+  '/terms': {
+    title: '이용약관 | all LEET',
+    description: 'all LEET 이용약관 안내 페이지입니다.',
+  },
+  '/community': {
+    title: '커뮤니티 게시판 | all LEET',
+    description: 'LEET 수험생 커뮤니티 게시판에서 정보를 공유해보세요.',
+  },
+};
+
+const DEFAULT_SEO = ROUTE_SEO['/'];
+
+const normalizePathname = (pathname: string) => {
+  if (!pathname) return '/';
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+};
 
 function AppContent() {
   const location = useLocation();
@@ -128,11 +168,33 @@ function AppContent() {
       document.head.appendChild(faviconLink);
     }
 
+    // 6. 구조화데이터(WebSite) 설정
+    const ldJsonId = 'ldjson-website';
+    let ldJsonScript = document.getElementById(ldJsonId) as HTMLScriptElement | null;
+    if (!ldJsonScript) {
+      ldJsonScript = document.createElement('script');
+      ldJsonScript.id = ldJsonId;
+      ldJsonScript.type = 'application/ld+json';
+      document.head.appendChild(ldJsonScript);
+    }
+
+    const canonicalOrigin = 'https://all-leet.vercel.app';
+    ldJsonScript.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: '올리트',
+      alternateName: ['all LEET', 'ALL LEET', '올리트 (ALL LEET)'],
+      url: canonicalOrigin,
+      inLanguage: 'ko-KR',
+      sameAs: [canonicalOrigin + '/'],
+    });
+
   }, []);
 
   useEffect(() => {
-    const seo = getRouteSeo(location.pathname);
-    const canonicalUrl = seo.canonicalPath ? `${SITE_ORIGIN}${seo.canonicalPath}` : null;
+    const normalizedPath = normalizePathname(location.pathname);
+    const seo = ROUTE_SEO[normalizedPath] ?? DEFAULT_SEO;
+    const canonicalUrl = `${CANONICAL_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`;
 
     document.title = seo.title;
 
@@ -149,21 +211,12 @@ function AppContent() {
     };
 
     let canonicalLink = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
-    if (canonicalUrl) {
-      if (!canonicalLink) {
-        canonicalLink = document.createElement('link');
-        canonicalLink.rel = 'canonical';
-        document.head.appendChild(canonicalLink);
-      }
-      canonicalLink.href = canonicalUrl;
-    } else {
-      canonicalLink?.remove();
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.rel = 'canonical';
+      document.head.appendChild(canonicalLink);
     }
-
-    upsertMeta("meta[name='robots']", {
-      name: 'robots',
-      content: seo.indexable ? 'index,follow' : 'noindex,follow',
-    });
+    canonicalLink.href = canonicalUrl;
 
     upsertMeta("meta[name='description']", {
       name: 'description',
@@ -179,7 +232,7 @@ function AppContent() {
     });
     upsertMeta("meta[property='og:url']", {
       property: 'og:url',
-      content: canonicalUrl ?? `${SITE_ORIGIN}${location.pathname}`,
+      content: canonicalUrl,
     });
     upsertMeta("meta[name='twitter:title']", {
       name: 'twitter:title',
@@ -450,8 +503,6 @@ function AppContent() {
 
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/past-exams" element={<PastExamsPage />} />
-          <Route path="/past-exams/:year" element={<PastExamYearPage />} />
-          <Route path="/question-rates" element={<PastExamsPage mode="rates" />} />
           <Route path="/community/:id" element={<CommunityPostPage />} />
 
           <Route path="/chat" element={<ChatPage />} />
@@ -512,7 +563,6 @@ function AppContent() {
               />
             }
           />
-          <Route path="*" element={<main className="max-w-4xl mx-auto p-8"><h1 className="text-2xl font-bold">페이지를 찾을 수 없습니다</h1><a className="text-blue-700 underline" href="/">홈으로 이동</a></main>} />
         </Routes>
       </div>
       {!location.pathname.startsWith('/admin') && <GlobalBottomNav />}

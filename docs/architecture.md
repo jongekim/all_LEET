@@ -30,7 +30,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 홈의 관리자 버튼 → `/admin` 관리 메뉴 → `/admin/announcements` 공지 목록·편집 순으로 이동한다. 관리자 여부는 `AuthContext`가 기존 RPC로 확인해 버튼과 라우트에 공유한다. DB 변경 권한은 기존 RLS가 강제한다. 관리자 전용 반응형 스타일은 `src/styles/admin.css`에 있으며, 미리 생성된 `src/index.css`에 없는 Tailwind 유틸리티에 의존하지 않는다.
 
-`App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. 공식/사설 이력 배열과 이력 CRUD 핸들러도 이 파일에 있으며, `HistoryPage`와 `MockExamInputPage`로 props를 전달한다. 검색용 메타데이터는 `src/seo/routeSeo.ts`에서 경로별로 정의한다.
+`App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. 공식/사설 이력 배열과 이력 CRUD 핸들러도 이 파일에 있으며, `HistoryPage`와 `MockExamInputPage`로 props를 전달한다.
 
 ### 백엔드
 
@@ -46,7 +46,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 개발자 전용 `scripts/question-statistics.ts`는 브라우저와 분리된 Supabase Management API로 읽기 전용 집계 파일 생성, 검증 파일의 원자적 전체 발행, 상태 확인, 롤백을 수행한다. 주기 작업·Edge Function·원본 이력 API 변경은 없다. 구조와 운영 절차는 [문항 통계 설계](question-statistics-design.md) 및 [수동 갱신](question-statistics.md)을 따른다.
 
-공개 라우트는 홈(`/`), 기출문제(`/past-exams`), 학년도별 기출(`/past-exams/:year`), 문항별 정답률(`/question-rates`), 결과, 로그인/회원가입/비밀번호 재설정, 약관, 커뮤니티, 채팅이다. `PrivateRoute`가 적용된 라우트는 지원 분석(`/admission`, `/admission-result`)과 사설 모의고사 입력(`/mock-input`)이다. `/history`와 `/mock-history`는 라우트 가드 없이 렌더링되며, 이력 로딩 자체는 현재 사용자 유무에 따라 동작한다. 검색 색인은 홈·기출 목록·숫자 학년도별 기출·정답률 안내에만 허용한다. 기타 앱 경로는 `noindex`이고 사이트맵에서 제외한다.
+공개 라우트는 홈(`/`), 결과, 로그인/회원가입/비밀번호 재설정, 약관, 커뮤니티, 채팅이다. `PrivateRoute`가 적용된 라우트는 지원 분석(`/admission`, `/admission-result`)과 사설 모의고사 입력(`/mock-input`)이다. `/history`와 `/mock-history`는 라우트 가드 없이 렌더링되며, 이력 로딩 자체는 현재 사용자 유무에 따라 동작한다.
 
 ## 프론트엔드 패턴
 
@@ -58,13 +58,13 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 ## 배포 및 PWA
 
-- Vite `outDir`은 `build/`이고 public 디렉터리는 `src/public/`이다. `npm run build`는 Vite 산출물 뒤에 `scripts/generate-seo-pages.tsx`를 실행해 홈·기출 목록·19개 숫자 학년도·정답률 안내의 고유 HTML과 사이트맵을 생성한다. 첫 HTML의 설명·정답표·링크와 공개 정답률 요약은 JavaScript 실행 전에도 읽을 수 있으며, 앱 로딩 시 React가 같은 공개 콘텐츠를 렌더링한다. `src/data/seoQuestionRates.json`은 현재 공개 통계를 `npm run seo:sync-statistics`로 읽기 전용 수집한 검색용 스냅샷이며, 대화형 통계는 계속 Supabase 현재 발행본을 직접 조회한다.
-- `vercel.json`은 검색 대상 URL을 생성된 HTML로, 나머지 기존 앱 경로를 `noindex`인 `app.html`로 rewrite한다. 미등록 URL은 정적 404로 응답한다. 동적 커뮤니티 글은 현재 `noindex`이며 존재하지 않는 글의 HTTP 404 처리는 별도 서버 렌더링 도입 시 해결해야 한다. `pastExamDocuments.ts`의 78개 문제지는 Supabase 공개 버킷 `past-exams/watermarked/v1/`의 워터마크 PDF를 직접 참조한다. 원본 PDF·HWP는 로컬 다운로드 보관 영역에 유지하고 웹 빌드에 포함하지 않는다. `pastExamData.ts`가 정답 학년도와 문제지 학년도를 합쳐 선택 목록을 구성한다. 기출 PDF 유형은 단일 문형도 지원하되 기존 채점 타입은 홀수형·짝수형을 유지한다.
+- Vite `outDir`은 `build/`이고 public 디렉터리는 `src/public/`이다.
+- `vercel.json`은 정적 파일 캐시 헤더와 앱 경로의 `/index.html` rewrite를 설정한다. `pastExamDocuments.ts`의 78개 문제지는 Supabase 공개 버킷 `past-exams/watermarked/v1/`의 워터마크 PDF를 직접 참조한다. 원본 PDF·HWP는 로컬 다운로드 보관 영역에 유지하고 웹 빌드에 포함하지 않는다. `pastExamData.ts`가 정답 학년도와 문제지 학년도를 합쳐 선택 목록을 구성한다. 기출 PDF 유형은 단일 문형도 지원하되 기존 채점 타입은 홀수형·짝수형을 유지한다.
 - `src/main.tsx`가 `/sw.js`를 등록한다. 서비스 워커는 캐시를 정리하고 네트워크 요청을 가로채지 않는다.
 - 서비스 배포 버전의 단일 기준은 `package.json`의 `version`이며, `main` push 전 갱신 절차는 `docs/versioning.md`에 정의한다.
 
 ## 관찰된 구조상 주의점
 
-- `App.tsx`가 라우팅, 이력 데이터, 이력 API 호출을 함께 담당하며 경로별 SEO 메타데이터를 DOM에 반영한다. 정적 HTML 생성과 React 첫 렌더는 hydration 없이 교체되므로 두 화면의 공개 설명을 동일 컴포넌트로 유지한다.
+- `App.tsx`가 라우팅, SEO 메타데이터, 이력 데이터, 이력 API 호출을 함께 담당한다.
 - 커뮤니티·채팅·메모는 정규화 테이블을 직접 사용하지만, 성적 이력은 사용자별 JSON 배열을 KV 테이블 한 행에 저장한다.
 - 원격 Supabase 마이그레이션 이력과 저장소의 `supabase/migrations/` 파일 목록이 일치하지 않는다. DB 작업 시 어느 쪽이 운영 기준인지 먼저 확인해야 한다.

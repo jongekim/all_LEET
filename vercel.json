@@ -36,24 +36,7 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
-    },
-    { "source": "/login", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/signup", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/forgot-password", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/reset-password", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/history", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/mock-history", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/admission", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/admission-result", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/mock-input", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/result", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/chat", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/community", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/privacy-policy", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/terms", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/admin", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/community/:id", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
-    { "source": "/admin/:path*", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] }
+    }
   ],
   "rewrites": [
     { "source": "/sw.js", "destination": "/sw.js" },
@@ -62,25 +45,9 @@
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/icon.svg", "destination": "/icon.svg" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/past-exams", "destination": "/past-exams.html" },
-    { "source": "/question-rates", "destination": "/question-rates.html" },
-    { "source": "/past-exams/:year", "destination": "/past-exams/:year.html" },
-    { "source": "/login", "destination": "/app.html" },
-    { "source": "/signup", "destination": "/app.html" },
-    { "source": "/forgot-password", "destination": "/app.html" },
-    { "source": "/reset-password", "destination": "/app.html" },
-    { "source": "/history", "destination": "/app.html" },
-    { "source": "/mock-history", "destination": "/app.html" },
-    { "source": "/admission", "destination": "/app.html" },
-    { "source": "/admission-result", "destination": "/app.html" },
-    { "source": "/mock-input", "destination": "/app.html" },
-    { "source": "/result", "destination": "/app.html" },
-    { "source": "/chat", "destination": "/app.html" },
-    { "source": "/community", "destination": "/app.html" },
-    { "source": "/privacy-policy", "destination": "/app.html" },
-    { "source": "/terms", "destination": "/app.html" },
-    { "source": "/admin", "destination": "/app.html" },
-    { "source": "/community/:id", "destination": "/app.html" },
-    { "source": "/admin/:path*", "destination": "/app.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
