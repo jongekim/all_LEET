@@ -8,15 +8,18 @@ import { QuestionStatistics } from '../components/QuestionStatistics';
 import { PastExamFiles } from '../components/PastExamFiles';
 import { ScoreConversionTable } from '../components/ScoreConversionTable';
 import { PastExamReview } from '../components/PastExamReview';
+import { PastExamIndexContent, QuestionRatesContent } from '../components/seo/PastExamSearchContent';
 import { ANSWER_DATA, getCorrectAnswers } from '../utils/answerData';
 import { SCORE_DATA } from '../utils/scoreData';
 import { getQuestionCount } from '../utils/grading';
 import { getPastExamSelection, PAST_EXAM_DOCUMENTS, PAST_EXAM_YEARS } from '../utils/pastExamData';
 import '../styles/past-exams.css';
 
-export function PastExamsPage() {
+export function PastExamsPage({ mode = 'files' }: { mode?: 'files' | 'rates' }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { year, subject, examType } = getPastExamSelection(searchParams);
+  const selectionParams = new URLSearchParams(searchParams);
+  if (mode === 'rates' && !selectionParams.has('year')) selectionParams.set('year', '2025');
+  const { year, subject, examType } = getPastExamSelection(selectionParams);
   const yearLabel = year === '09예비' ? '09학년도 예비시험' : `${year}학년도`;
   const subjectLabel = subject === 'verbal' ? '언어이해' : '추리논증';
   const isSingleForm = PAST_EXAM_DOCUMENTS.some(document => document.year === year && document.examType === 'single');
@@ -47,10 +50,11 @@ export function PastExamsPage() {
   return (
     <div className="past-exams-page min-h-screen bg-gray-50">
       <PageHeader
-        title={<span className="flex items-center gap-2"><Files className="w-6 h-6 text-blue-600" aria-hidden="true" />기출문제·정답표</span>}
-        description="문제 풀이부터 정답 확인까지, 전개년 기출문제를 한곳에서."
+        title={<span className="flex items-center gap-2"><Files className="w-6 h-6 text-blue-600" aria-hidden="true" />{mode === 'rates' ? '리트 문항별 정답률' : '기출문제·정답표'}</span>}
+        description={mode === 'rates' ? '채점 기록을 기준으로 계산한 문항별 정답률과 선지별 응답 분포를 확인하세요.' : '문제 풀이부터 정답 확인까지, 전개년 기출문제를 한곳에서.'}
       />
       <main className="past-exam-main">
+        {mode === 'rates' && <QuestionRatesContent year={year} />}
         <section aria-label="시험 선택" className="past-exam-panel past-exam-selection">
           <div className="past-exam-section-heading">
             <SlidersHorizontal size={18} aria-hidden="true" />
@@ -99,7 +103,7 @@ export function PastExamsPage() {
             <p>법학적성시험 문제의 저작권은 법학전문대학원협의회에 있습니다.</p>
           </div>
         </section>
-        <PastExamReview key={`${year}:${subject}:${examType}`}>
+        <PastExamReview key={`${year}:${subject}:${examType}`} defaultOpen={mode === 'rates'}>
           <section aria-labelledby="answer-key-heading" className="past-exam-panel">
             <div className="past-exam-table-heading">
               <div className="past-exam-section-heading"><ClipboardList size={20} aria-hidden="true" />
@@ -125,6 +129,7 @@ export function PastExamsPage() {
           </section>
           {hasAnswers && <p className="text-xs text-gray-500">정답표는 all LEET 채점에 사용하는 정답 데이터와 동일합니다.</p>}
         </PastExamReview>
+        {mode === 'files' && <PastExamIndexContent />}
       </main>
     </div>
   );

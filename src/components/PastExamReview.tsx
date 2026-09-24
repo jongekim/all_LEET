@@ -2,8 +2,8 @@ import { useState, type ReactNode } from 'react';
 import { ChevronDown, ClipboardList } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
-export function PastExamReview({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
+export function PastExamReview({ children, defaultOpen = false }: { children: ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>

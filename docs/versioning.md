@@ -2,7 +2,7 @@
 
 ## 기준
 
-서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.4.1`이다.
+서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.5.0`이다.
 
 버전은 [Semantic Versioning 2.0.0](https://semver.org/lang/ko/)의 `MAJOR.MINOR.PATCH` 형식을 따른다. 한 번 실서비스에 배포된 버전 번호는 다시 사용하거나 낮추지 않는다.
 
@@ -68,3 +68,9 @@ v1.4.1은 사용자가 제공한 2027학년도 시행결과의 분야 분류를 
 DB·Storage·Edge Function 변경이나 운영 이력 수정은 없으며, main push는 웹 실서비스 배포를 시작한다.
 
 릴리스 전 `npm run version:verify`와 `npm run check`를 통과했다: 단위 테스트 120개, 화면 테스트 34개, lint·타입 검사·프로덕션 빌드 성공.
+
+## v1.5.0 변경 내역
+
+검색용 홈·기출 목록·2009~2027학년도별 기출·문항별 정답률의 초기 HTML과 고유 메타데이터를 제공한다. 공개 통계 발행본의 정답률·표본·발행일을 읽기 전용으로 복제해 2009~2026학년도 기출 페이지와 정답률 페이지에 표시한다. 2027학년도는 통계 미발행 상태를 안내한다. 사이트맵·robots·Vercel 경로 정책을 정리하고, 작업 중에는 빠른 관련 검증을, 배포 직전에는 전체 E2E를 포함한 `npm run check`를 실행하도록 개발 절차를 바꿨다. DB·Storage·Edge Function 변경은 없다.
+
+배포 전 `npm run version:verify` 및 `npm run check`를 통과했다: 단위 테스트 120개, 읽기 전용 화면 테스트 36개, lint 오류 0건(기존 경고 75건), 타입 검사·프로덕션 빌드 성공. 검색 대상 HTML 22개가 생성됐다.

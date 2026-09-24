@@ -39,9 +39,10 @@
 
 ## 검증
 
-- 표준 품질 게이트는 `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`이며, `npm run check`가 이를 순서대로 실행한다.
+- 수정 직후에는 변경 범위에 맞는 작은 검사만 실행한다. 문서는 `git diff --check`, TypeScript 코드는 `npm run typecheck`와 관련 단위 테스트를 우선 사용한다. 범위가 여러 파일에 걸치면 `npm run check:quick`(타입 검사 + 단위 테스트)을 사용한다. 정적 HTML·빌드 설정 변경에는 필요한 경우 빌드 산출물의 해당 페이지만 확인한다.
+- 전체 `npm run test:e2e`와 `npm run check`를 매 수정마다 반복하지 않는다. `npm run check`는 lint, typecheck, unit test, E2E, build를 포함하는 배포 직전 품질 게이트이며, 배포 대상 변경은 push 전에 통과해야 한다.
 - 빌드는 `build/` 산출물을 갱신하므로 변경 여부를 확인한다.
-- 사용자 흐름 변경 뒤에는 화면 수준 검증도 수행한다. 공개 조회, 로그인 화면 진입, 목록·상세 조회, 폼 입력, 유효성 검사, 이미지 미리보기처럼 서버 상태를 바꾸지 않는 흐름을 우선 확인한다.
+- 사용자 흐름 변경 뒤에는 필요할 때 대표 화면 한두 곳을 읽기 전용으로 확인한다. 전체 화면 E2E는 배포 직전에 실행한다. 공개 조회, 로그인 화면 진입, 목록·상세 조회, 폼 입력, 유효성 검사, 이미지 미리보기처럼 서버 상태를 바꾸지 않는 흐름을 우선 확인한다.
 - 운영 Supabase에 연결된 로컬 앱에서는 서버 쓰기 요청을 발생시키지 않는다. 제출·저장·삭제·좋아요·신고·채팅 전송은 클릭하지 않으며, 쓰기 기능은 요청 직전의 UI 상태까지만 검증한다.
 - 화면 자동화는 Playwright의 `npm run test:e2e`로 실행한다. Chromium이 설치되지 않은 환경에서는 먼저 `npx playwright install chromium`을 실행한다.
 - Supabase 변경 후에는 대상 흐름, RLS, Storage 정책, Edge Function 동작을 별도로 검증한다.

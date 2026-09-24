@@ -10,6 +10,7 @@ import { Subject, Year, User, GradingResult, ExamType } from '../App';
 import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare, MessageCircle, Files } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
+import { HomeSearchContent } from '../components/seo/PastExamSearchContent';
 
 interface HomePageProps {
   user: User;
@@ -537,6 +538,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
             </button>
           </div>
         </div>
+        <HomeSearchContent />
       </main>
 
       <footer className="max-w-4xl mx-auto px-4 pb-24 sm:pb-28 text-center space-y-3">

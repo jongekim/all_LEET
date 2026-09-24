@@ -36,6 +36,18 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
+    },
+    {
+      "source": "/(login|signup|forgot-password|reset-password|history|mock-history|admission|admission-result|mock-input|result|chat|community|privacy-policy|terms|admin)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
+      "source": "/(community|admin)/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
     }
   ],
   "rewrites": [
@@ -45,9 +57,10 @@
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/icon.svg", "destination": "/icon.svg" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/past-exams", "destination": "/past-exams.html" },
+    { "source": "/question-rates", "destination": "/question-rates.html" },
+    { "source": "^/past-exams/(?<year>\\d{4})$", "destination": "/past-exams/$year.html" },
+    { "source": "/(login|signup|forgot-password|reset-password|history|mock-history|admission|admission-result|mock-input|result|chat|community|privacy-policy|terms|admin)", "destination": "/app.html" },
+    { "source": "/(community|admin)/(.*)", "destination": "/app.html" }
   ]
 }
