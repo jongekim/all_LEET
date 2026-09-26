@@ -38,10 +38,10 @@ async function revealReview(page: Page) {
 
 test('홈 바로가기, 시험 선택, 새로고침과 뒤로가기', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('region', { name: '기능 바로가기' }).getByRole('button', { name: /기출문제/ }).click();
+  await page.getByRole('region', { name: '기능 바로가기' }).getByRole('link', { name: /기출문제/ }).click();
   await expect(page.getByRole('heading', { name: '기출문제·정답표', exact: true })).toBeVisible();
   await expect(page).toHaveURL(/year=2027/);
-  await expect(page).toHaveTitle('LEET 기출문제·정답표 | all LEET');
+  await expect(page).toHaveTitle('2027학년도 언어이해 단일 문형 리트(LEET) 기출문제·정답표 | all LEET');
   await expect(page.getByText('문제를 푼 뒤 눌러서 확인하세요.')).toBeVisible();
   await page.getByLabel('시험 학년도').selectOption('2026');
   await revealReview(page);
@@ -85,7 +85,7 @@ test('잘못된 URL은 정상 선택으로 보정하고 합격예측은 기존 �
   await page.getByLabel('시험 학년도').selectOption('2026');
   await revealReview(page);
   await expect(page.getByRole('heading', { name: '2026학년도 언어이해 홀수형 정답표' })).toBeVisible();
-  await page.getByRole('navigation', { name: '주요 페이지 이동' }).getByRole('button', { name: '합격예측', exact: true }).click();
+  await page.getByRole('navigation', { name: '주요 페이지 이동' }).getByRole('link', { name: '합격예측', exact: true }).click();
   await expect(page).toHaveURL('/login');
   await expect(page.getByRole('button', { name: '로그인', exact: true })).toBeVisible();
 });
@@ -138,11 +138,11 @@ for (const width of [320, 390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/past-exams?year=2026&subject=verbal&type=odd');
     const navigation = page.getByRole('navigation', { name: '주요 페이지 이동' });
-    const buttons = navigation.getByRole('button');
-    await expect(buttons).toHaveText(['성적분석', '기출문제', '사설입력', '채점하기', '합격예측', '커뮤니티', '채팅']);
-    await expect(navigation.getByRole('button', { name: '기출문제', exact: true })).toHaveAttribute('aria-current', 'page');
+    const links = navigation.getByRole('link');
+    await expect(links).toHaveText(['성적분석', '기출문제', '사설입력', '채점하기', '합격예측', '커뮤니티', '채팅']);
+    await expect(navigation.getByRole('link', { name: '기출문제', exact: true })).toHaveAttribute('aria-current', 'page');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    const boxes = await buttons.evaluateAll(elements => elements.map(element => {
+    const boxes = await links.evaluateAll(elements => elements.map(element => {
       const rect = element.getBoundingClientRect();
       return { x: rect.x, right: rect.right, y: rect.y, bottom: rect.bottom, width: rect.width, height: rect.height };
     }));
@@ -161,12 +161,12 @@ for (const width of [320, 390, 1280]) {
     await page.getByRole('heading', { name: '2026학년도 언어이해 점수 환산표' }).scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('score-conversion.png') });
-    await navigation.getByRole('button', { name: '채점하기', exact: true }).click();
+    await navigation.getByRole('link', { name: '채점하기', exact: true }).click();
     await expect(page).toHaveURL('/');
-    await expect(page.getByRole('region', { name: '기능 바로가기' }).getByRole('button', { name: /기출문제/ })).toBeVisible();
+    await expect(page.getByRole('region', { name: '기능 바로가기' }).getByRole('link', { name: /기출문제/ })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
-    await navigation.getByRole('button', { name: '기출문제', exact: true }).click();
+    await navigation.getByRole('link', { name: '기출문제', exact: true }).click();
     await expect(page).toHaveURL(/\/past-exams/);
   });
 }

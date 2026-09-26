@@ -2,7 +2,7 @@
 
 ## 기준
 
-서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.4.1`이다.
+서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.4.2`다.
 
 버전은 [Semantic Versioning 2.0.0](https://semver.org/lang/ko/)의 `MAJOR.MINOR.PATCH` 형식을 따른다. 한 번 실서비스에 배포된 버전 번호는 다시 사용하거나 낮추지 않는다.
 
@@ -68,3 +68,9 @@ v1.4.1은 사용자가 제공한 2027학년도 시행결과의 분야 분류를 
 DB·Storage·Edge Function 변경이나 운영 이력 수정은 없으며, main push는 웹 실서비스 배포를 시작한다.
 
 릴리스 전 `npm run version:verify`와 `npm run check`를 통과했다: 단위 테스트 120개, 화면 테스트 34개, lint·타입 검사·프로덕션 빌드 성공.
+
+## v1.4.2 변경 내역
+
+공개 페이지 사이트맵에서 인증·재설정 경로와 확인되지 않은 갱신 날짜를 정리하고, 기출문제 기본 선택 URL을 canonical과 일치시킨다. 기출문제 선택별 제목·설명·canonical 및 커뮤니티 게시글 메타데이터를 설정한다. 홈 바로가기·하단 메뉴·커뮤니티 게시글 제목을 크롤링 가능한 링크로 바꾸되 기존 화면 배치와 이동 결과는 유지한다. 읽기 전용 화면 검증은 개발 서버 부하로 인한 지연을 줄이기 위해 두 워커로 실행한다. DB·Storage·Edge Function 변경은 없다.
+
+릴리스 전 `npm run version:verify`와 `npm run check`를 통과했다: 단위 테스트 120개, 화면 테스트 37개, lint·타입 검사·프로덕션 빌드 성공.

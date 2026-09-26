@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { History, BookOpen, Brain, MessagesSquare, MessageCircle, Files, GraduationCap } from 'lucide-react';
 import type { ComponentType } from 'react';
 import '../styles/navigation.css';
@@ -37,7 +37,6 @@ const isActivePath = (pathname: string, path: string) => {
 };
 
 export function GlobalBottomNav() {
-  const navigate = useNavigate();
   const location = useLocation();
 
   return (
@@ -70,9 +69,8 @@ export function GlobalBottomNav() {
               if (item.center) {
                 return (
                   <li key={item.key}>
-                    <button
-                      type="button"
-                      onClick={() => navigate(item.path)}
+                    <Link
+                      to={item.path}
                       aria-current={isActive ? 'page' : undefined}
                       className="bottom-nav-button bottom-nav-center"
                       style={{
@@ -92,23 +90,22 @@ export function GlobalBottomNav() {
                         <Icon className="w-5 h-5" />
                       </span>
                       <span>{item.label}</span>
-                    </button>
+                    </Link>
                   </li>
                 );
               }
 
               return (
                 <li key={item.key}>
-                  <button
-                    type="button"
-                    onClick={() => navigate(item.path)}
+                  <Link
+                    to={item.path}
                     aria-current={isActive ? 'page' : undefined}
                     className="bottom-nav-button"
                     style={{ color: isActive ? '#1d4ed8' : '#64748b' }}
                   >
                     <Icon className="w-4 h-4" />
                     <span>{item.label}</span>
-                  </button>
+                  </Link>
                 </li>
               );
             })}

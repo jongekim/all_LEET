@@ -1,6 +1,6 @@
 import { PageHeader } from '../components/PageHeader';
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MessagesSquare, Tag, Send, Heart, Eye, MessageCircle, ImagePlus, X } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
 import type { CommunityPost, CommunityTag } from '../types/community';
@@ -591,7 +591,16 @@ export function CommunityPage() {
                       <div className="flex items-start gap-3 sm:gap-4">
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-semibold text-blue-600">{post.tag}</div>
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1">{post.title}</h3>
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1">
+                            <Link
+                              to={`/community/${post.id}`}
+                              className="text-inherit no-underline"
+                              onClick={event => event.stopPropagation()}
+                              onKeyDown={event => event.stopPropagation()}
+                            >
+                              {post.title}
+                            </Link>
+                          </h3>
                           <p
                             className="text-sm text-gray-600 mt-1"
                             style={{

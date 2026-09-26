@@ -22,6 +22,8 @@ import { AdminPage } from './pages/AdminPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
 import { projectId, publicAnonKey } from './utils/supabase/info';
+import { getPastExamSelection } from './utils/pastExamData';
+import { getExamTypeLabel } from './utils/examType';
 import { Analytics } from "@vercel/analytics/react"
 import type { MockExamRecord } from './types/mockExam';
 
@@ -101,6 +103,10 @@ const ROUTE_SEO: Record<string, { title: string; description: string }> = {
 };
 
 const DEFAULT_SEO = ROUTE_SEO['/'];
+const COMMUNITY_POST_SEO = {
+  title: '커뮤니티 게시글 | all LEET',
+  description: 'LEET 수험생 커뮤니티 게시글을 확인하세요.',
+};
 
 const normalizePathname = (pathname: string) => {
   if (!pathname) return '/';
@@ -193,8 +199,22 @@ function AppContent() {
 
   useEffect(() => {
     const normalizedPath = normalizePathname(location.pathname);
-    const seo = ROUTE_SEO[normalizedPath] ?? DEFAULT_SEO;
-    const canonicalUrl = `${CANONICAL_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`;
+    let seo = ROUTE_SEO[normalizedPath]
+      ?? (normalizedPath.startsWith('/community/') ? COMMUNITY_POST_SEO : DEFAULT_SEO);
+    let canonicalUrl = `${CANONICAL_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`;
+
+    if (normalizedPath === '/past-exams') {
+      const { year, subject, examType } = getPastExamSelection(new URLSearchParams(location.search));
+      const yearLabel = year === '09예비' ? '09학년도 예비시험' : `${year}학년도`;
+      const subjectLabel = subject === 'verbal' ? '언어이해' : '추리논증';
+      const examTypeLabel = getExamTypeLabel(year, examType);
+      const selectionLabel = `${yearLabel} ${subjectLabel} ${examTypeLabel}`;
+      seo = {
+        title: `${selectionLabel} 리트(LEET) 기출문제·정답표 | all LEET`,
+        description: `${selectionLabel} 리트(LEET) 기출문제 PDF와 정답표를 확인하세요.`,
+      };
+      canonicalUrl += `?${new URLSearchParams({ year, subject, type: examType })}`;
+    }
 
     document.title = seo.title;
 
@@ -242,7 +262,7 @@ function AppContent() {
       name: 'twitter:description',
       content: seo.description,
     });
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   // ----------------------------------------------------------------
   // 데이터 로딩 및 핸들러

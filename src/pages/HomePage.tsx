@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { YearSelector } from '../components/YearSelector';
 import { NoticeBanner } from '../components/NoticeBanner';
 import { AnswerSheet } from '../components/AnswerSheet';
@@ -317,15 +317,9 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
               overflowWrap: 'normal',
             }}
           >
-            <button
-              onClick={() => {
-                if (currentUser) {
-                  navigate('/admission');
-                } else {
-                  navigate('/signup');
-                }
-              }}
-              className="w-full text-left border rounded-lg p-3 transition-colors"
+            <Link
+              to={currentUser ? '/admission' : '/signup'}
+              className="block w-full text-left border rounded-lg p-3 transition-colors no-underline"
               style={{
                 minHeight: 112,
                 borderColor: '#e5e7eb',
@@ -339,11 +333,11 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <div className="text-sm font-semibold text-gray-900">로스쿨 지원 가능성 분석</div>
               </div>
               <div className="text-xs text-gray-500 mt-2">LEET/GPA/토익 기반 예측</div>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => navigate('/history')}
-              className="w-full text-left border rounded-lg p-3 transition-colors"
+            <Link
+              to="/history"
+              className="block w-full text-left border rounded-lg p-3 transition-colors no-underline"
               style={{
                 minHeight: 112,
                 borderColor: '#e5e7eb',
@@ -357,11 +351,11 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <div className="text-sm font-semibold text-gray-900">성적분석</div>
               </div>
               <div className="text-xs text-gray-500 mt-2">기록/추이 확인</div>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => navigate('/past-exams')}
-              className="w-full text-left border rounded-lg p-3 transition-colors"
+            <Link
+              to="/past-exams"
+              className="block w-full text-left border rounded-lg p-3 transition-colors no-underline"
               style={{
                 minHeight: 112,
                 borderColor: '#e5e7eb',
@@ -375,17 +369,11 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <div className="text-sm font-semibold text-gray-900">기출문제</div>
               </div>
               <div className="text-xs text-gray-500 mt-2">문제지 다운로드 / 정답표 확인</div>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => {
-                if (currentUser) {
-                  navigate('/mock-input');
-                } else {
-                  navigate('/signup');
-                }
-              }}
-              className="w-full text-left border rounded-lg p-3 transition-colors"
+            <Link
+              to={currentUser ? '/mock-input' : '/signup'}
+              className="block w-full text-left border rounded-lg p-3 transition-colors no-underline"
               style={{
                 minHeight: 112,
                 borderColor: '#e5e7eb',
@@ -399,11 +387,11 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <div className="text-sm font-semibold text-gray-900">사설 입력</div>
               </div>
               <div className="text-xs text-gray-500 mt-2">시험 기록 저장</div>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => navigate('/community')}
-              className="w-full text-left border rounded-lg p-3 transition-colors"
+            <Link
+              to="/community"
+              className="block w-full text-left border rounded-lg p-3 transition-colors no-underline"
               style={{
                 minHeight: 112,
                 borderColor: '#e5e7eb',
@@ -417,11 +405,11 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <div className="text-sm font-semibold text-gray-900">커뮤니티</div>
               </div>
               <div className="text-xs text-gray-500 mt-2">질문/정보 공유</div>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => navigate('/chat')}
-              className="w-full text-left border rounded-lg p-3 transition-colors"
+            <Link
+              to="/chat"
+              className="block w-full text-left border rounded-lg p-3 transition-colors no-underline"
               style={{
                 minHeight: 112,
                 borderColor: '#e5e7eb',
@@ -435,7 +423,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                 <div className="text-sm font-semibold text-gray-900">채팅</div>
               </div>
               <div className="text-xs text-gray-500 mt-2">실시간 대화</div>
-            </button>
+            </Link>
           </div>
         </section>
 
@@ -541,18 +529,18 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
 
       <footer className="max-w-4xl mx-auto px-4 pb-24 sm:pb-28 text-center space-y-3">
         <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={() => navigate('/privacy-policy')}
+          <Link
+            to="/privacy-policy"
             className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
           >
             개인정보 처리방침
-          </button>
-          <button
-            onClick={() => navigate('/terms')}
+          </Link>
+          <Link
+            to="/terms"
             className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
           >
             이용약관
-          </button>
+          </Link>
         </div>
         <p className="text-xs text-gray-500 leading-relaxed">
           본 사이트의 모든 콘텐츠는 저작권법의 보호를 받으며, 저작자의 사전 동의 없는 무단 복제/복사/배포를 금지합니다. Copyright © all LEET | all_leet@naver.com

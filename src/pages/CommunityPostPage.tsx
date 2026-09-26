@@ -29,6 +29,28 @@ export function CommunityPostPage() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
+    if (!post || post.id !== id) return;
+
+    const title = `${post.title} | all LEET 커뮤니티`;
+    const description = post.content.replace(/\s+/g, ' ').trim().slice(0, 160)
+      || 'LEET 수험생 커뮤니티 게시글을 확인하세요.';
+
+    document.title = title;
+    const metadata = [
+      ["meta[name='description']", description],
+      ["meta[property='og:title']", title],
+      ["meta[property='og:description']", description],
+      ["meta[name='twitter:title']", title],
+      ["meta[name='twitter:description']", description],
+    ] as const;
+
+    metadata.forEach(([selector, content]) => {
+      const meta = document.head.querySelector<HTMLMetaElement>(selector);
+      if (meta) meta.content = content;
+    });
+  }, [id, post]);
+
+  useEffect(() => {
     const fetchPost = async () => {
       if (!id) return;
       setLoading(true);

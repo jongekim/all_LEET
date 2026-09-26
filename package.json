@@ -1,6 +1,6 @@
 {
       "name": "all_LEET",
-      "version": "1.4.1",
+      "version": "1.4.2",
       "private": true,
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
