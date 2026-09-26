@@ -15,6 +15,7 @@
 | 프로덕션 빌드 | `npm run build` |
 | 전체 품질 게이트 | `npm run check` |
 | 서비스 버전 일치 검사 | `npm run version:verify` |
+| 기출문제 URL 사이트맵 갱신 | `npm run sitemap:generate` |
 | PATCH / MINOR / MAJOR 릴리스 준비 | `npm run release:patch` / `npm run release:minor` / `npm run release:major` |
 | 예시 이력 생성 | `npm run gen:example-history` |
 | 예시 이력 시드 | `npm run seed:example-history` |
@@ -24,7 +25,7 @@ Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 �
 읽기 전용 화면 E2E는 개발 서버의 초기 렌더링이 병렬 부하로 지연되지 않도록 Playwright 워커 두 개로 실행한다.
 
 SEO 경로를 변경할 때는 `src/App.tsx`의 메타데이터 정의와 `src/public/sitemap.xml`을 함께 확인한다. 사이트맵에는 검색에 노출할 공개 경로만 넣고, 확인할 수 없는 `lastmod`는 기록하지 않는다. 게시글 메타데이터는 기존 게시글 조회 결과를 사용하며 별도의 서버 요청을 추가하지 않는다.
-기출문제 메타데이터는 선택한 학년도·과목·문형을 기준으로 설정한다. 쿼리 매개변수의 순서나 불필요한 매개변수가 달라도 canonical은 `year`, `subject`, `type` 순서의 유효한 선택 URL이어야 한다. 현재 사이트맵의 기출 경로는 기본 선택 URL 한 개이며, 다른 선택별 URL을 사이트맵에 추가하는 작업은 실제 검색 수집 결과를 확인한 뒤 판단한다.
+기출문제 메타데이터는 선택한 학년도·과목·문형을 기준으로 설정한다. 쿼리 매개변수의 순서나 불필요한 매개변수가 달라도 canonical은 `year`, `subject`, `type` 순서의 유효한 선택 URL이어야 한다. `npm run sitemap:generate`는 등록된 문제지마다 하나의 선택 URL을 생성하며, 2027학년도 단일 문형은 `type=odd` 하나만 사용한다.
 내부 이동 요소를 수정할 때는 홈 바로가기·하단 메뉴·게시글 제목의 실제 `href`와 기존 경로 이동을 함께 확인한다.
 
 ## 배포 안전 규칙
