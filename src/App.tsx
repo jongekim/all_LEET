@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useUserHistory } from './hooks/useUserHistory';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
@@ -21,11 +22,9 @@ import { AdminAnnouncementsPage } from './pages/AdminAnnouncementsPage';
 import { AdminPage } from './pages/AdminPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
-import { projectId, publicAnonKey } from './utils/supabase/info';
 import { getPastExamSelection } from './utils/pastExamData';
 import { getExamTypeLabel } from './utils/examType';
 import { Analytics } from "@vercel/analytics/react"
-import type { MockExamRecord } from './types/mockExam';
 
 // --- 타입 정의 ---
 export type Subject = 'verbal' | 'reasoning';
@@ -68,7 +67,6 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return isAdmin ? <>{children}</> : <Navigate to="/" replace />;
 }
 
-const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-cd835c22`;
 const CANONICAL_ORIGIN = 'https://all-leet.vercel.app';
 
 const ROUTE_SEO: Record<string, { title: string; description: string }> = {
@@ -119,11 +117,8 @@ const normalizePathname = (pathname: string) => {
 function AppContent() {
   const location = useLocation();
   const { currentUser, logout } = useAuth();
-  const [history, setHistory] = useState<GradingResult[]>([]);
-  const [mockHistory, setMockHistory] = useState<MockExamRecord[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(true);
-
+  const userHistory = useUserHistory(currentUser?.id ?? null);
+  const { history, mockHistory } = userHistory;
   // ----------------------------------------------------------------
   // ✅ PWA 필수 설정 주입 (index.html이 없는 환경 대응)
   // ----------------------------------------------------------------
@@ -265,229 +260,9 @@ function AppContent() {
   }, [location.pathname, location.search]);
 
   // ----------------------------------------------------------------
-  // 데이터 로딩 및 핸들러
+  // 이력 인증·조회·변경은 사용자별 hook에서 관리한다.
   // ----------------------------------------------------------------
-  useEffect(() => {
-    if (!currentUser) {
-      setHistory([]);
-      setMockHistory([]);
-      setLoading(false);
-      return;
-    }
-
-    const loadHistory = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/history/${currentUser.id}`, {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to load history');
-        }
-        
-        const data = await response.json();
-        setHistory(data.data || []);
-      } catch (error) {
-        console.error('Failed to load history:', error);
-        setHistory([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const loadMockHistory = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/mock-history/${currentUser.id}`, {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to load mock history');
-        }
-
-        const data = await response.json();
-        setMockHistory(data.data || []);
-      } catch (error) {
-        console.error('Failed to load mock history:', error);
-        setMockHistory([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadHistory();
-    loadMockHistory();
-  }, [currentUser]);
-
-  const handleAddToHistory = async (result: GradingResult) => {
-    if (!currentUser) return;
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/history/${currentUser.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`
-        },
-        body: JSON.stringify(result)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save history');
-      }
-
-      const data = await response.json();
-      setHistory(prev => [...prev, data.data]);
-    } catch (error) {
-      console.error('Failed to save history:', error);
-    }
-  };
-
-  const handleClearHistory = async () => {
-    if (!currentUser) return;
-    
-    if (window.confirm('모든 채점 기록을 삭제하시겠습니까?')) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/history/${currentUser.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to clear history');
-        }
-
-        setHistory([]);
-      } catch (error) {
-        console.error('Failed to clear history:', error);
-        alert('채점 기록 삭제에 실패했습니다. 다시 시도해주세요.');
-      }
-    }
-  };
-
-  const handleDeleteRecord = async (timestamps: number[]) => {
-    if (!currentUser) return;
-
-    const uniqueTimestamps = Array.from(new Set(timestamps));
-    if (uniqueTimestamps.length === 0) return;
-    
-    if (window.confirm('이 채점 기록을 삭제하시겠습니까?')) {
-      try {
-        // 서버에서 삭제 (timestamp로 식별) - 그룹 내 모든 timestamp를 삭제
-        for (const timestamp of uniqueTimestamps) {
-          const response = await fetch(`${API_BASE_URL}/history/${currentUser.id}/${timestamp}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to delete record from server');
-          }
-        }
-
-        const toDelete = new Set(uniqueTimestamps);
-        // 서버 삭제 성공 시 로컬 상태 업데이트
-        setHistory(prev => prev.filter(record => !toDelete.has(record.timestamp)));
-      } catch (error) {
-        console.error('Failed to delete record:', error);
-        alert('채점 기록 삭제에 실패했습니다. 다시 시도해주세요.');
-      }
-    }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    setHistory([]);
-    setMockHistory([]);
-  };
-
-  const handleAddMockRecord = async (record: Omit<MockExamRecord, 'id' | 'createdAt'>) => {
-    if (!currentUser) return;
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/mock-history/${currentUser.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`
-        },
-        body: JSON.stringify(record)
-      });
-
-      if (!response.ok) {
-        const bodyText = await response.text().catch(() => '');
-        throw new Error(`Failed to save mock history: ${response.status} ${response.statusText}${bodyText ? ` - ${bodyText}` : ''}`);
-      }
-
-      const data = await response.json();
-      setMockHistory(prev => [...prev, data.data]);
-    } catch (error) {
-      console.error('Failed to save mock history:', error);
-      throw error;
-    }
-  };
-
-  const handleClearMockHistory = async () => {
-    if (!currentUser) return;
-
-    if (window.confirm('모든 사설 모의고사 기록을 삭제하시겠습니까?')) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/mock-history/${currentUser.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to clear mock history');
-        }
-
-        setMockHistory([]);
-      } catch (error) {
-        console.error('Failed to clear mock history:', error);
-        alert('사설 기록 삭제에 실패했습니다. 다시 시도해주세요.');
-      }
-    }
-  };
-
-  const handleDeleteMockRecord = async (ids: string[]) => {
-    if (!currentUser) return;
-
-    const uniqueIds = Array.from(new Set(ids)).filter(Boolean);
-    if (uniqueIds.length === 0) return;
-
-    if (window.confirm('이 사설 기록을 삭제하시겠습니까?')) {
-      try {
-        for (const id of uniqueIds) {
-          const response = await fetch(`${API_BASE_URL}/mock-history/${currentUser.id}/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to delete mock record');
-          }
-        }
-
-        const toDelete = new Set(uniqueIds);
-        setMockHistory(prev => prev.filter(r => !toDelete.has(r.id)));
-      } catch (error) {
-        console.error('Failed to delete mock record:', error);
-        alert('사설 기록 삭제에 실패했습니다. 다시 시도해주세요.');
-      }
-    }
-  };
+  const handleLogout = async () => { await logout(); };
 
   const user: User = currentUser ? { email: currentUser.email || '' } : { email: '' };
 
@@ -518,7 +293,7 @@ function AppContent() {
           {/* 메인 페이지 (로그인 상태에 따라 다르게 보일 수 있음) */}
           <Route
             path="/"
-            element={<HomePage user={user} onLogout={handleLogout} onAddToHistory={handleAddToHistory} />}
+            element={<HomePage user={user} onLogout={handleLogout} onAddToHistory={userHistory.addOfficial} />}
           />
 
           <Route path="/community" element={<CommunityPage />} />
@@ -537,11 +312,14 @@ function AppContent() {
             element={
               <HistoryPage
                 history={history}
-                onClearHistory={handleClearHistory}
-                onDeleteRecord={handleDeleteRecord}
+                loading={userHistory.loading}
+                errors={userHistory.errors}
+                onRetry={userHistory.reload}
+                onClearHistory={userHistory.clearOfficial}
+                onDeleteRecord={userHistory.deleteOfficial}
                 mockHistory={mockHistory}
-                onClearMockHistory={handleClearMockHistory}
-                onDeleteMockRecord={handleDeleteMockRecord}
+                onClearMockHistory={userHistory.clearMock}
+                onDeleteMockRecord={userHistory.deleteMock}
               />
             }
           />
@@ -566,7 +344,7 @@ function AppContent() {
             path="/mock-input"
             element={
               <PrivateRoute>
-                <MockExamInputPage existingRecords={mockHistory} onAddRecord={handleAddMockRecord} />
+                <MockExamInputPage existingRecords={mockHistory} onAddRecord={userHistory.addMock} />
               </PrivateRoute>
             }
           />
@@ -575,11 +353,14 @@ function AppContent() {
             element={
               <HistoryPage
                 history={history}
-                onClearHistory={handleClearHistory}
-                onDeleteRecord={handleDeleteRecord}
+                loading={userHistory.loading}
+                errors={userHistory.errors}
+                onRetry={userHistory.reload}
+                onClearHistory={userHistory.clearOfficial}
+                onDeleteRecord={userHistory.deleteOfficial}
                 mockHistory={mockHistory}
-                onClearMockHistory={handleClearMockHistory}
-                onDeleteMockRecord={handleDeleteMockRecord}
+                onClearMockHistory={userHistory.clearMock}
+                onDeleteMockRecord={userHistory.deleteMock}
               />
             }
           />

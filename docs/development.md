@@ -50,6 +50,8 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 서버 쓰기가 필요한 통합 검증은 운영 데이터와 분리된 Supabase 환경 또는 명시적으로 승인된 테스트 계정·테스트 데이터가 마련된 경우에만 수행한다.
 
+`e2e/history-security.spec.ts`는 모든 Supabase 요청을 Playwright 모의 응답으로 처리한 뒤 저장 실패 흐름을 검사한다. 운영에 연결된 일반 로컬 앱에서는 같은 저장 버튼을 누르지 않는다. 이 검사는 실제 서비스 연동 검증을 대체하지 않는다.
+
 ## 테스트·lint·타입 검사
 
 - lint: ESLint 10 flat config가 `src/`, `scripts/`, Vite/Vitest 설정 파일을 검사한다. Deno 전용 Edge Function 소스는 이 Node 기반 lint 범위에서 제외된다. 기존 코드의 `any`, 미사용 식별자, Hook 규칙 위반과 effect 내 동기 상태 갱신은 현재 경고로 보고하며, 별도 안정화 작업으로 오류 수준으로 올려야 한다.

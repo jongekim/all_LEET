@@ -21,7 +21,9 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 ### 프론트엔드
 
 - 진입점: `src/main.tsx`
-- 앱 조립, 라우팅, 이력 API 호출: `src/App.tsx`
+- 앱 조립과 라우팅: `src/App.tsx`
+- 계정별 이력 상태와 CRUD: `src/hooks/useUserHistory.ts`
+- 세션 토큰·응답·제한된 인증 재시도: `src/utils/historyApi.ts`
 - 인증 provider와 Supabase 클라이언트: `src/contexts/AuthContext.tsx`
 - 화면: `src/pages/`
 - 도메인 UI: `src/components/`
@@ -30,7 +32,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 홈의 관리자 버튼 → `/admin` 관리 메뉴 → `/admin/announcements` 공지 목록·편집 순으로 이동한다. 관리자 여부는 `AuthContext`가 기존 RPC로 확인해 버튼과 라우트에 공유한다. DB 변경 권한은 기존 RLS가 강제한다. 관리자 전용 반응형 스타일은 `src/styles/admin.css`에 있으며, 미리 생성된 `src/index.css`에 없는 Tailwind 유틸리티에 의존하지 않는다.
 
-`App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. 공식/사설 이력 배열과 이력 CRUD 핸들러도 이 파일에 있으며, `HistoryPage`와 `MockExamInputPage`로 props를 전달한다.
+`App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. `useUserHistory`가 공식/사설 이력과 로딩·오류 상태를 관리하고 페이지로 props를 전달한다. 계정 전환·로그아웃 때 이전 계정의 배열과 늦게 도착한 요청 결과를 사용하지 않는다. 동일한 사용자 ID의 토큰 갱신은 이력을 초기화하지 않는다.
 
 ### 백엔드
 
@@ -69,6 +71,6 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 ## 관찰된 구조상 주의점
 
-- `App.tsx`가 라우팅, SEO 메타데이터, 이력 데이터, 이력 API 호출을 함께 담당한다.
+- `App.tsx`의 라우팅·SEO와 `useUserHistory`의 계정별 이력 상태가 연결되어 있다.
 - 커뮤니티·채팅·메모는 정규화 테이블을 직접 사용하지만, 성적 이력은 사용자별 JSON 배열을 KV 테이블 한 행에 저장한다.
 - 원격 Supabase 마이그레이션 이력과 저장소의 `supabase/migrations/` 파일 목록이 일치하지 않는다. DB 작업 시 어느 쪽이 운영 기준인지 먼저 확인해야 한다.

@@ -92,16 +92,23 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     }
 
     setIsGrading(true);
+    const saveErrors: string[] = [];
     try {
       for (const result of results) {
-        await onAddToHistory(result);
+        try {
+          await onAddToHistory(result);
+        } catch (error) {
+          console.error('채점 결과 저장 실패', error);
+          const subject = result.subject === 'verbal' ? '언어이해' : '추리논증';
+          saveErrors.push(`${subject}: ${error instanceof Error ? error.message : '저장 결과를 확인하지 못했습니다.'}`);
+        }
       }
     } finally {
       setIsGrading(false);
     }
 
     // 결과 페이지로 이동
-    navigate('/result', { state: { results } });
+    navigate('/result', { state: { results, saveErrors } });
   };
 
   const handleReset = () => {

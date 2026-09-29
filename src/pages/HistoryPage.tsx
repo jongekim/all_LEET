@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react';
 import type { MockExamRecord } from '../types/mockExam';
 import { getMockExamDisplayTitle, MOCK_EXAM_BASE_PROVIDERS } from '../types/mockExam';
 import { EXAMPLE_MOCK_HISTORY, EXAMPLE_OFFICIAL_HISTORY } from '../utils/exampleHistory';
+import type { HistoryKind } from '../utils/historyApi';
 
 interface HistoryPageProps {
   history: GradingResult[];
@@ -17,6 +18,9 @@ interface HistoryPageProps {
   mockHistory: MockExamRecord[];
   onClearMockHistory: () => void;
   onDeleteMockRecord: (ids: string[]) => void;
+  loading?: Record<HistoryKind, boolean>;
+  errors?: Record<HistoryKind, string | null>;
+  onRetry?: (kind: HistoryKind) => void;
 }
 
 type HistoryTab = 'official' | 'mock';
@@ -28,13 +32,16 @@ export function HistoryPage({
   mockHistory,
   onClearMockHistory,
   onDeleteMockRecord,
+  loading,
+  errors,
+  onRetry,
 }: HistoryPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const showOfficialExample = history.length === 0;
-  const showMockExample = mockHistory.length === 0;
+  const showOfficialExample = history.length === 0 && !loading?.history && !errors?.history;
+  const showMockExample = mockHistory.length === 0 && !loading?.['mock-history'] && !errors?.['mock-history'];
   const officialHistoryForView = showOfficialExample ? EXAMPLE_OFFICIAL_HISTORY : history;
   const mockHistoryForView = showMockExample ? EXAMPLE_MOCK_HISTORY : mockHistory;
 
@@ -42,6 +49,9 @@ export function HistoryPage({
   const tabFromPath: HistoryTab = location.pathname === '/mock-history' ? 'mock' : 'official';
   const initialTab: HistoryTab = tabFromQuery === 'mock' ? 'mock' : tabFromPath;
   const [tab, setTab] = useState<HistoryTab>(initialTab);
+  const currentKind: HistoryKind = tab === 'official' ? 'history' : 'mock-history';
+  const currentLoading = !!loading?.[currentKind];
+  const currentError = errors?.[currentKind];
 
   const [sortBy, setSortBy] = useState<'date' | 'year'>('date'); // 기본값: 채점 순서
   const [providerFilter, setProviderFilter] = useState<string>('all');
@@ -127,7 +137,7 @@ export function HistoryPage({
                 <span className="block sm:inline whitespace-nowrap">all LEET</span>
               </h1>
               <p className="text-sm text-gray-600 mt-1">
-                {tab === 'official'
+                {currentLoading ? '이력을 확인하고 있습니다.' : currentError ? '이력 조회를 완료하지 못했습니다.' : tab === 'official'
                   ? `총 ${history.length}개의 채점 기록${showOfficialExample ? ' (예시 미리보기)' : ''}`
                   : `총 ${mockHistory.length}개의 사설 기록${showMockExample ? ' (예시 미리보기)' : ''}`}
               </p>
@@ -150,7 +160,7 @@ export function HistoryPage({
               )}
               <button
                 onClick={tab === 'official' ? onClearHistory : onClearMockHistory}
-                disabled={tab === 'official' ? showOfficialExample : showMockExample}
+                disabled={currentLoading || !!currentError || (tab === 'official' ? showOfficialExample : showMockExample)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                   (tab === 'official' ? showOfficialExample : showMockExample)
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -192,7 +202,15 @@ export function HistoryPage({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {tab === 'official' ? (
+        {currentLoading && <p role="status">이력을 불러오는 중입니다.</p>}
+        {currentError && (
+          <div role="alert" className="bg-amber-50 text-amber-900 rounded-lg p-4">
+            <p>{currentError}</p>
+            <p>조회 실패는 기록 삭제를 의미하지 않습니다. 이전에 조회한 기록은 유지됩니다.</p>
+            <button onClick={() => onRetry?.(currentKind)} className="mt-2 px-3 py-2 border rounded-lg">다시 불러오기</button>
+          </div>
+        )}
+        {((tab === 'official' ? history.length : mockHistory.length) > 0 || (!currentLoading && !currentError)) && (tab === 'official' ? (
           <>
             {showOfficialExample && (
               <div className="bg-white rounded-lg shadow p-4 sm:p-5 border border-blue-100">
@@ -706,7 +724,7 @@ export function HistoryPage({
               )}
             </div>
           </>
-        )}
+        ))}
       </main>
     </div>
   );

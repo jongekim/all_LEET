@@ -103,6 +103,7 @@ export function ResultPage() {
   const { currentUser } = useAuth();
   const results = location.state?.results as GradingResult[] | undefined;
   const singleResult = location.state?.result as GradingResult | undefined;
+  const saveErrors = location.state?.saveErrors as string[] | undefined;
 
   // 이전 버전과의 호환성을 위해 단일 결과도 처리
   const finalResults = results || (singleResult ? [singleResult] : undefined);
@@ -345,6 +346,13 @@ export function ResultPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {!!saveErrors?.length && (
+        <div role="alert" className="max-w-7xl mx-auto px-4 py-3 bg-amber-50 text-amber-900">
+          <p className="font-semibold">채점은 완료했지만 일부 이력 저장을 확인하지 못했습니다.</p>
+          {saveErrors.map((message, index) => <p key={index}>{message}</p>)}
+          <p>답안과 채점 결과는 아래에서 확인할 수 있습니다. 성적 분석에서 저장된 이력을 먼저 확인해주세요.</p>
+        </div>
+      )}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">

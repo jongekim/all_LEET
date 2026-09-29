@@ -2,7 +2,7 @@
 
 ## 기준
 
-서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.4.3`이다.
+서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.4.4`이다.
 
 버전은 [Semantic Versioning 2.0.0](https://semver.org/lang/ko/)의 `MAJOR.MINOR.PATCH` 형식을 따른다. 한 번 실서비스에 배포된 버전 번호는 다시 사용하거나 낮추지 않는다.
 
@@ -80,3 +80,11 @@ DB·Storage·Edge Function 변경이나 운영 이력 수정은 없으며, main 
 Google Search Console 라이브 테스트에서 2018·2023학년도 기출문제 URL의 연도별 제목과 문제지 표시 및 색인 가능 상태를 확인했다. 아직 Google에 알려지지 않은 선택 URL의 발견을 돕도록 등록된 문제지 78개의 canonical URL을 사이트맵에 추가하고, 문서 목록과 사이트맵의 중복·정규화 일치를 확인하는 생성 명령을 제공한다. 화면·데이터베이스·Storage·Edge Function 동작은 변경하지 않는다.
 
 릴리스 전 `npm run version:verify`, 사이트맵 XML 검증, `npm run check`를 통과했다: 단위 테스트 120개, 화면 테스트 37개, lint·타입 검사·프로덕션 빌드 성공.
+
+## v1.4.4 변경 내역
+
+P1 이력 보안 수정의 첫 단계로 클라이언트가 최신 로그인 세션의 access token을 사용한다. 계정 전환 후 이전 요청 결과를 버리고, 조회 실패와 빈 이력을 구분한다. 공식 이력 저장 실패에도 답안·채점 결과를 제공하고 사설 저장 실패에는 입력 화면을 유지한다. 응답이 불확실한 쓰기는 자동 반복하지 않고 조회로 확인한다.
+
+이 릴리스에는 Edge Function·DB·Storage 변경을 포함하지 않는다. 기존 운영 서버의 소유자 검증 취약점은 별도 서버 릴리스 전까지 남아 있다. 서버 수정은 운영과 분리된 실제 연동 검증 환경이 없어 배포를 보류한다. [단계별 절차](history-security-rollout.md)를 따른다.
+
+릴리스 전 `npm run version:verify`와 `npm run check`를 통과했다: 단위 테스트 143개, 화면 테스트 41개, lint 0 errors/73 warnings, 타입 검사·프로덕션 빌드 성공. 검증 환경의 Supabase 요청은 모두 모의 처리했으며 운영 저장·삭제·로그인은 실행하지 않았다.
