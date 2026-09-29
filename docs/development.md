@@ -10,6 +10,7 @@
 | 타입 검사 | `npm run typecheck` |
 | 테스트 1회 실행 | `npm run test` |
 | 테스트 감시 실행 | `npm run test:watch` |
+| 이력 Edge Function 타입·보안 회귀 검사 | `npm run test:edge` (Deno 2.9.5) |
 | 읽기 전용 화면 E2E 테스트 | `npm run test:e2e` |
 | Playwright UI 모드 | `npm run test:e2e:ui` |
 | 프로덕션 빌드 | `npm run build` |
@@ -50,7 +51,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 서버 쓰기가 필요한 통합 검증은 운영 데이터와 분리된 Supabase 환경 또는 명시적으로 승인된 테스트 계정·테스트 데이터가 마련된 경우에만 수행한다.
 
-`e2e/history-security.spec.ts`는 모든 Supabase 요청을 Playwright 모의 응답으로 처리한 뒤 저장 실패 흐름을 검사한다. 운영에 연결된 일반 로컬 앱에서는 같은 저장 버튼을 누르지 않는다. 이 검사는 실제 서비스 연동 검증을 대체하지 않는다.
+`e2e/history-security.spec.ts`는 모든 Supabase 요청을 Playwright 모의 응답으로 처리한 뒤 저장 실패 흐름을 검사한다. 운영에 연결된 일반 로컬 앱에서는 같은 저장 버튼을 누르지 않는다. Edge 테스트는 네트워크·환경 변수 권한 없이 가짜 KV와 Auth 응답만 사용한다. 실제 서비스 연동과 운영 데이터 검증을 대체하지 않는다.
 
 ## 테스트·lint·타입 검사
 
@@ -58,7 +59,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 - typecheck: `tsconfig.json`이 프론트엔드와 스크립트를 strict 모드로 검사한다. Deno 전용 `src/supabase/functions/`는 제외된다.
 - test: Vitest + jsdom + Testing Library를 사용한다. 현재 D-day 계산의 회귀 테스트가 포함되어 있다.
 - 화면 E2E: Playwright Chromium이 `e2e/`의 공개 읽기 전용 흐름을 실행한다. 로컬 최초 실행 전에는 `npx playwright install chromium`으로 브라우저를 설치한다.
-- CI: `.github/workflows/quality.yml`은 pull request와 수동 실행에서 Node 20.19.0으로 lint, typecheck, unit test, 읽기 전용 화면 E2E, build를 실행한다. lockfile의 설치 전략에 맞춰 `npm ci --legacy-peer-deps`를 사용한다. `main` push 이후가 아니라 PR 단계에서 실패를 발견하도록 구성했다.
+- CI: `.github/workflows/quality.yml`은 pull request와 수동 실행에서 Node 20.19.0과 Deno 2.9.5로 lint, typecheck, unit test, Edge 타입·보안 테스트, 화면 E2E, build를 실행한다. lockfile의 설치 전략에 맞춰 `npm ci --legacy-peer-deps`를 사용한다. `main` push 이후가 아니라 PR 단계에서 실패를 발견하도록 구성했다.
 
 기출문제 78개는 Supabase Storage의 워터마크 PDF를 직접 참조하므로 빌드에 PDF·HWP를 복사하지 않는다. 이전 정적 원본은 `downloads/past-exams-original-archive/`에 보존하며, `downloads/`의 원본·ZIP은 git에서 제외한다. 공개 파일 URL·등록 목록·검증 기록은 버전 관리한다. 문제지 정정 시 기존 파일을 덮어쓰지 않고 새 Storage 버전 경로로 등록한다. [등록 절차](past-exams.md)를 따른다.
 
@@ -116,7 +117,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 문항 통계는 [수동 갱신 가이드](question-statistics.md)의 status → prepare(읽기 전용 집계·파일 검증) → 개발자 검토 → publish(검증 파일 전체 발행) → status/공개 조회 순서로 갱신한다. 문제 시 명시적 rollback을 사용한다. 프로젝트 확인·예상 현재 세대·수행자·사유가 필요하며 원본 KV를 수정하지 않는다. 자동/예약 갱신은 없다. 운영 DB 최초 구조/발행은 적용했고 화면 기능은 v1.2.0에 포함한다. 웹 배포 시 DB 재적용이나 Edge Function 배포는 하지 않는다. 격리 SQL/RLS 검증과 모의 API 화면 테스트 방법도 해당 가이드에 명시한다.
 
 - `supabase/config.toml`의 Edge Function JWT 설정 및 Edge Function의 사용자 식별
-- 현재 `verify_jwt = false`인 성적 이력 Edge Function과 URL `userId` 기반 접근
+- `verify_jwt = false`인 성적 이력 Edge Function의 내부 토큰·소유자 검증과 클라이언트 먼저 적용하는 [운영 절차](history-security-rollout.md)
 - `kv_store_cd835c22`의 이력 읽기·쓰기·삭제
 - RLS 정책, Storage 정책, `SECURITY DEFINER` 함수, DB 트리거
 - 커뮤니티 이미지 삭제와 Storage 객체 정리

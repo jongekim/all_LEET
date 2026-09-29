@@ -56,7 +56,11 @@ POST와 DELETE는 배열 전체를 읽어 수정한 뒤 같은 키에 다시 저
 
 ### Edge Function 인증 경계
 
-`supabase/config.toml`에서 `make-server-cd835c22`의 `verify_jwt`는 현재 `false`다. 함수 라우트는 `/history/:userId`와 `/mock-history/:userId`처럼 URL의 `userId`를 키 구성에 사용하며, 함수 내부에서 요청 JWT의 사용자와 `userId`가 같은지 검사하는 코드는 확인되지 않았다. 이 함수는 service role로 KV 테이블에 접근한다. 따라서 이력 API를 수정하거나 외부에 노출할 때는 인증·인가 모델을 먼저 검토해야 한다.
+`supabase/config.toml`의 `verify_jwt = false`는 유지한다. 로컬 수정본은 공식/사설 이력의 GET·POST·전체 DELETE·개별 DELETE 모두에서 `auth.ts`의 `getUser(token)` 결과와 URL `userId`를 비교한 뒤, 검증된 ID로만 KV 키를 구성한다. Auth는 `SUPABASE_URL`과 `SUPABASE_ANON_KEY`를 사용하고 기존 KV 접근에만 service role을 사용한다. 설정 누락·Auth 장애는 KV 접근 없이 503, 무효/누락 토큰은 401, 타인 ID는 403이다. 공개 health와 OPTIONS는 인증 없이 동작한다. 개인 이력 응답에는 `Cache-Control: no-store`를 적용한다.
+
+브라우저는 최신 `supabase.auth.getSession()`의 access token을 보낸다. KV에 도달하기 전 발생한 `401 AUTH_REQUIRED` 응답만 세션 갱신 후 최대 한 번 다시 요청한다. 네트워크 오류·타임아웃·그 밖의 오류가 난 쓰기는 자동 재시도하지 않는다. 기존 URL·키·배열·응답 형식·회독·그룹 규칙과 DB 구조는 유지한다.
+
+2026-09-29 기준 프론트엔드 v1.4.4만 배포했고 서버 인증 변경은 별도 브랜치에서 보존한다. 운영 함수 version 8과 필요한 환경 변수 이름, KV의 RLS 활성화·정책 없음·anon/authenticated/service_role grants, 마이그레이션 메타데이터를 읽기 전용으로 확인했다. 기존 게이트웨이의 공개 health/OPTIONS 응답은 정상이다. 운영과 분리된 검증 환경이 없어 실제 로그인 토큰·소유자 CRUD 통합 검증은 남아 있으며 서버 배포를 보류한다. [배포 절차](history-security-rollout.md)를 따른다.
 
 ## 마이그레이션 상태
 

@@ -106,7 +106,7 @@ shadcn/ui의 컴포넌트가 `src/components/ui/`에 복사되어 있다. npm �
 2. 동봉 LICENSE·NOTICE와 내부 vendored 파일을 우선 수집한다. 원문이 없으면 동일 저장소의 공유 원문 또는 해당 버전의 상위 원문을 확인하고 수집 근거를 기록한다. 권리자·연도를 임의로 만들지 않는다.
 3. 개발 의존성과 배포되는 코드·데이터를 구분한다. 개발 의존성이라도 Vite 등 도구가 배포물에 내장하는 코드의 고지를 놓치지 않는다. 개발 도구 자체를 전달한다면 바이너리 내장 의존성까지 별도로 검토한다.
 4. `@jsr/supabase__supabase-js`와 `@jsr/supabase__functions-js`는 메타데이터에 라이선스가 없지만 설치된 LICENSE에서 MIT를 확인했다. 향후 버전에도 자동으로 동일하다고 가정하지 않는다.
-5. 등록된 Edge Function은 `npm:hono`와 `jsr:@supabase/supabase-js@2.49.8`를 import한다. 특히 버전이 없는 npm import를 프론트 lockfile 버전으로 대신 판정하지 않는다. 서버에서만 실행되고 사용자에게 코드 사본을 전달하지 않는 경계와 원본·컨테이너를 외부에 전달하는 경계를 구분한다.
+5. 등록된 Edge Function의 로컬 수정본은 `npm:hono@4.13.9`와 `jsr:@supabase/supabase-js@2.49.8`를 import하고 Deno lockfile로 해석한다. 수정 전 무버전 npm import의 운영 버전을 프론트 lockfile 버전으로 대신 판정하지 않는다. Hono 4.13.9 tarball의 MIT 원문은 고지 파일에 추가 수록했다. 서버에서만 실행되고 사용자에게 코드 사본을 전달하지 않는 경계와 원본·컨테이너를 외부에 전달하는 경계를 구분한다.
 6. 임시 outDir로 빌드하여 고지 파일이 바이트 단위로 동일하게 복사되는지 확인한다. 예: `npm run build -- --outDir /tmp/all-leet-license-review-build`. 이 확인만으로 일반 품질 게이트를 통과한 것은 아니다.
 7. 배포를 요청받은 경우 [버전·배포 절차](./versioning.md)와 `npm run check`를 수행한다. 이번 문서 작업을 배포 권한으로 해석하지 않는다.
 8. 배포 후 `/third-party-notices.txt`가 `200` 및 텍스트 본문으로 응답하는지, SPA HTML fallback이 아닌지, Analytics 소스 링크가 유효한지 확인한다. 사이트에서 고지를 발견할 수 있는 경로도 확인한다.
