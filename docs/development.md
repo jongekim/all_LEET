@@ -23,6 +23,7 @@
 | 문항 통계 생성/발행/확인/롤백 | `npm run statistics -- prepare/publish/status/rollback ...` |
 
 Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 있다. 빌드 산출물은 `build/`다.
+저장소의 `.npmrc`는 기존 `@jsr` 의존성을 공식 `https://npm.jsr.io`에서 설치하도록 지정한다. 개인 npm 설정이 없는 CI에서도 같은 패키지를 설치하기 위해 필요하며, 의존성 버전을 변경하지 않는다.
 읽기 전용 화면 E2E는 개발 서버의 초기 렌더링이 병렬 부하로 지연되지 않도록 Playwright 워커 두 개로 실행한다.
 
 SEO 경로를 변경할 때는 `src/App.tsx`의 메타데이터 정의와 `src/public/sitemap.xml`을 함께 확인한다. 사이트맵에는 검색에 노출할 공개 경로만 넣고, 확인할 수 없는 `lastmod`는 기록하지 않는다. 게시글 메타데이터는 기존 게시글 조회 결과를 사용하며 별도의 서버 요청을 추가하지 않는다.
