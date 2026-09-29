@@ -164,7 +164,9 @@ for (const width of [320, 390, 1280]) {
     await navigation.getByRole('link', { name: '채점하기', exact: true }).click();
     await expect(page).toHaveURL('/');
     await expect(page.getByRole('region', { name: '기능 바로가기' }).getByRole('link', { name: /기출문제/ })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    // Home's responsive tooltip switches in an effect after route mount.
+    // Assert the settled layout while keeping the same no-overflow requirement.
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
     await navigation.getByRole('link', { name: '기출문제', exact: true }).click();
     await expect(page).toHaveURL(/\/past-exams/);
