@@ -164,7 +164,24 @@ for (const width of [320, 390, 1280]) {
     await navigation.getByRole('link', { name: '채점하기', exact: true }).click();
     await expect(page).toHaveURL('/');
     await expect(page.getByRole('region', { name: '기능 바로가기' }).getByRole('link', { name: /기출문제/ })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    // Keep the no-overflow requirement and report offending elements on failure.
+    try {
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    } catch (error) {
+      console.error('Home layout overflow', await page.evaluate(() => ({
+        viewport: window.innerWidth,
+        document: document.documentElement.scrollWidth,
+        elements: Array.from(document.querySelectorAll('body *')).flatMap(element => {
+          const rect = element.getBoundingClientRect();
+          if (rect.right <= window.innerWidth && rect.left >= 0) return [];
+          const style = getComputedStyle(element);
+          return [{ tag: element.tagName, class: element.className, text: element.textContent?.slice(0, 80),
+            left: rect.left, right: rect.right, width: rect.width, font: style.font,
+            display: style.display, position: style.position }];
+        }).slice(0, 30),
+      })));
+      throw error;
+    }
     await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
     await navigation.getByRole('link', { name: '기출문제', exact: true }).click();
     await expect(page).toHaveURL(/\/past-exams/);

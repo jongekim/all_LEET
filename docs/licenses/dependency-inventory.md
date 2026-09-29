@@ -558,3 +558,14 @@ lockfile SHA-256: `4904ed762c672db67d2252924af381aa0e137f776841c652334da8c0cb90f
 - `node_modules/@swc/core-win32-ia32-msvc` 1.15.8: 플랫폼 패키지 미설치; Apache-2.0 AND MIT. 개발 도구 원본 또는 바이너리를 재배포하기 전에 원문과 내장 의존성 고지를 확보한다.
 - `node_modules/@swc/core-win32-x64-msvc` 1.15.8: 플랫폼 패키지 미설치; Apache-2.0 AND MIT. 개발 도구 원본 또는 바이너리를 재배포하기 전에 원문과 내장 의존성 고지를 확보한다.
 - `node_modules/stackback` 0.0.2: 원문 미수집; MIT. 개발 도구 원본 또는 바이너리를 재배포하기 전에 원문과 내장 의존성 고지를 확보한다.
+
+
+## Edge Function 해석 버전 (2026-09-28 로컬 검증)
+
+등록 함수의 기존 무버전 import를 `npm:hono@4.13.9`로 고정하고 Deno lockfile을 추가했다. 수정 전 재현에서 해석한 버전과 동일하다. 브라우저 npm lockfile/번들은 변경하지 않았다. 운영 함수 해석 버전은 별도 확인이 필요하다.
+
+| 해석 기준 | 버전 | 구분 | 라이선스 | 원문 근거 |
+|---|---|---|---|---|
+| `npm:hono` / 등록 함수 `deno.lock` | 4.13.9 | 서버 런타임 | MIT | 해당 npm tarball 동봉 LICENSE, third-party-notices.txt 추가 수록 |
+
+Supabase JSR 2.49.8 import는 유지한다.

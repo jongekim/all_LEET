@@ -38,7 +38,9 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 등록된 Edge Function은 `make-server-cd835c22`다. 설정은 `supabase/config.toml`, 구현은 `supabase/functions/make-server-cd835c22/`에 있다. Deno에서 Hono를 실행하고 `SUPABASE_SERVICE_ROLE_KEY`로 `kv_store_cd835c22`를 읽고 쓴다.
 
-`src/supabase/functions/server/`에도 Hono/KV 구현이 존재하지만, 이 경로는 현재 `supabase/config.toml`에 등록되어 있지 않다.
+`index.ts`가 실제 Auth/KV 의존성을 조립하고 `app.ts`의 Hono 앱을 실행한다. `auth.ts`는 명시적인 Bearer 토큰을 Supabase `getUser(token)`으로 검증한다. 테스트에서는 외부 요청을 모의 구현으로 대체한다.
+
+`src/supabase/functions/server/index.tsx`는 등록된 진입점을 참조하는 레거시 어댑터다. 독립적인 라우트 사본을 유지하지 않으며 배포 경로로 사용하지 않는다. v1.4.5 서버 인증 변경의 운영 적용과 승인된 전용 테스트 계정 검증은 [이력 보안 배포 절차](history-security-rollout.md)를 따른다.
 
 ## 라우팅
 

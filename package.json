@@ -1,6 +1,6 @@
 {
       "name": "all_LEET",
-      "version": "1.4.4",
+      "version": "1.4.5",
       "private": true,
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
@@ -78,10 +78,11 @@
             "typecheck": "tsc --noEmit",
             "test": "vitest run",
             "test:watch": "vitest",
+            "test:edge": "deno check --config supabase/functions/make-server-cd835c22/deno.json supabase/functions/make-server-cd835c22/index.ts && deno test --config supabase/functions/make-server-cd835c22/deno.json supabase/functions/make-server-cd835c22/app_test.ts supabase/functions/make-server-cd835c22/auth_test.ts",
             "test:e2e": "playwright test",
             "test:e2e:ui": "playwright test --ui",
             "build": "vite build",
-            "check": "npm run lint && npm run typecheck && npm run test && npm run test:e2e && npm run build",
+            "check": "npm run lint && npm run typecheck && npm run test && npm run test:edge && npm run test:e2e && npm run build",
             "version:verify": "node scripts/verify-version.mjs",
             "release:patch": "npm version patch --no-git-tag-version",
             "release:minor": "npm version minor --no-git-tag-version",
