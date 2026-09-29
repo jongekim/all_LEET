@@ -175,7 +175,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                   </div>
                 </>
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end gap-3 sm:flex-row sm:items-center">
                   <div className="relative">
                     <Button
                       onClick={() => navigate('/history')}

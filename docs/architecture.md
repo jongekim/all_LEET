@@ -40,7 +40,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 `index.ts`가 실제 Auth/KV 의존성을 조립하고 `app.ts`의 Hono 앱을 실행한다. `auth.ts`는 명시적인 Bearer 토큰을 Supabase `getUser(token)`으로 검증한다. 테스트에서는 외부 요청을 모의 구현으로 대체한다.
 
-`src/supabase/functions/server/index.tsx`는 등록된 진입점을 참조하는 레거시 어댑터다. 독립적인 라우트 사본을 유지하지 않으며 배포 경로로 사용하지 않는다. 이 인증 변경은 로컬 구현 상태이며 운영 적용은 [이력 보안 배포 절차](history-security-rollout.md)를 따른다.
+`src/supabase/functions/server/index.tsx`는 등록된 진입점을 참조하는 레거시 어댑터다. 독립적인 라우트 사본을 유지하지 않으며 배포 경로로 사용하지 않는다. v1.4.5 서버 인증 변경의 운영 적용과 승인된 전용 테스트 계정 검증은 [이력 보안 배포 절차](history-security-rollout.md)를 따른다.
 
 ## 라우팅
 
