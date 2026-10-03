@@ -8,3 +8,6 @@ downloads/
 /output/**/*.pdf
 /.DS_Store
 /**/.DS_Store
+
+/build/prerender/
+/build/app.html

@@ -13,7 +13,8 @@ interface AuthContextType {
   adminError: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// 빌드 전용 공개 렌더러는 세션 없는 Context 값을 주입한다.
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function useAuth() {
   const context = useContext(AuthContext);

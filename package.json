@@ -1,6 +1,6 @@
 {
       "name": "all_LEET",
-      "version": "1.4.5",
+      "version": "1.4.6",
       "private": true,
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
@@ -81,8 +81,8 @@
             "test:edge": "deno check --config supabase/functions/make-server-cd835c22/deno.json supabase/functions/make-server-cd835c22/index.ts && deno test --config supabase/functions/make-server-cd835c22/deno.json supabase/functions/make-server-cd835c22/app_test.ts supabase/functions/make-server-cd835c22/auth_test.ts",
             "test:e2e": "playwright test",
             "test:e2e:ui": "playwright test --ui",
-            "build": "vite build",
-            "check": "npm run lint && npm run typecheck && npm run test && npm run test:edge && npm run test:e2e && npm run build",
+            "build": "vite build && node --import tsx scripts/prerender.ts",
+            "check": "npm run lint && npm run typecheck && npm run test && npm run test:edge && npm run test:e2e && npm run build && npm run test:prerender",
             "version:verify": "node scripts/verify-version.mjs",
             "release:patch": "npm version patch --no-git-tag-version",
             "release:minor": "npm version minor --no-git-tag-version",
@@ -90,6 +90,8 @@
             "gen:example-history": "tsx scripts/generate-example-history.ts",
             "sitemap:generate": "tsx scripts/generate-sitemap.ts",
             "seed:example-history": "tsx scripts/seed-example-history.ts",
-            "statistics": "tsx scripts/question-statistics.ts"
+            "statistics": "tsx scripts/question-statistics.ts",
+            "prerender:routes": "node --import tsx scripts/generate-prerender-routes.ts",
+            "test:prerender": "playwright test --config playwright.prerender.config.ts"
       }
 }

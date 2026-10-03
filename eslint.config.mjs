@@ -14,7 +14,7 @@ export default tseslint.config(
     ],
   },
   {
-    files: ['src/**/*.{ts,tsx}', 'e2e/**/*.ts', 'scripts/**/*.ts', 'vite.config.ts', 'vitest.config.ts', 'playwright.config.ts'],
+    files: ['src/**/*.{ts,tsx}', 'e2e/**/*.ts', 'e2e-prerender/**/*.ts', 'scripts/**/*.ts', 'vite.config.ts', 'vitest.config.ts', 'playwright.config.ts', 'playwright.prerender.config.ts'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',

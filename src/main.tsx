@@ -51,5 +51,12 @@
     });
   }
 
-  createRoot(document.getElementById("root")!).render(<App />);
+  const rootElement = document.getElementById("root")!;
+  if (rootElement.hasChildNodes()) {
+    const shell = document.createElement('div');
+    shell.id = 'prerender-shell';
+    while (rootElement.firstChild) shell.appendChild(rootElement.firstChild);
+    rootElement.before(shell);
+  }
+  createRoot(rootElement).render(<App />);
   

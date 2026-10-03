@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useUserHistory } from './hooks/useUserHistory';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -22,8 +22,7 @@ import { AdminAnnouncementsPage } from './pages/AdminAnnouncementsPage';
 import { AdminPage } from './pages/AdminPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
-import { getPastExamSelection } from './utils/pastExamData';
-import { getExamTypeLabel } from './utils/examType';
+import { getPageSeo, WEBSITE_SCHEMA } from './utils/pageSeo';
 import { Analytics } from "@vercel/analytics/react"
 
 // --- 타입 정의 ---
@@ -67,54 +66,12 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return isAdmin ? <>{children}</> : <Navigate to="/" replace />;
 }
 
-const CANONICAL_ORIGIN = 'https://all-leet.vercel.app';
-
-const ROUTE_SEO: Record<string, { title: string; description: string }> = {
-  '/past-exams': {
-    title: 'LEET 기출문제·정답표 | all LEET',
-    description: '학년도별 LEET 언어이해·추리논증 기출문제와 홀수형·짝수형 정답표를 확인하세요.',
-  },
-  '/': {
-    title: '리트 채점은 all LEET',
-    description: '리트 채점, 분석, 로스쿨 합격 예측은 all LEET 올리트에서!',
-  },
-  '/history': {
-    title: '성적 분석 및 히스토리 | all LEET',
-    description: 'LEET 채점 결과를 기반으로 성적 분석과 히스토리를 확인하세요.',
-  },
-  '/mock-history': {
-    title: '사설 모의고사 히스토리 | all LEET',
-    description: '사설 모의고사 기록과 추이를 한눈에 확인하세요.',
-  },
-  '/privacy-policy': {
-    title: '개인정보처리방침 | all LEET',
-    description: 'all LEET 개인정보처리방침 안내 페이지입니다.',
-  },
-  '/terms': {
-    title: '이용약관 | all LEET',
-    description: 'all LEET 이용약관 안내 페이지입니다.',
-  },
-  '/community': {
-    title: '커뮤니티 게시판 | all LEET',
-    description: 'LEET 수험생 커뮤니티 게시판에서 정보를 공유해보세요.',
-  },
-};
-
-const DEFAULT_SEO = ROUTE_SEO['/'];
-const COMMUNITY_POST_SEO = {
-  title: '커뮤니티 게시글 | all LEET',
-  description: 'LEET 수험생 커뮤니티 게시글을 확인하세요.',
-};
-
-const normalizePathname = (pathname: string) => {
-  if (!pathname) return '/';
-  if (pathname.length > 1 && pathname.endsWith('/')) {
-    return pathname.slice(0, -1);
-  }
-  return pathname;
-};
-
-function AppContent() {
+export function AppContent() {
+  useLayoutEffect(() => {
+    // 인증 초기화가 끝나 실제 화면이 준비된 뒤 정적 화면을 교체한다.
+    document.getElementById('root')?.setAttribute('data-app-ready', 'true');
+    document.getElementById('prerender-shell')?.remove();
+  }, []);
   const location = useLocation();
   const { currentUser, logout } = useAuth();
   const userHistory = useUserHistory(currentUser?.id ?? null);
@@ -179,38 +136,13 @@ function AppContent() {
       document.head.appendChild(ldJsonScript);
     }
 
-    const canonicalOrigin = 'https://all-leet.vercel.app';
-    ldJsonScript.text = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: '올리트',
-      alternateName: ['all LEET', 'ALL LEET', '올리트 (ALL LEET)'],
-      url: canonicalOrigin,
-      inLanguage: 'ko-KR',
-      sameAs: [canonicalOrigin + '/'],
-    });
+    ldJsonScript.text = JSON.stringify(WEBSITE_SCHEMA);
 
   }, []);
 
   useEffect(() => {
-    const normalizedPath = normalizePathname(location.pathname);
-    let seo = ROUTE_SEO[normalizedPath]
-      ?? (normalizedPath.startsWith('/community/') ? COMMUNITY_POST_SEO : DEFAULT_SEO);
-    let canonicalUrl = `${CANONICAL_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`;
-
-    if (normalizedPath === '/past-exams') {
-      const { year, subject, examType } = getPastExamSelection(new URLSearchParams(location.search));
-      const yearLabel = year === '09예비' ? '09학년도 예비시험' : `${year}학년도`;
-      const subjectLabel = subject === 'verbal' ? '언어이해' : '추리논증';
-      const examTypeLabel = getExamTypeLabel(year, examType);
-      const selectionLabel = `${yearLabel} ${subjectLabel} ${examTypeLabel}`;
-      seo = {
-        title: `${selectionLabel} 리트(LEET) 기출문제·정답표 | all LEET`,
-        description: `${selectionLabel} 리트(LEET) 기출문제 PDF와 정답표를 확인하세요.`,
-      };
-      canonicalUrl += `?${new URLSearchParams({ year, subject, type: examType })}`;
-    }
-
+    const seo = getPageSeo(location.pathname, location.search);
+    const canonicalUrl = seo.canonical;
     document.title = seo.title;
 
     const upsertMeta = (selector: string, attrs: Record<string, string>) => {

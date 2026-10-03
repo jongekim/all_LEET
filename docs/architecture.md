@@ -52,7 +52,13 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 공개 라우트는 홈(`/`), 결과, 로그인/회원가입/비밀번호 재설정, 약관, 커뮤니티, 채팅이다. `PrivateRoute`가 적용된 라우트는 지원 분석(`/admission`, `/admission-result`)과 사설 모의고사 입력(`/mock-input`)이다. `/history`와 `/mock-history`는 라우트 가드 없이 렌더링되며, 이력 로딩 자체는 현재 사용자 유무에 따라 동작한다.
 
-공개 페이지의 사이트맵은 `scripts/generate-sitemap.ts`가 `src/public/sitemap.xml`에 생성한다. 기출문제 URL은 등록된 문제지 78개와 일대일로 대응한다. 정적 경로의 검색 메타데이터는 `App.tsx`가 설정하고, `/past-exams`는 선택한 학년도·과목·문형에 맞는 제목·설명과 정규화된 쿼리 canonical을 설정한다. `/community/:id`는 기존 게시글 조회 결과로 제목과 설명을 갱신한다. 모든 경로는 동일한 `index.html`을 받으므로 경로별 메타데이터는 브라우저에서 React가 실행된 뒤 적용된다.
+공개 페이지의 사이트맵은 `scripts/generate-sitemap.ts`가 `src/public/sitemap.xml`에 생성한다. 기출문제 URL은 등록된 문제지 78개와 일대일로 대응한다. 검색 제목·설명·canonical은 `src/utils/pageSeo.ts`를 빌드와 브라우저가 공유한다. 홈의 검색 제목·설명은 LEET 채점, 문항별 정답률·선지별 응답 분포, 기출문제 PDF·정답표·환산표를 강조하며 기존 화면의 본문·레이아웃은 유지한다.
+
+`npm run build`는 Vite 빌드 후 `scripts/prerender.ts`가 기존 React 화면을 Vite SSR/React 서버 렌더러로 HTML에 기록한다. 대상은 홈, 성적 이력 예시 두 경로, 정책 두 경로, 기출문제 선택 URL 78개로 총 83개다. `src/entry-prerender.tsx`는 `StaticRouter`와 세션 없는 인증 Context로 `AppContent`를 렌더링한다. AuthProvider는 실행하지 않으며 React effect·로그인·데이터 요청·변경도 실행하지 않는다. 외부 fetch를 금지하고 실제 문항 통계·공지·개인 이력을 빌드 HTML에 복사하지 않는다. 실제 문항 정답률은 기존 공개 조회로 불러오며 접힌 정답표의 동작은 유지한다. 검색엔진만을 위한 숨김 본문은 추가하지 않는다.
+
+`vercel.json`의 query 조건부 rewrite는 유효한 학년도·과목·문형에 맞는 `build/prerender/past-exams/*.html`을 제공한다. 생략·잘못된 선택과 단일 문형 보정은 기존 선택 규칙과 일치한다. 정적 정책·이력 경로도 각각의 HTML을 받는다. 홈은 `build/index.html`이며 로그인·관리자·개인 화면 및 커뮤니티의 fallback은 빈 앱 본문을 가진 `build/app.html`이다. 커뮤니티 목록·게시글은 최신 공개 DB 조회가 필요한 동적 화면으로 기존 클라이언트 렌더링을 유지하며, 게시글 메타데이터는 조회 결과로 갱신한다.
+
+브라우저는 초기 정적 본문을 `prerender-shell`에 보관하고 기존 createRoot/AuthProvider를 실행한다. 인증 초기화 후 실제 페이지가 마운트되면 정적 본문을 제거한다. HTML을 hydrate하지 않으므로 빌드 시점 날짜·세션·화면 폭 차이로 인한 hydration 불일치가 없다. 사이트명 구조화 데이터는 `ldjson-website` 한 개로 유지한다.
 
 홈의 기능 바로가기·정책 링크와 전역 하단 메뉴는 React Router 링크를 사용한다. 커뮤니티 목록의 게시글 제목에도 상세 URL 링크가 있으며, 기존 카드 전체 클릭 이동과 좋아요 버튼은 유지한다.
 
@@ -67,7 +73,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 ## 배포 및 PWA
 
 - Vite `outDir`은 `build/`이고 public 디렉터리는 `src/public/`이다.
-- `vercel.json`은 정적 파일 캐시 헤더와 앱 경로의 `/index.html` rewrite를 설정한다. `pastExamDocuments.ts`의 78개 문제지는 Supabase 공개 버킷 `past-exams/watermarked/v1/`의 워터마크 PDF를 직접 참조한다. 원본 PDF·HWP는 로컬 다운로드 보관 영역에 유지하고 웹 빌드에 포함하지 않는다. `pastExamData.ts`가 정답 학년도와 문제지 학년도를 합쳐 선택 목록을 구성한다. 기출 PDF 유형은 단일 문형도 지원하되 기존 채점 타입은 홀수형·짝수형을 유지한다.
+- `vercel.json`은 정적 파일 캐시 헤더, 공개 HTML rewrite와 나머지 앱 경로의 `/app.html` fallback을 설정한다. 공개 HTML은 no-store로 응답하며 자산은 기존 장기 캐시를 유지한다. `pastExamDocuments.ts`의 78개 문제지는 Supabase 공개 버킷 `past-exams/watermarked/v1/`의 워터마크 PDF를 직접 참조한다. 원본 PDF·HWP는 로컬 다운로드 보관 영역에 유지하고 웹 빌드에 포함하지 않는다. `pastExamData.ts`가 정답 학년도와 문제지 학년도를 합쳐 선택 목록을 구성한다. 기출 PDF 유형은 단일 문형도 지원하되 기존 채점 타입은 홀수형·짝수형을 유지한다.
 - `src/main.tsx`가 `/sw.js`를 등록한다. 서비스 워커는 캐시를 정리하고 네트워크 요청을 가로채지 않는다.
 - 서비스 배포 버전의 단일 기준은 `package.json`의 `version`이며, `main` push 전 갱신 절차는 `docs/versioning.md`에 정의한다.
 

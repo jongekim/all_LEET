@@ -35,7 +35,7 @@ test('기출문제 선택에 따라 검색 메타데이터와 정규 URL을 갱�
   await page.goto('/past-exams?type=odd&subject=verbal&year=2018&campaign=preview');
 
   const title = '2018학년도 언어이해 홀수형 리트(LEET) 기출문제·정답표 | all LEET';
-  const description = '2018학년도 언어이해 홀수형 리트(LEET) 기출문제 PDF와 정답표를 확인하세요.';
+  const description = '2018학년도 언어이해 홀수형 리트(LEET) 기출문제 PDF와 정답표·점수 환산표를 확인하세요. 공개 통계가 있는 문항은 정답률과 선지별 응답 분포도 제공합니다.';
   const canonical = 'https://all-leet.vercel.app/past-exams?year=2018&subject=verbal&type=odd';
   await expect(page).toHaveTitle(title);
   await expect(page.locator("meta[name='description']")).toHaveAttribute('content', description);

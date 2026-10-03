@@ -13,7 +13,9 @@
 | 이력 Edge Function 타입·보안 회귀 검사 | `npm run test:edge` (Deno 2.9.5) |
 | 읽기 전용 화면 E2E 테스트 | `npm run test:e2e` |
 | Playwright UI 모드 | `npm run test:e2e:ui` |
-| 프로덕션 빌드 | `npm run build` |
+| 프로덕션 빌드·공개 HTML 생성 | `npm run build` |
+| 빌드 HTML·자바스크립트 없는 화면 검증 | `npm run test:prerender` |
+| 기출 선택 HTML 배포 라우팅 갱신 | `npm run prerender:routes` |
 | 전체 품질 게이트 | `npm run check` |
 | 서비스 버전 일치 검사 | `npm run version:verify` |
 | 기출문제 URL 사이트맵 갱신 | `npm run sitemap:generate` |
@@ -26,7 +28,7 @@ Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 �
 저장소의 `.npmrc`는 기존 `@jsr` 의존성을 공식 `https://npm.jsr.io`에서 설치하도록 지정한다. 개인 npm 설정이 없는 CI에서도 같은 패키지를 설치하기 위해 필요하며, 의존성 버전을 변경하지 않는다.
 읽기 전용 화면 E2E는 개발 서버의 초기 렌더링이 병렬 부하로 지연되지 않도록 Playwright 워커 두 개로 실행한다.
 
-SEO 경로를 변경할 때는 `src/App.tsx`의 메타데이터 정의와 `src/public/sitemap.xml`을 함께 확인한다. 사이트맵에는 검색에 노출할 공개 경로만 넣고, 확인할 수 없는 `lastmod`는 기록하지 않는다. 게시글 메타데이터는 기존 게시글 조회 결과를 사용하며 별도의 서버 요청을 추가하지 않는다.
+SEO 경로를 변경할 때는 `src/utils/pageSeo.ts`의 공유 메타데이터 정의와 `src/public/sitemap.xml`을 함께 확인한다. 사이트맵에는 검색에 노출할 공개 경로만 넣고, 확인할 수 없는 `lastmod`는 기록하지 않는다. 게시글 메타데이터는 기존 게시글 조회 결과를 사용하며 별도의 서버 요청을 추가하지 않는다.
 기출문제 메타데이터는 선택한 학년도·과목·문형을 기준으로 설정한다. 쿼리 매개변수의 순서나 불필요한 매개변수가 달라도 canonical은 `year`, `subject`, `type` 순서의 유효한 선택 URL이어야 한다. `npm run sitemap:generate`는 등록된 문제지마다 하나의 선택 URL을 생성하며, 2027학년도 단일 문형은 `type=odd` 하나만 사용한다.
 내부 이동 요소를 수정할 때는 홈 바로가기·하단 메뉴·게시글 제목의 실제 `href`와 기존 경로 이동을 함께 확인한다.
 
@@ -132,3 +134,23 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 3. `npm run check`를 실행한다.
 4. 영향을 받은 사용자 흐름을 브라우저에서 읽기 전용 정책 아래 확인한다.
 5. Supabase 변경이 있다면 인증 사용자와 비인증 사용자 모두의 권한 경로를 확인한다.
+
+## UI 변경 승인
+
+기존 UI 변경은 적용 전에 사용자에게 변경 범위를 설명하고 명시적 승인을 받아야 한다. 화면 본문·사용자용 문구·레이아웃·색상·서체·간격·요소 추가 및 삭제·메뉴·이동 동선·상호작용 변경이 대상이다. 기능·SEO·GEO·성능 개선 요청 자체를 UI 변경 승인으로 해석하지 않는다. 승인 요청에는 구체적인 제안 또는 기존 앱과 분리된 목업·미리보기를 제시하고, 승인 전 실제 앱 UI를 변경하지 않는다. 이미 명시적으로 승인받은 범위는 재확인하지 않으며 범위 확장에는 별도 승인이 필요하다. 이 규칙은 루트 `AGENTS.md`에도 명시되어 있다.
+
+화면에 변화가 없는 내부 처리·HTML 사전 렌더링·검색 메타데이터 개선은 기존 UI를 유지하는 방식으로 진행한다. SEO·GEO 개선을 위해 검색엔진만을 대상으로 숨김 본문을 추가하지 않는다. 실제 사용자에게 제공하는 기존 화면을 최초 HTML에도 제공한다.
+
+## 공개 HTML 사전 렌더링
+
+`npm run build`는 Vite 정적 빌드 후 `node --import tsx scripts/prerender.ts`를 실행한다. 새 패키지나 Chromium 없이 기존 React 서버 렌더러로 공개 83개 화면을 생성한다. 빌드 중 Supabase 등 외부 fetch는 허용하지 않으며 인증 세션·공지·실제 통계·개인 데이터를 가져오지 않는다. 실제 데이터는 앱이 시작된 뒤 기존 조회 흐름을 따른다.
+
+기출문제 등록·공개 정적 경로 변경 시 `npm run sitemap:generate`와 `npm run prerender:routes`를 실행하고 `vercel.json` 변경도 검토한다. 빌드는 생성 규칙과 실제 배포 rewrite의 일치를 검사하고 불일치하면 실패한다. 일반 코드 빌드는 배포 설정을 자동 수정하지 않는다. 공개 HTML의 query 순서·불필요한 매개변수·기본값·잘못된 선택·단일 문형 처리는 클라이언트 선택과 같아야 한다.
+
+`npm run test:prerender`는 먼저 생성된 build를 필요로 한다. 로컬 preview에서 저장된 Vercel rewrite의 query 조건을 적용하고 83개 최초 HTML 응답, 본문·canonical·제목·구조화 데이터, JavaScript 없는 접근, 앱 시작 후 선택과 정답표, 모바일 가로 넘침, 개인 경로 fallback을 검증한다. 이 preview는 배포 플랫폼 자체의 검증을 대체하지 않는다. 첫 배포 후 홈·과거 기출·예비시험·단일 문형 URL의 HTTP 응답을 추가 확인한다. `npm run check`와 CI는 빌드 이후 이 검증까지 실행한다.
+
+UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방식과 사전 HTML로 시작한 방식을 비교한다. 홈·선택한 기출문제·로그인 화면의 데스크톱(1280px)과 모바일(375px) 최종 스크린샷이 같아야 한다. JavaScript 로딩을 보류한 상태부터 앱 시작까지 화면 프레임의 제목 개수를 검사해 빈 화면·중복 표시를 확인한다. 비로그인 채점 결과와 보호 경로의 로그인 이동도 검사하며 모든 Supabase 요청은 모의 응답으로 격리한다. 실제 로그인·운영 저장 요청은 실행하지 않는다.
+
+배포 후에는 HTML 원문에 해당 시험의 본문·제목·canonical이 있는지 먼저 확인한다. Search Console은 홈, 최신 기출, 과거 기출, 예비시험의 대표 URL을 각각 검사하고 마지막 크롤링 날짜·Google 선택 표준 URL·색인 제외 사유를 비교한다. 페이지 색인 보고서의 최신 날짜와 사이트맵 필터도 함께 확인한다. 사전 렌더링 검증 통과를 Google 색인 완료로 해석하지 않는다.
+
+`build/prerender/`와 `build/app.html`은 git에서 제외한 재생성 산출물이다. 기존 추적 중인 `build/index.html`과 assets 변경은 빌드 후 확인한다. 사전 렌더링 진입점과 preview 스크립트는 브라우저 배포 번들에 포함되지 않는다.
