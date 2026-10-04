@@ -2,7 +2,7 @@
 
 ## 기준
 
-서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.5.0`이다.
+서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.5.1`이다.
 
 버전은 [Semantic Versioning 2.0.0](https://semver.org/lang/ko/)의 `MAJOR.MINOR.PATCH` 형식을 따른다. 한 번 실서비스에 배포된 버전 번호는 다시 사용하거나 낮추지 않는다.
 
@@ -44,6 +44,12 @@
 | `npm run release:major` | MAJOR 버전 증가 및 MINOR/PATCH 초기화 |
 
 `release:*` 명령은 작업 트리가 깨끗하지 않으면 npm이 중단할 수 있다. 다른 작업의 변경 사항을 보존하기 위한 안전장치이므로, 해당 변경을 먼저 정리하거나 별도 작업 트리에서 릴리스를 준비한다.
+
+## v1.5.1 변경 내역
+
+기출문제 로컬 산출물의 PNG·ZIP(`output/images/`)과 WebP(`output/markdown/`)를 Git 추적 대상에서 제외한다. 마크다운 텍스트·검증 기록·생성 도구는 계속 버전 관리할 수 있으며 기존 로컬 파일은 보존한다. 앱 UI·동작·Supabase 데이터·Storage·Edge Function 변경은 없다. `main` push에 따른 웹 배포를 위해 PATCH 버전을 올린다.
+
+릴리스 전 `npm run version:verify`와 `npm run check`를 통과했다. 단위 테스트 177개·화면 테스트 54개·사전 렌더링 테스트 8개 및 서버·통계 검증을 확인했고, lint는 0 errors/74 warnings다. 생성 이미지·ZIP 2,696개가 Git에서 제외되는지 확인했다.
 
 ## v1.3.0 변경 내역
 

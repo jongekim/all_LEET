@@ -6,6 +6,10 @@ test-results/
 downloads/
 /build/past-exams/
 /output/**/*.pdf
+# Large generated past-exam images and archives (keep text and verification records).
+/output/images/**/*.png
+/output/images/**/*.zip
+/output/markdown/**/*.webp
 /.DS_Store
 /**/.DS_Store
 
