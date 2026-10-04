@@ -1,6 +1,6 @@
 import { PageHeader } from '../components/PageHeader';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChartNoAxesCombined, Megaphone } from 'lucide-react';
+import { ArrowRight, Calendar, ChartNoAxesCombined, Megaphone } from 'lucide-react';
 import '../styles/admin.css';
 
 export function AdminPage() {
@@ -17,6 +17,11 @@ export function AdminPage() {
           <Link to="/admin/analytics" className="admin-menu-card" style={{ marginTop: 18 }}>
             <ChartNoAxesCombined size={28} />
             <div><h2>이용 통계</h2><p>서비스·채점·PWA 이용 현황과 회원별 활동을 확인합니다.</p></div>
+            <ArrowRight size={20} />
+          </Link>
+          <Link to="/admin/dday" className="admin-menu-card" style={{ marginTop: 18 }}>
+            <Calendar size={28} />
+            <div><h2>디데이 관리</h2><p>LEET 시험일과 홈·로그인·회원가입의 표시 문구를 설정합니다.</p></div>
             <ArrowRight size={20} />
           </Link>
         </div>

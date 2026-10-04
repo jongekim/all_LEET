@@ -77,6 +77,14 @@ DB 변경 전에는 다음을 수행한다.
 3. RLS, 외래 키, 인덱스, Storage 정책, 클라이언트 호출을 함께 검토한다.
 4. 실제 마이그레이션 작성·적용은 명시적으로 요청된 경우에만 한다.
 
+## 디데이 설정 DB (v1.6.0 운영 적용)
+
+신규 로컬 마이그레이션 `20261004082512_exam_schedule.sql`은 `public.exam_schedule` 한 행(`key='leet'`)에 `exam_date date`, `display_template text`, `revision integer`, `updated_at timestamptz`를 저장한다. 적용 전 운영에 테이블이 없음을 2026-10-04 읽기 전용으로 재확인한 뒤 사용자 요청으로 마이그레이션과 동일 버전의 적용 이력을 한 트랜잭션으로 반영했다. 초기 값은 `2026-07-19`, `{date} 시험일 {dday}`이며 다음 시험일을 추정하지 않는다.
+
+RLS와 명시적 grants를 함께 설정한다. anon/authenticated는 SELECT, 기존 admin은 날짜·문구 두 컬럼만 UPDATE 가능하고 INSERT/DELETE는 불허한다. UPDATE 양쪽 조건에 기존 `private.is_admin()`을 사용한다. private SECURITY INVOKER 검증 함수는 문구의 1~100 코드 포인트·정규화·제어 문자·치환자 구문을 검사하고 BEFORE UPDATE 트리거는 두 값의 실제 변경에만 버전·수정 시각을 갱신한다. 공개 행에는 수행자 정보나 비밀 메모를 두지 않는다.
+
+격리 PGlite의 `scripts/test-exam-schedule-sql.ts`에서 기본 broad grants 회수, anon/일반/moderator/admin 접근, 컬럼 제한, 입력 검증, 버전 충돌·권한 회수를 검사한다. 실제 운영의 비로그인 PostgREST SELECT 200과 RLS·grants를 확인했다. 일반 역할 쓰기 차단, 실제 관리자 두 필드 수정·버전 증가·동일 값 저장·충돌·입력 검증은 트랜잭션 전체 롤백으로 검증하여 초기 행을 유지했다. [운영 적용 기록](admin-dday-rollout.md)을 따른다. 원격 기존 마이그레이션 이력 불일치를 자동 `db push`로 수정하지 않는다. [디데이 설계](admin-dday-design.md)를 따른다.
+
 ## 이용 통계 DB
 
 `supabase/migrations/20261003141220_product_usage_analytics.sql`과 후속 `20261004050638_admin_dashboard_and_member_options.sql`을 2026-10-04 운영 이력/스키마에 적용했다. 실제 기존 `private.admin_roles`, `current_user_is_admin()`, Auth 필드, KV와 마이그레이션 이력은 읽기 전용으로 대조했다.

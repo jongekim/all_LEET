@@ -32,7 +32,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - 범용 UI 프리미티브: `src/components/ui/`
 - 계산·정적 데이터·보조 기능: `src/utils/`
 
-홈의 관리자 버튼 → `/admin` 관리 메뉴 → `/admin/announcements` 공지 목록·편집 또는 `/admin/analytics` 이용 통계로 이동한다. 관리자 여부는 `AuthContext`가 기존 RPC로 확인해 버튼과 라우트에 공유한다. DB 변경 권한은 기존 RLS가 강제한다. 관리자 전용 반응형 스타일은 `src/styles/admin.css`에 있으며, 미리 생성된 `src/index.css`에 없는 Tailwind 유틸리티에 의존하지 않는다.
+홈의 관리자 버튼 → `/admin` 관리 메뉴 → `/admin/announcements` 공지 목록·편집, `/admin/analytics` 이용 통계 또는 `/admin/dday` 디데이 설정으로 이동한다. 관리자 여부는 `AuthContext`가 기존 RPC로 확인해 버튼과 라우트에 공유한다. DB 변경 권한은 기존 RLS가 강제한다. 관리자 전용 반응형 스타일은 `src/styles/admin.css`에 있으며, 미리 생성된 `src/index.css`에 없는 Tailwind 유틸리티에 의존하지 않는다.
 
 `App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. `useUserHistory`가 공식/사설 이력과 로딩·오류 상태를 관리하고 페이지로 props를 전달한다. 계정 전환·로그아웃 때 이전 계정의 배열과 늦게 도착한 요청 결과를 사용하지 않는다. 동일한 사용자 ID의 토큰 갱신은 이력을 초기화하지 않는다.
 
@@ -84,6 +84,12 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - `App.tsx`의 라우팅·SEO와 `useUserHistory`의 계정별 이력 상태가 연결되어 있다.
 - 커뮤니티·채팅·메모는 정규화 테이블을 직접 사용하지만, 성적 이력은 사용자별 JSON 배열을 KV 테이블 한 행에 저장한다.
 - 원격 Supabase 마이그레이션 이력과 저장소의 `supabase/migrations/` 파일 목록이 일치하지 않는다. DB 작업 시 어느 쪽이 운영 기준인지 먼저 확인해야 한다.
+
+## 관리자 디데이 설정
+
+`/admin/dday`는 기존 `AdminRoute`·`AuthContext`를 사용하고 계정 ID로 재마운트된다. `examScheduleApi`가 기존 Supabase 클라이언트로 공개 한 행을 읽고 날짜·문구만 버전 조건으로 수정한다. 15초 제한·요청 취소·요청 전후 계정 검사·충돌·응답 미확인 재조회를 적용한다. 별도 Edge Function이나 인증 원본은 추가하지 않는다.
+
+`ExamScheduleProvider`의 `ExamScheduleStore`가 요청 합치기·공개 localStorage 캐시·저장 응답 반영·늦은 응답 차단을 제공한다. `examScheduleModel`과 `ddayTemplate`은 순수 계산·검증·치환이고 `useKstNow`가 자정·포커스 복귀를 갱신한다. 관리자 미리보기와 홈·로그인·회원가입은 같은 로직으로 문구를 표시한다. `DdayText`는 관리자가 설정한 템플릿을 React 텍스트로 출력하며 긴 문구는 영역 안에서 줄바꿈한다. 세 공개 경로 진입·visible 60초 주기·포커스/온라인/storage 알림에 재조회한다. Provider를 사전 렌더링에도 사용하되 초기 HTML에는 조회 중 상태만 기록하므로 DB 값을 빌드에 고정하지 않는다. 런타임 기본 시험일은 제거했다. [디데이 설계](admin-dday-design.md)를 따른다.
 
 ## 관리자 이용 통계
 

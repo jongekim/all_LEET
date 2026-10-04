@@ -17,6 +17,7 @@
 | 빌드 HTML·자바스크립트 없는 화면 검증 | `npm run test:prerender` |
 | 기출 선택 HTML 배포 라우팅 갱신 | `npm run prerender:routes` |
 | 전체 품질 게이트 | `npm run check` |
+| 디데이 설정 SQL·RLS 격리 검사 | `npm run test:schedule` |
 | 서비스 버전 일치 검사 | `npm run version:verify` |
 | 기출문제 URL 사이트맵 갱신 | `npm run sitemap:generate` |
 | PATCH / MINOR / MAJOR 릴리스 준비 | `npm run release:patch` / `npm run release:minor` / `npm run release:major` |
@@ -154,6 +155,14 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 배포 후에는 HTML 원문에 해당 시험의 본문·제목·canonical이 있는지 먼저 확인한다. Search Console은 홈, 최신 기출, 과거 기출, 예비시험의 대표 URL을 각각 검사하고 마지막 크롤링 날짜·Google 선택 표준 URL·색인 제외 사유를 비교한다. 페이지 색인 보고서의 최신 날짜와 사이트맵 필터도 함께 확인한다. 사전 렌더링 검증 통과를 Google 색인 완료로 해석하지 않는다.
 
 `build/prerender/`와 `build/app.html`은 git에서 제외한 재생성 산출물이다. 기존 추적 중인 `build/index.html`과 assets 변경은 빌드 후 확인한다. 사전 렌더링 진입점과 preview 스크립트는 브라우저 배포 번들에 포함되지 않는다.
+
+## 디데이 설정 검증·적용 경계
+
+`npm run test:schedule`은 임시 PGlite에서 합성 Auth·관리자 역할·RLS를 만들고 신규 `20261004082512_exam_schedule.sql`만 실행한다. 운영 DB 접근은 없다. `npm run check`와 CI에 포함한다. 공통 계산·템플릿·캐시·API 및 자정 갱신은 Vitest에 포함하고 `e2e/admin-dday.spec.ts`는 모든 Supabase 요청을 모의 응답으로 처리해 관리자 저장 성공·충돌·응답 유실·권한 거절·입력 보존 및 모바일 화면을 검사한다.
+
+`e2e/dday-public.spec.ts`는 공개 세 화면의 공통 표시·조회 중/실패·캐시 복구·HTML 텍스트 처리·60초 조회·다른 탭 알림·KST 자정·모바일 줄바꿈을 검사한다. 관리자 검사에는 저장 후 홈·비로그인 로그인·가입 화면 반영을 포함한다. `e2e-prerender/public-html.spec.ts`는 JS 없는 홈에서 조회 중 상태만 출력되고 고정 날짜·디데이를 포함하지 않는지 검사한다. `node --import tsx scripts/build-dday-preview.ts`로 운영 요청 없는 `docs/previews/dday-public.html`을 재생성한다.
+
+사용자의 명시적 DB 적용·버전 관리·커밋·push 요청으로 v1.6.0 릴리스를 진행한다. 신규 마이그레이션·초기 행·동일 버전 적용 이력을 운영에 먼저 반영하고 실제 공개 읽기와 롤백 트랜잭션의 역할별 권한을 확인한다. 운영에 연결한 로컬 앱에서 저장을 클릭하지 않는다. [디데이 운영 적용](admin-dday-rollout.md)의 DB 먼저 적용·품질 게이트·main push·실서비스 확인 순서를 따른다.
 
 ## 관리자 이용 통계 검증·활성화
 

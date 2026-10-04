@@ -5,7 +5,7 @@ import { NoticeBanner } from '../components/NoticeBanner';
 import { AnswerSheet } from '../components/AnswerSheet';
 import { isSingleFormYear } from '../utils/examType';
 import { getQuestionCount, gradeAnswers } from '../utils/grading';
-import { calculateDday, getDdayText } from '../utils/dday';
+import { DdayText } from '../components/DdayText';
 import { Subject, Year, User, GradingResult, ExamType } from '../App';
 import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare, MessageCircle, Files } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -33,9 +33,6 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   const verbalQuestionCount = getQuestionCount(selectedYear, 'verbal');
   const reasoningQuestionCount = getQuestionCount(selectedYear, 'reasoning');
   
-  const { dday, examDate } = calculateDday();
-  const ddayText = getDdayText();
-
   const handleYearChange = (year: Year) => {
     usageAnalytics().resetInput();
     setSelectedYear(year);
@@ -150,15 +147,15 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div>
+            <div style={{ minWidth: 0 }}>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
                 <span className="block sm:inline">리트 채점은 </span>
                 <span className="block sm:inline whitespace-nowrap">all LEET</span>
               </h1>
               <div className="flex items-center gap-2 mt-1">
-                <Calendar className="w-4 h-4 text-red-600" />
-                <p className="text-sm font-semibold text-red-600">
-                  {ddayText}
+                <Calendar className="w-4 h-4 text-red-600 flex-shrink-0" />
+                <p className="text-sm font-semibold text-red-600" style={{ minWidth: 0 }}>
+                  <DdayText />
                 </p>
               </div>
             </div>

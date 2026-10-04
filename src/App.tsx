@@ -21,6 +21,8 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { AdminAnnouncementsPage } from './pages/AdminAnnouncementsPage';
 import { AdminPage } from './pages/AdminPage';
+import { AdminDdayPage } from './pages/AdminDdayPage';
+import { ExamScheduleProvider } from './contexts/ExamScheduleContext';
 import { AdminAnalyticsPage } from './pages/AdminAnalyticsPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
@@ -217,6 +219,7 @@ export function AppContent() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/admin" element={<PrivateRoute><AdminRoute><AdminPage /></AdminRoute></PrivateRoute>} />
           <Route path="/admin/analytics" element={<PrivateRoute><AdminRoute><AdminAnalyticsPage /></AdminRoute></PrivateRoute>} />
+          <Route path="/admin/dday" element={<AdminRoute><AdminDdayPage key={currentUser?.id} /></AdminRoute>} />
           <Route
             path="/admin/announcements"
             element={
@@ -312,7 +315,9 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <ExamScheduleProvider>
+          <AppContent />
+        </ExamScheduleProvider>
         <Analytics />
       </AuthProvider>
     </Router>

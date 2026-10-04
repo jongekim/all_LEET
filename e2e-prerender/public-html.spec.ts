@@ -24,6 +24,10 @@ test('자바스크립트 없이 홈과 선택한 기출문제·PDF 링크를 읽
   await page.goto('http://127.0.0.1:4173/');
   await expect(page.getByRole('heading', { name: /리트 채점은 all LEET/ })).toBeVisible();
   await expect(page.getByRole('region', { name: '기능 바로가기' })).toBeVisible();
+  await expect(page.locator('[data-dday-display]')).toHaveText('불러오는 중…');
+  const homeHtml = await (await page.request.get('http://127.0.0.1:4173/')).text();
+  expect(homeHtml).not.toContain('2026.07.19');
+  expect(homeHtml).not.toMatch(/D-[0-9]+|D\+[0-9]+|D-Day/);
   await expect(page.locator('.service-highlights')).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath('home-desktop.png') });
   await page.setViewportSize({ width: 320, height: 780 });
@@ -87,12 +91,14 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 
       });
       await page.goto(path);
       await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
+      if (path === '/' || path === '/login') await expect(page.locator('[data-dday-display]')).toHaveText('디데이 설정을 불러오지 못했습니다.');
       const original = await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' });
       await page.unroute('http://127.0.0.1:4173/**');
 
       await page.goto(path);
       await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
       await expect(page.locator('#prerender-shell')).toHaveCount(0);
+      if (path === '/' || path === '/login') await expect(page.locator('[data-dday-display]')).toHaveText('디데이 설정을 불러오지 못했습니다.');
       const prerendered = await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' });
       await testInfo.attach(`${name}-original`, { body: original, contentType: 'image/png' });
       await testInfo.attach(`${name}-prerendered`, { body: prerendered, contentType: 'image/png' });

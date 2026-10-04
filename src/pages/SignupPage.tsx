@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Calendar, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { calculateDday, getDdayText } from '../utils/dday';
+import { DdayText } from '../components/DdayText';
 
 export function SignupPage() {
   const [emailId, setEmailId] = useState('');
@@ -20,9 +20,6 @@ export function SignupPage() {
   const { signup } = useAuth();
   const navigate = useNavigate();
   
-  const { dday, examDate } = calculateDday();
-  const ddayText = getDdayText();
-
   const emailDomains = [
     '@naver.com',
     '@gmail.com',
@@ -205,9 +202,9 @@ export function SignupPage() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">간편가입</h1>
             <div className="flex items-center justify-center gap-2">
-              <Calendar className="w-4 h-4 text-red-600" />
-              <p className="text-sm font-semibold text-red-600">
-                {examDate} 시험일 {ddayText}
+              <Calendar className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <p className="text-sm font-semibold text-red-600" style={{ minWidth: 0 }}>
+                <DdayText />
               </p>
             </div>
             <p className="mt-3 text-base font-semibold text-gray-900 leading-snug">
