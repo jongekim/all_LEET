@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Calculator, TrendingUp } from 'lucide-react';
 import { analyzeLawSchools } from '../utils/lawschool';
+import { usageAnalytics } from '../utils/usageAnalytics';
+import { analyticsId } from '../utils/analyticsId';
 
 export function AdmissionPage() {
   const navigate = useNavigate();
@@ -58,6 +60,7 @@ export function AdmissionPage() {
     }
 
     const analyses = analyzeLawSchools(leetNum, gpaNum);
+    usageAnalytics().track('admission_completed', 'admission', { target_type: 'admission', target_id: analyticsId() });
     
     // sessionStorage에 저장
     sessionStorage.setItem('admissionAnalyses', JSON.stringify(analyses));

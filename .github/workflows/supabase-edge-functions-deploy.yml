@@ -27,4 +27,4 @@ jobs:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           mkdir -p supabase/.temp
-          supabase --workdir . functions deploy make-server-cd835c22 --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+          supabase --workdir . functions deploy make-server-cd835c22 usage-events admin-analytics --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt

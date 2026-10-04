@@ -4,6 +4,7 @@ import { LawSchoolAnalysis, getSchoolsByChance } from '../utils/lawschool';
 import { TrendingUp, AlertCircle, XCircle, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ToeicInfoNotice } from '../components/ToeicInfoDialog';
+import { usageAnalytics } from '../utils/usageAnalytics';
 
 export function AdmissionResultPage() {
   const location = useLocation();
@@ -37,6 +38,10 @@ export function AdmissionResultPage() {
       }
     }
   }, [location.state, navigate]);
+
+  useEffect(() => {
+    if (analyses && input) usageAnalytics().track('admission_result_viewed', 'admission', {}, location.key);
+  }, [analyses, input, location.key]);
 
   if (!analyses || !input) {
     return (

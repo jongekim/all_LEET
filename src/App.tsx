@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { useUserHistory } from './hooks/useUserHistory';
+import { useUsageTracking } from './hooks/useUsageTracking';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
@@ -20,6 +21,7 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { AdminAnnouncementsPage } from './pages/AdminAnnouncementsPage';
 import { AdminPage } from './pages/AdminPage';
+import { AdminAnalyticsPage } from './pages/AdminAnalyticsPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
 import { getPageSeo, WEBSITE_SCHEMA } from './utils/pageSeo';
@@ -67,6 +69,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 export function AppContent() {
+  useUsageTracking();
   useLayoutEffect(() => {
     // 인증 초기화가 끝나 실제 화면이 준비된 뒤 정적 화면을 교체한다.
     document.getElementById('root')?.setAttribute('data-app-ready', 'true');
@@ -213,6 +216,7 @@ export function AppContent() {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/admin" element={<PrivateRoute><AdminRoute><AdminPage /></AdminRoute></PrivateRoute>} />
+          <Route path="/admin/analytics" element={<PrivateRoute><AdminRoute><AdminAnalyticsPage /></AdminRoute></PrivateRoute>} />
           <Route
             path="/admin/announcements"
             element={

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>관리자 변화 대시보드 · 설계 미리보기</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f6f9; color: #17243a; font: 15px/1.6 system-ui, sans-serif; }
+    main { max-width: 1160px; padding: 32px 24px 64px; margin: auto; }
+    h1 { font-size: 28px; margin: 8px 0; } h2 { font-size: 17px; margin: 0 0 16px; }
+    p { margin: 6px 0; } small, .muted { color: #64748b; } small { font-size: 12px; }
+    .notice { padding: 12px 16px; border: 1px solid #d7e3f2; background: #edf4fd; border-radius: 10px; margin-bottom: 24px; }
+    .top, .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+    .control { padding: 8px 12px; background: white; border: 1px solid #dce2ea; border-radius: 8px; }
+    .tabs { display: flex; gap: 24px; overflow-x: auto; border-bottom: 1px solid #dce2ea; margin: 20px 0; padding-bottom: 10px; white-space: nowrap; }
+    .tabs strong { color: #245cad; }
+    .status { background: #fff; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card, .panel { background: white; border: 1px solid #e1e6ed; border-radius: 12px; padding: 20px; }
+    .value { font-size: 30px; font-weight: 700; letter-spacing: -1px; margin: 8px 0 0; }
+    .value span { font-size: 14px; font-weight: 400; letter-spacing: 0; margin-left: 5px; }
+    .up { color: #245cad; } .down { color: #9a5b24; }
+    .spark { height: 30px; margin-top: 12px; } .spark svg { width: 100%; height: 30px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    .wide { margin-top: 16px; }
+    .change { padding: 12px 0; border-top: 1px solid #edf0f4; }
+    .change:first-of-type { border: 0; }
+    .detail { color: #245cad; font-size: 13px; white-space: nowrap; }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+    th { font-weight: 500; color: #64748b; text-align: left; }
+    td, th { padding: 10px 8px; border-bottom: 1px solid #edf0f4; }
+    button, input { font: inherit; } button { cursor: pointer; color: inherit; }
+    .control[aria-pressed="true"] { background: #245cad; border-color: #245cad; color: white; }
+    .chart { margin-top: 16px; } .chart svg { display: block; width: 100%; height: auto; }
+    .chart-info { min-height: 44px; font-size: 12px; color: #64748b; }
+    .legend { margin-top: 6px; font-size: 12px; color: #64748b; }
+    .chart-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .chart-tools button { font-size: 12px; padding: 5px 9px; }
+    details { margin-top: 8px; font-size: 12px; } summary { cursor: pointer; color: #245cad; }
+    svg .point { cursor: pointer; } svg .point:focus { outline: 2px solid #245cad; }
+    .step { padding: 12px; background: #f4f7fb; border-radius: 8px; flex: 1; text-align: center; }
+    .step b { display: block; font-size: 22px; }
+    .rate { font-size: 32px; font-weight: 700; margin: 16px 0 0; }
+    .pill { display: inline-block; padding: 2px 7px; border-radius: 5px; background: #eef3fb; font-size: 12px; color: #345987; }
+    .share { height: 12px; background: #e8edf4; border-radius: 6px; margin: 12px 0; overflow: hidden; }
+    .share i { display: block; height: 100%; width: 26.7%; background: #4279c7; }
+    .activity { border-top: 1px solid #edf0f4; padding: 12px 0; }
+    .activity .row { align-items: start; }
+    .today { padding: 12px 0; border-bottom: 1px solid #edf0f4; }
+    footer { margin-top: 28px; color: #64748b; font-size: 13px; }
+    @media (max-width: 760px) { main { padding: 20px 14px 40px; } .cards, .grid { grid-template-columns: 1fr; } h1 { font-size: 24px; } .card, .panel { padding: 16px; } .chart { gap: 6px; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="notice"><strong>설계 예시 · 모든 수치와 회원 정보는 가상입니다.</strong><br>운영 데이터 연결 전입니다. 기간·지표·이전 비교는 가상 그래프를 전환합니다. 상세 이동·서버 연결은 동작하지 않습니다. 실제 앱 UI는 변경하지 않았습니다.</div>
+  <div class="top">
+    <div><small>관리자 / 이용 통계</small><h1>이용 변화 대시보드</h1><p class="muted">최근 얼마나, 무엇을 사용하는지 확인합니다.</p></div>
+    <div class="controls" aria-label="그래프 표시 기간"><button class="control" data-range="7" aria-pressed="true">7일</button><button class="control" data-range="30" aria-pressed="false">30일</button><button class="control" data-range="6m" aria-pressed="false">6개월</button><button class="control" data-range="1y" aria-pressed="false">1년</button><span class="control">전체 채널</span></div>
+  </div>
+  <nav class="tabs" aria-label="탭 배치 예시"><strong>개요</strong><span>기능</span><span>채점</span><span>회원/재방문</span><span>회원 활동</span><span>PWA</span><span>관리자 조회 이력</span></nav>
+  <div class="status"><strong id="period-label"></strong><br><small id="period-note"></small><p><label><input id="compare" type="checkbox" checked> 직전 동일 일수와 비교</label></p></div>
+  <section class="cards" id="cards" aria-label="핵심 지표 예시"></section>
+  <section class="panel wide" id="changes"></section>
+  <div class="grid">
+    <section class="panel"><h2>이용 변화 · 곡선 그래프</h2>
+      <div class="chart-tools" aria-label="그래프 지표"><button class="control" data-metric="members" aria-pressed="true">활성 회원</button><button class="control" data-metric="sessions" aria-pressed="false">이용 세션</button><button class="control" data-metric="grading" aria-pressed="false">채점 완료</button></div>
+      <small id="bucket-label"></small><div class="chart" id="chart"></div>
+      <p class="legend" id="legend"></p><div class="chart-info" id="chart-info" aria-live="polite">점을 선택하면 해당 구간의 값을 확인합니다.</div>
+      <details><summary>구간별 정확한 값 보기</summary><div class="scroll"><table><thead><tr><th>현재 구간</th><th>현재 값</th><th>이전 구간</th><th>이전 값</th></tr></thead><tbody id="points-table"></tbody></table></div></details>
+      <p><small>가상 집계점의 선 모양 예시입니다. 기간 고유 회원은 일·주·월 고유 회원의 합과 다릅니다.</small></p>
+    </section>
+    <section class="panel"><h2>기능별 변화</h2><div class="scroll"><table><thead><tr><th>실제 행동</th><th>이전 세션</th><th>현재 세션</th><th>변화</th></tr></thead><tbody id="features"></tbody></table></div><p><small>페이지 진입은 별도 표시. 기능별 세션은 서로 중복될 수 있습니다.</small></p><span class="detail">기능별 회원·행동 횟수 보기 →</span></section>
+    <section class="panel" id="conversion"></section>
+    <section class="panel" id="pwa"></section>
+    <section class="panel"><h2>최근 회원 활동</h2><small id="feed-period"></small>
+      <div class="activity"><div class="row"><strong>예시 회원 김민수</strong><span class="pill">PWA</span></div><small>sample-member-1@example.invalid</small><p>2027학년도 두 과목 채점 완료</p><small>수신 10/3 21:40 · 실제 회원 UUID는 상세에 표시</small></div>
+      <div class="activity"><div class="row"><strong>예시 회원 이지은</strong><span class="pill">브라우저</span></div><small>sample-member-2@example.invalid</small><p>2026학년도 언어이해 PDF 링크 클릭</p><small>수신 10/3 21:32 · 다운로드 완료로 해석하지 않음</small></div>
+      <div class="activity"><div class="row"><strong>예시 회원 박서준</strong><span class="pill">PWA</span></div><small>sample-member-3@example.invalid</small><p>공식 이력 저장 응답 미확인</p><small>수신 10/3 21:18 · 확정 실패와 구분</small></div>
+      <span class="detail">최근 20개 펼치기 / 회원 활동 보기 →</span>
+    </section>
+    <section class="panel"><div class="row"><h2>오늘 잠정 현황 · 전체 채널</h2><span class="pill">완료 전</span></div><p class="muted">10/4 00:00–10:00 KST 예시</p><div class="row today"><span>이용 세션</span><strong>34개</strong></div><div class="row today"><span>채점 완료</span><strong>22회</strong></div><div class="today"><small>마지막 새 이벤트 수락 관측</small><p>10/4 09:58 KST</p></div><p><small>이전 완료 기간과 직접 비교하지 않습니다. 수락 간격만으로 장애 여부를 판단하지 않습니다.</small></p><p><small>실제 연결 전 화면에는 수집 시작 전/비활성/불러오기 실패를 표시하고 가상 수치를 제공하지 않습니다.</small></p></section>
+  </div>
+  <footer>가상 자료를 사용하는 설계 미리보기. 원인 자동 추정·외부 알림·운영 요청·개인 정보 저장을 수행하지 않습니다. 상세 계약은 admin-dashboard-design.md를 참고하세요.</footer>
+</main>
+<script>
+  // Only synthetic fixtures. No API, storage, real identity or event collection.
+  const dayMs = 86400000, end = new Date('2026-10-04T00:00:00Z');
+  let range = '7', metric = 'members';
+  const fixtures = {
+    '7': { members:128, sessions:420, grading:286, results:240, pwa:62, confirmed:18, prior:[96,350,260,220,48,20] },
+    '30': { members:386, sessions:1680, grading:1144, results:960, pwa:140, confirmed:68, prior:[302,1400,1040,880,110,60] },
+    '6m': { members:1180, sessions:4200, grading:2860, results:2300, pwa:410, confirmed:158, prior:[932,3500,2500,2100,320,132] },
+    '1y': { members:2130, sessions:10400, grading:7200, results:6030, pwa:840, confirmed:360, prior:[1740,8650,6540,5560,610,322] }
+  };
+  const keys = ['members','sessions','grading','results','pwa','confirmed'];
+  const labels = ['활성 회원','이용 세션','채점 완료','결과 조회 세션','PWA 활성 회원','신규 확인 회원'];
+  const units = ['명','개','회','개','명','명'];
+  const notes = ['기간 전체 고유 회원','로그인/비로그인 포함','두 과목 동시 채점은 1회','새 채점의 정상 결과만','설치 보유 인원과 구분','계정 확인 완료 기준'];
+  const date = d => d.toISOString().slice(0,10);
+  const shiftDays = (d,n) => new Date(d.getTime()+n*dayMs);
+  function shiftMonths(d,n) {
+    const first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth()+n, 1));
+    const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth()+1,0)).getUTCDate();
+    first.setUTCDate(Math.min(d.getUTCDate(),last)); return first;
+  }
+  function period() {
+    const start = range==='7'||range==='30' ? shiftDays(end,-Number(range)) : shiftMonths(end,range==='6m'?-6:-12);
+    const days = Math.round((end-start)/dayMs), priorStart=shiftDays(start,-days), bins=[];
+    let cursor=start, n=0;
+    while(cursor<end) {
+      const next=range==='1y'?shiftMonths(start,++n):shiftDays(cursor,range==='6m'?7:1);
+      const finish=next>end?end:next;
+      const offset=Math.round((cursor-start)/dayMs), length=Math.round((finish-cursor)/dayMs);
+      bins.push({start:cursor,end:finish,previousStart:shiftDays(priorStart,offset),previousEnd:shiftDays(priorStart,offset+length),days:length});
+      cursor=finish;
+    }
+    return {start,days,priorStart,bins};
+  }
+  function delta(current,previous,unit) {
+    const amount=current-previous;
+    if(!amount) return '변화 없음';
+    if(!previous) return `이전 0 → ${current}${unit}`;
+    return `${Math.abs(amount)}${unit} ${amount>0?'증가':'감소'} · ${amount>0?'+':''}${(amount/previous*100).toFixed(1)}%`;
+  }
+  function values(p,key,previous=false) {
+    if(range==='7') {
+      const v={members:[18,22,21,27,29,35,40],sessions:[42,51,54,63,66,68,76],grading:[24,31,36,39,45,53,58]};
+      const old={members:[15,18,16,21,19,25,28],sessions:[36,41,44,47,54,61,67],grading:[24,28,30,34,39,48,57]};
+      return (previous?old:v)[key];
+    }
+    const f=fixtures[range], total=previous?f.prior[keys.indexOf(key)]:f[key];
+    const weights=p.bins.map((b,i)=>b.days*(1+0.45*i/p.bins.length+0.13*Math.sin(i*1.3+(previous?1:0))));
+    if(key==='members') return weights.map(w=>Math.round(total*(range==='30'?0.11:range==='6m'?0.17:0.31)*w/(range==='30'?1:range==='6m'?7:30)));
+    const sum=weights.reduce((a,b)=>a+b,0); let used=0;
+    return weights.map((w,i)=>{ const value=i===weights.length-1?total-used:Math.round(total*w/sum);used+=value;return value; });
+  }
+  // Horizontal cubic handles stay within adjacent observed values, avoiding overshoot.
+  function path(points) {
+    return points.map((p,i)=> i ? `C ${(points[i-1][0]+p[0])/2},${points[i-1][1]} ${(points[i-1][0]+p[0])/2},${p[1]} ${p[0]},${p[1]}` : `M ${p[0]},${p[1]}`).join(' ');
+  }
+  function renderChart(p,compare) {
+    const current=values(p,metric), previous=values(p,metric,true), maximum=Math.max(...current,...(compare?previous:[]),1);
+    const top=Math.ceil(maximum/4)*4, left=42, right=484, height=158;
+    const x=p.bins.map(b=>left+(((b.start.getTime()+b.end.getTime())/2-p.start.getTime())/(end-p.start))*(right-left));
+    const points=v=>v.map((n,i)=>[x[i],20+height*(1-n/top)]);
+    let svg=`<svg viewBox="0 0 510 222" role="img" aria-label="${labels[keys.indexOf(metric)]} 변화 예시" xmlns="http://www.w3.org/2000/svg">`;
+    for(let i=0;i<=4;i++) {const y=20+height*i/4;svg+=`<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" stroke="#e7edf4"/><text x="33" y="${y+4}" text-anchor="end" fill="#64748b" font-size="11">${top*(4-i)/4}</text>`;}
+    if(compare) svg+=`<path d="${path(points(previous))}" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 5"/>`;
+    svg+=`<path d="${path(points(current))}" fill="none" stroke="#4279c7" stroke-width="3"/>`;
+    p.bins.forEach((b,i)=>{
+      const label=`${date(b.start)}–${date(shiftDays(b.end,-1))}: ${current[i]}${compare?`, 이전 ${date(b.previousStart)}–${date(shiftDays(b.previousEnd,-1))}: ${previous[i]}`:''}`;
+      svg+=`<circle class="point" data-point="${i}" cx="${x[i]}" cy="${points(current)[i][1]}" r="4" fill="#4279c7" tabindex="0" role="button" aria-label="${label}"><title>${label}</title></circle>`;
+      if(i===0||i===p.bins.length-1||i%Math.ceil(p.bins.length/5)===0) svg+=`<text x="${x[i]}" y="202" text-anchor="middle" fill="#64748b" font-size="11">${date(b.start).slice(5).replace('-','/')}</text>`;
+    }); svg+='</svg>';
+    document.getElementById('chart').innerHTML=svg;
+    document.getElementById('legend').textContent=`파랑 곡선: 현재${compare?' · 회색 점선: 직전 동일 일수':''} · 가상 자료`;
+    document.getElementById('bucket-label').textContent=`${range==='7'||range==='30'?'일별':range==='6m'?'주별':'월별'} ${p.bins.length}점 · ${metric==='members'?'구간별 고유 회원':metric==='sessions'?'구간별 고유 세션':'구간별 채점 횟수'}`;
+    const info=document.getElementById('chart-info'); info.textContent='점을 선택하면 해당 구간의 정확한 값을 확인합니다.';
+    document.querySelectorAll('[data-point]').forEach(el=>{
+      const show=()=>{const i=Number(el.dataset.point),b=p.bins[i]; info.textContent=`${date(b.start)}–${date(shiftDays(b.end,-1))} (${b.days}일): ${current[i]}${compare?` / 이전 ${date(b.previousStart)}–${date(shiftDays(b.previousEnd,-1))}: ${previous[i]}`:''}`;};
+      el.addEventListener('mouseenter',show);el.addEventListener('focus',show);el.addEventListener('click',show);
+    });
+    document.getElementById('points-table').innerHTML=p.bins.map((b,i)=>`<tr><td>${date(b.start)}–${date(shiftDays(b.end,-1))}</td><td>${current[i]}</td><td>${compare?`${date(b.previousStart)}–${date(shiftDays(b.previousEnd,-1))}`:'—'}</td><td>${compare?previous[i]:'—'}</td></tr>`).join('');
+    const sparkValues=values(p,'members'), sparkPoints=sparkValues.map((n,i)=>[i*260/(sparkValues.length-1),28-n/Math.max(...sparkValues)*25]);
+    document.querySelector('.spark').innerHTML=`<svg viewBox="0 0 260 30" preserveAspectRatio="none" aria-hidden="true"><path d="${path(sparkPoints)}" fill="none" stroke="#4279c7" stroke-width="2"/></svg>`;
+  }
+  function render() {
+    const p=period(), f=fixtures[range], compare=document.getElementById('compare').checked, long=range==='6m'||range==='1y';
+    document.querySelectorAll('[data-range]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.range===range)));
+    document.querySelectorAll('[data-metric]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.metric===metric)));
+    document.getElementById('period-label').textContent=`예시 분석 ${date(p.start)}–${date(shiftDays(end,-1))} (${p.days}일)${compare?` · 비교 ${date(p.priorStart)}–${date(shiftDays(p.start,-1))}`:''}`;
+    document.getElementById('period-note').textContent=`가상 자료 가용 · KST 수신 기준 · 예시 조회 기준 2026-10-04 10:00${long?' · 장기 집계가 준비된 경우의 화면 예시':''} · 실제 운영 미연결`;
+    document.getElementById('cards').innerHTML=keys.map((key,i)=>`<article class="card"><small>${labels[i]}</small><div class="value">${f[key].toLocaleString('ko-KR')}<span>${units[i]}</span></div><p class="${f[key]>=f.prior[i]?'up':'down'}">${compare?delta(f[key],f.prior[i],units[i]):'이전 비교 꺼짐'}</p><small>${compare?`이전 ${f.prior[i].toLocaleString('ko-KR')}${units[i]} · `:''}${notes[i]}</small>${i===0?'<div class="spark"></div>':''}</article>`).join('');
+    const currentFeatures=range==='7'?[180,230,60,25]:[Math.round(f.sessions*.43),Math.round(f.sessions*.55),Math.round(f.sessions*.14),Math.round(f.sessions*.06)];
+    const previousFeatures=range==='7'?[120,210,72,20]:[Math.round(f.prior[1]*.343),Math.round(f.prior[1]*.60),Math.round(f.prior[1]*.21),Math.round(f.prior[1]*.057)];
+    document.getElementById('features').innerHTML=['기출문제','채점 완료','이력·추이','지원 분석'].map((name,i)=>`<tr><td>${name}</td><td>${compare?previousFeatures[i]:'—'}</td><td>${currentFeatures[i]}</td><td class="${currentFeatures[i]>=previousFeatures[i]?'up':'down'}">${compare?delta(currentFeatures[i],previousFeatures[i],'개'):'—'}</td></tr>`).join('');
+    document.getElementById('changes').innerHTML='<h2>이번 기간 주요 변화</h2>'+(compare?[
+      [labels[0],f.members,f.prior[0],'명','회원 이용'],['기출문제 행동 세션',currentFeatures[0],previousFeatures[0],'개','기출 이용'],[labels[4],f.pwa,f.prior[4],'명','PWA']
+    ].map(([name,c,o,unit,target])=>`<div class="row change"><span>${name} <strong>${o} → ${c}${unit}</strong> <span class="up">(${delta(c,o,unit)})</span></span><span class="detail">${target} 보기 →</span></div>`).join(''):'<p class="muted">직전 기간 비교를 켜면 주요 변화를 확인할 수 있습니다.</p>')+'<small>가상 후보 배치 예시 · 범주별 최대 1개, 전체 최대 3개 · 원인 자동 추정 없음</small>';
+    document.getElementById('conversion').innerHTML='<h2>채점 입력 → 결과 관측</h2>'+(long?'<p class="muted">장기 기간 미지원</p><p>입력 흐름·저장 응답의 세부 연결은 현재 90일 원본 기반입니다.</p><small>장기 이용 추이·기능·PWA는 위 집계로 확인합니다.</small><p class="detail">가용한 최근 90일의 채점 흐름 보기 →</p>':`<div class="row"><div class="step">종료된 입력 세션<b>${range==='7'?100:400}개</b></div><span aria-hidden="true">→</span><div class="step">결과 관측 세션<b>${range==='7'?68:272}개</b></div></div><div class="rate">68.0%</div><p class="down">${compare?'이전 72.0% · -4%p':'이전 비교 꺼짐'}</p><small>진행·유예·미확정은 확정 분모에서 제외합니다.</small><p class="detail">같은 흐름의 채점 기록 보기 →</p>`);
+    const pwaSessions=range==='7'?112:Math.round(f.sessions*.267), otherSessions=range==='7'?16:Math.round(f.sessions*.038), both=range==='7'?22:Math.round(f.pwa*.34), others=range==='7'?6:Math.round(f.members*.047);
+    document.getElementById('pwa').innerHTML=`<h2>PWA 이용</h2><div class="row"><span>전체 세션 중 PWA</span><strong>${pwaSessions} / ${f.sessions}개 · ${(pwaSessions/f.sessions*100).toFixed(1)}%</strong></div><div class="share" aria-hidden="true"><i style="width:${pwaSessions/f.sessions*100}%"></i></div><small>브라우저 ${f.sessions-pwaSessions-otherSessions}개 · 기타/미확인 ${otherSessions}개 포함</small><div class="scroll"><table><thead><tr><th>회원 구분</th><th>현재</th></tr></thead><tbody><tr><td>PWA 전용</td><td>${f.pwa-both}명</td></tr><tr><td>브라우저 전용</td><td>${f.members-f.pwa-others}명</td></tr><tr><td>PWA·브라우저 둘 다</td><td>${both}명</td></tr><tr><td>기타/미확인만</td><td>${others}명</td></tr></tbody></table></div><p><small>전체 ${f.members}명 · PWA ${f.pwa}명 · 중복 합산 없음</small></p><span class="detail">PWA 상세 보기 →</span>`;
+    const feedStart=long?shiftDays(end,-90):p.start;
+    document.getElementById('feed-period').textContent=`예시 상세 조회 ${date(feedStart)}–${date(shiftDays(end,-1))}${long?' · 선택 장기 기간의 일부 / 최근 90일':''}`;
+    renderChart(p,compare);
+  }
+  document.querySelectorAll('[data-range]').forEach(b=>b.addEventListener('click',()=>{range=b.dataset.range;render();}));
+  document.querySelectorAll('[data-metric]').forEach(b=>b.addEventListener('click',()=>{metric=b.dataset.metric;render();}));
+  document.getElementById('compare').addEventListener('change',render);
+  render();
+</script>
+</body>
+</html>

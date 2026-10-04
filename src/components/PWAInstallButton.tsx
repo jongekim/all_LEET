@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, Share, X, Tablet, Smartphone } from 'lucide-react';
+import { usageAnalytics } from '../utils/usageAnalytics';
+import { analyticsId } from '../utils/analyticsId';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -34,6 +36,15 @@ export function PWAInstallButton() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [deviceType, setDeviceType] = useState<'iPad' | 'iPhone' | 'Android' | 'Desktop'>('Desktop');
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (isInstalled || !showButton || !buttonRef.current || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting) && document.visibilityState === 'visible') usageAnalytics().track('install_cta_viewed', 'install', {}, 'install-button', false);
+    });
+    observer.observe(buttonRef.current);
+    return () => observer.disconnect();
+  }, [isInstalled, showButton]);
 
   // 앱 설치 버튼이 다른 버튼/컨텐츠를 가리는 것을 방지하기 위해,
   // 버튼이 화면에서 차지하는 하단 영역(버튼 상단~뷰포트 하단)을 CSS 변수로 노출합니다.
@@ -111,27 +122,42 @@ export function PWAInstallButton() {
   }, []);
 
   const handleInstallClick = async () => {
+    usageAnalytics().track('install_cta_clicked', 'install');
     const isIOS = deviceType === 'iPad' || deviceType === 'iPhone';
 
     if (deviceType === 'Desktop') {
+      usageAnalytics().track('install_guide_opened', 'install', { guide_type: 'desktop_bookmark' });
       alert('데스크탑 환경에서는 이 사이트를 즐겨찾기에 추가하면 더 빠르게 공부를 시작할 수 있습니다!');
       return;
     }
 
     if (isIOS) {
+      usageAnalytics().track('install_guide_opened', 'install', { guide_type: 'ios' });
       setShowIOSGuide(true);
       return;
     }
 
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+      const attemptId = analyticsId();
+      const analyticsIdentity = usageAnalytics().identity();
+      usageAnalytics().track('install_prompt_requested', 'install', { install_attempt_id: attemptId }, attemptId);
+      let outcome: 'accepted' | 'dismissed';
+      try {
+        await deferredPrompt.prompt();
+        outcome = (await deferredPrompt.userChoice).outcome;
+        usageAnalytics().trackForIdentity(analyticsIdentity, 'install_prompt_result', 'install', { install_attempt_id: attemptId, outcome }, attemptId);
+      } catch {
+        usageAnalytics().trackForIdentity(analyticsIdentity, 'install_prompt_result', 'install', { install_attempt_id: attemptId, outcome: 'error', error_code: 'PROMPT_ERROR' }, attemptId);
+        setDeferredPrompt(null);
+        return;
+      }
       
       if (outcome === 'accepted') {
         setShowButton(false);
       }
       setDeferredPrompt(null);
     } else {
+      usageAnalytics().track('install_guide_opened', 'install', { guide_type: 'android_menu' });
       alert('브라우저 설정에서 "홈 화면에 추가"를 선택해주세요.');
     }
   };

@@ -1,6 +1,6 @@
 {
       "name": "all_LEET",
-      "version": "1.4.6",
+      "version": "1.5.0",
       "private": true,
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
@@ -52,8 +52,10 @@
             "vaul": "^1.1.2"
       },
       "devDependencies": {
+            "@electric-sql/pglite": "0.5.8",
             "@eslint/js": "10.0.1",
             "@playwright/test": "1.63.0",
+            "@testing-library/dom": "10.4.2",
             "@testing-library/jest-dom": "6.9.1",
             "@testing-library/react": "16.3.3",
             "@testing-library/user-event": "14.6.1",
@@ -82,7 +84,7 @@
             "test:e2e": "playwright test",
             "test:e2e:ui": "playwright test --ui",
             "build": "vite build && node --import tsx scripts/prerender.ts",
-            "check": "npm run lint && npm run typecheck && npm run test && npm run test:edge && npm run test:e2e && npm run build && npm run test:prerender",
+            "check": "npm run lint && npm run typecheck && npm run test && npm run test:edge && npm run test:analytics && npm run test:e2e && npm run build && npm run test:prerender",
             "version:verify": "node scripts/verify-version.mjs",
             "release:patch": "npm version patch --no-git-tag-version",
             "release:minor": "npm version minor --no-git-tag-version",
@@ -92,6 +94,7 @@
             "seed:example-history": "tsx scripts/seed-example-history.ts",
             "statistics": "tsx scripts/question-statistics.ts",
             "prerender:routes": "node --import tsx scripts/generate-prerender-routes.ts",
-            "test:prerender": "playwright test --config playwright.prerender.config.ts"
+            "test:prerender": "playwright test --config playwright.prerender.config.ts",
+            "test:analytics": "node --import tsx scripts/test-analytics-sql.ts && node --import tsx scripts/test-dashboard-sql.ts && deno check --config supabase/functions/usage-events/deno.json supabase/functions/usage-events/index.ts supabase/functions/admin-analytics/index.ts && deno test --config supabase/functions/usage-events/deno.json supabase/functions/_shared/analytics-app_test.ts"
       }
 }

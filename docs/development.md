@@ -154,3 +154,13 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 배포 후에는 HTML 원문에 해당 시험의 본문·제목·canonical이 있는지 먼저 확인한다. Search Console은 홈, 최신 기출, 과거 기출, 예비시험의 대표 URL을 각각 검사하고 마지막 크롤링 날짜·Google 선택 표준 URL·색인 제외 사유를 비교한다. 페이지 색인 보고서의 최신 날짜와 사이트맵 필터도 함께 확인한다. 사전 렌더링 검증 통과를 Google 색인 완료로 해석하지 않는다.
 
 `build/prerender/`와 `build/app.html`은 git에서 제외한 재생성 산출물이다. 기존 추적 중인 `build/index.html`과 assets 변경은 빌드 후 확인한다. 사전 렌더링 진입점과 preview 스크립트는 브라우저 배포 번들에 포함되지 않는다.
+
+## 관리자 이용 통계 검증·활성화
+
+`npm run check`와 CI 품질 워크플로에 `npm run test:analytics`를 포함했다. 이 명령은 개발 의존성 PGlite 0.5.8의 임시 PostgreSQL에서 합성 역할/Auth/KV를 구성하여 신규 통계 마이그레이션을 검증하고, 신규 Deno 함수 타입 및 모의 요청 테스트를 실행한다. `src/utils/analyticsClient.test.ts`와 `adminAnalyticsApi.test.ts`는 기존 Vitest에, `e2e/admin-analytics.spec.ts`는 모의 Supabase Playwright에 포함된다. 운영 수집/저장 요청이 발생하지 않는다.
+
+기본 로컬/preview에는 수집이 없다. 운영 빌드, `VITE_USAGE_ANALYTICS_ENABLED=true`, 정확한 `VITE_USAGE_ANALYTICS_ORIGINS`가 모두 필요하다. 서버는 `USAGE_ANALYTICS_ENABLED`와 DB의 기본 false 설정을 추가로 검사한다. `ANALYTICS_ALLOWED_ORIGINS`를 함수에서 지정하며 브라우저에 service-role 비밀값을 넣지 않는다. Supabase 신규 함수는 `supabase/functions/usage-events`와 `admin-analytics`, 공유 소스는 `_shared`다. main 함수 배포에는 기존 이력 함수와 두 통계 함수를 포함했다. DB 마이그레이션은 별도 적용하며 자동 db push로 저장소의 과거 운영 이력을 덮어쓰지 않는다.
+
+사용자의 실제 서비스 반영·커밋·푸시 요청에 따라 운영 DB·함수·수집 설정을 적용했다. [v1.5.0 운영 적용](admin-analytics-rollout.md)에 실제 스키마 롤백 검증·PostgREST·RLS·수집 및 웹 배포 확인을 기록한다. 자동 삭제·탈퇴 cascade·예약 발행은 추가하지 않았으며 실제 설치 기기의 OS별 확인은 브라우저 모의 검사와 구분한다.
+
+대시보드 확장은 `scripts/test-dashboard-sql.ts`로 두 로컬 마이그레이션·121명 복합 커서·기간 DISTINCT·원자 재발행/롤백·일반 역할/실제 service-role 권한·감사 실패 차단을 합성 DB에서 검증한다. `adminDashboard.test.ts`, `adminAnalyticsErrors.test.ts`, `AdminMemberPicker.test.tsx`는 계산/인가/IME·목록 상태를 확인한다. `e2e/admin-dashboard-preview.spec.ts`는 외부 요청 없이 실제 재사용 컴포넌트의 모바일/데스크톱 미리보기를 확인한다. `node --import tsx scripts/build-dashboard-preview.ts`로 새 예시 미리보기를 재생성한다. 구현·검증·운영 적용 경계는 [확장 구현 문서](admin-dashboard-implementation.md)를 따른다.

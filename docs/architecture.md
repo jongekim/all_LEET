@@ -2,7 +2,7 @@
 
 ## 개요
 
-all_LEET은 Vite로 빌드되는 React 단일 페이지 애플리케이션(SPA)이다. 브라우저는 Supabase Auth·PostgREST·Storage·Realtime에 직접 연결하고, 성적 이력 두 종류만 Supabase Edge Function을 통해 저장한다. Vercel은 정적 산출물과 SPA fallback을 제공한다.
+all_LEET은 Vite로 빌드되는 React 단일 페이지 애플리케이션(SPA)이다. 브라우저는 Supabase Auth·PostgREST·Storage·Realtime에 직접 연결하고, 성적 이력 두 종류는 기존 Edge Function으로 저장한다. 이용 통계 수집·관리자 조회용 함수와 DB는 v1.5.0 운영 대상에 적용했다. Vercel은 정적 산출물과 SPA fallback을 제공한다.
 
 ```text
 브라우저 (React / React Router)
@@ -10,6 +10,8 @@ all_LEET은 Vite로 빌드되는 React 단일 페이지 애플리케이션(SPA)�
  ├─ Supabase Postgres (채팅, 커뮤니티, 오답 메모, 발행된 문항 통계)
  ├─ Supabase Realtime (채팅 INSERT 구독)
  ├─ Supabase Storage (커뮤니티 이미지, 공개 기출문제 PDF)
+ ├─ Edge Functions usage-events / admin-analytics
+ │    └─ private product_* 통계·세션·회원 최초 이용·관리자 조회 이력
  └─ Edge Function make-server-cd835c22
       └─ kv_store_cd835c22 (공식·사설 성적 이력 JSONB)
 
@@ -30,13 +32,13 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - 범용 UI 프리미티브: `src/components/ui/`
 - 계산·정적 데이터·보조 기능: `src/utils/`
 
-홈의 관리자 버튼 → `/admin` 관리 메뉴 → `/admin/announcements` 공지 목록·편집 순으로 이동한다. 관리자 여부는 `AuthContext`가 기존 RPC로 확인해 버튼과 라우트에 공유한다. DB 변경 권한은 기존 RLS가 강제한다. 관리자 전용 반응형 스타일은 `src/styles/admin.css`에 있으며, 미리 생성된 `src/index.css`에 없는 Tailwind 유틸리티에 의존하지 않는다.
+홈의 관리자 버튼 → `/admin` 관리 메뉴 → `/admin/announcements` 공지 목록·편집 또는 `/admin/analytics` 이용 통계로 이동한다. 관리자 여부는 `AuthContext`가 기존 RPC로 확인해 버튼과 라우트에 공유한다. DB 변경 권한은 기존 RLS가 강제한다. 관리자 전용 반응형 스타일은 `src/styles/admin.css`에 있으며, 미리 생성된 `src/index.css`에 없는 Tailwind 유틸리티에 의존하지 않는다.
 
 `App.tsx`는 `BrowserRouter`, `AuthProvider`, 전역 하단 내비게이션, PWA 설치 버튼, Vercel Analytics를 조립한다. `useUserHistory`가 공식/사설 이력과 로딩·오류 상태를 관리하고 페이지로 props를 전달한다. 계정 전환·로그아웃 때 이전 계정의 배열과 늦게 도착한 요청 결과를 사용하지 않는다. 동일한 사용자 ID의 토큰 갱신은 이력을 초기화하지 않는다.
 
 ### 백엔드
 
-등록된 Edge Function은 `make-server-cd835c22`다. 설정은 `supabase/config.toml`, 구현은 `supabase/functions/make-server-cd835c22/`에 있다. Deno에서 Hono를 실행하고 `SUPABASE_SERVICE_ROLE_KEY`로 `kv_store_cd835c22`를 읽고 쓴다.
+기존 운영 Edge Function은 `make-server-cd835c22`다. 통계용 `usage-events`와 `admin-analytics`도 운영에 등록·배포했다. 설정은 `supabase/config.toml`, 구현은 `supabase/functions/make-server-cd835c22/`에 있다. Deno에서 Hono를 실행하고 `SUPABASE_SERVICE_ROLE_KEY`로 `kv_store_cd835c22`를 읽고 쓴다.
 
 `index.ts`가 실제 Auth/KV 의존성을 조립하고 `app.ts`의 Hono 앱을 실행한다. `auth.ts`는 명시적인 Bearer 토큰을 Supabase `getUser(token)`으로 검증한다. 테스트에서는 외부 요청을 모의 구현으로 대체한다.
 
@@ -82,3 +84,15 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - `App.tsx`의 라우팅·SEO와 `useUserHistory`의 계정별 이력 상태가 연결되어 있다.
 - 커뮤니티·채팅·메모는 정규화 테이블을 직접 사용하지만, 성적 이력은 사용자별 JSON 배열을 KV 테이블 한 행에 저장한다.
 - 원격 Supabase 마이그레이션 이력과 저장소의 `supabase/migrations/` 파일 목록이 일치하지 않는다. DB 작업 시 어느 쪽이 운영 기준인지 먼저 확인해야 한다.
+
+## 관리자 이용 통계
+
+`useUsageTracking`이 계정·라우트·실제 조작의 공통 수집 상태를 관리한다. `analyticsClient`의 메모리 큐·채널별 30분 세션·입력/실행 ID와 `usageAnalytics`의 운영 origin/명시 스위치를 사용한다. 일반 화면 UI는 유지하고 기능 성공/열기 위치에 관측만 추가했다. 배경 이력 조회, 설치 상태 확인, SW 갱신은 핵심 이용으로 취급하지 않는다. 브라우저 오류/차단으로 통계가 미도달해도 계산·이력 저장을 막지 않는다.
+
+`adminAnalyticsApi`는 최신 계정 토큰으로 GET을 실행하고 요청 전후 계정 일치를 확인한다. 화면은 계정별 재마운트, 취소·15초 제한·no-store를 사용하며 검색어를 URL에 넣지 않는다. `AdminAnalyticsPage`의 7개 탭과 `admin-analytics.css`는 승인된 관리자 범위에만 적용된다. 관리자 화면·실제 관리자/승인된 테스트 계정은 이용 수집에서 제외한다.
+
+신규 등록 경로 `supabase/functions/usage-events`와 `admin-analytics`는 `_shared/analytics-app.ts`의 검증/인가와 `analytics-runtime.ts`의 실제 Auth/service role 의존성을 분리한다. 관리자 요청마다 기존 JWT·역할 RPC 확인 후 service-role 전용 SECURITY INVOKER 집계를 호출하며 SQL에서 실제 요청자 역할을 재검사한다. 개인 조회 감사와 응답은 동일 트랜잭션이다. private 테이블은 클라이언트에 직접 노출하지 않는다. 수집 스위치 중단 구간은 설정 트리거로 기록하여 재개 이후 가용 범위를 부분 상태로 유지한다. 운영 중 원인 불명 수집 누락까지 완전 관측으로 보장하지 않는다.
+
+현재 상태·출처별 필터·후속 기능·운영 적용 순서는 [통계 구현·운영](admin-analytics.md)을 따른다. 두 통계 함수도 main 변경 배포 대상에 포함했다. 실제 운영 적용·수집 개시·배포 검증 기록은 [v1.5.0 운영 적용](admin-analytics-rollout.md)을 따른다.
+
+대시보드·회원 선택 확장에는 `_shared/dashboard.ts`의 순수 기간/집계/정책 계산, `AdminDashboard`/`AdminMemberPicker`의 서비스 주입, `AdminAnalyticsError`/화면 단위 `AnalyticsAuthorizationScope`를 추가했다. 현재 계정의 HTTP 401/403은 모든 개인 결과를 제거하고 취소·세대 검사로 늦은 성공을 차단한다. AuthContext 외 인증 원본을 추가하지 않는다. `dashboard_source`는 SQL 한 읽기 스냅샷의 내부 사실을 서버에 제공하고 공개 DTO는 집계만 반환한다. 목록/피드의 개인 응답과 감사는 동일 트랜잭션이다. 신규 UI 컴포넌트는 사용자의 명시적 승인 뒤 실제 통계 페이지에 연결했다. 개인 선택 상태를 가진 화면 본문은 권한 거절 때 전체 언마운트하여 모든 메모리 결과·선택·검색·커서를 제거한다. [확장 구현 문서](admin-dashboard-implementation.md)를 따른다.

@@ -4,7 +4,8 @@ import { GradingResult } from '../App';
 import { TrendChart } from '../components/TrendChart';
 import { MockTrendChart } from '../components/MockTrendChart';
 import { ArrowLeft, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
+import { usageAnalytics } from '../utils/usageAnalytics';
 import type { MockExamRecord } from '../types/mockExam';
 import { getMockExamDisplayTitle, MOCK_EXAM_BASE_PROVIDERS } from '../types/mockExam';
 import { EXAMPLE_MOCK_HISTORY, EXAMPLE_OFFICIAL_HISTORY } from '../utils/exampleHistory';
@@ -53,8 +54,27 @@ export function HistoryPage({
   const currentLoading = !!loading?.[currentKind];
   const currentError = errors?.[currentKind];
 
+  useEffect(() => {
+    if (currentLoading || currentError) return;
+    const hasRecords = tab === 'official' ? history.length > 0 : mockHistory.length > 0;
+    usageAnalytics().track('history_viewed', 'history', { history_kind: tab, has_records: hasRecords }, `${location.key}:${tab}`);
+  }, [currentLoading, currentError, tab, history.length, mockHistory.length, location.key]);
+
   const [sortBy, setSortBy] = useState<'date' | 'year'>('date'); // 기본값: 채점 순서
   const [providerFilter, setProviderFilter] = useState<string>('all');
+  const trendRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (currentLoading || currentError || !trendRef.current || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting) && document.visibilityState === 'visible') {
+        const hasRecords = tab === 'official' ? history.length > 0 : mockHistory.length > 0;
+        usageAnalytics().track('history_trend_viewed', 'history', { history_kind: tab, has_records: hasRecords }, `${location.key}:${tab}`);
+      }
+    });
+    observer.observe(trendRef.current);
+    return () => observer.disconnect();
+  }, [currentLoading, currentError, tab, history.length, mockHistory.length, location.key]);
+
 
   const getGroupTime = (record: GradingResult) => record.groupTimestamp ?? record.timestamp;
 
@@ -230,7 +250,7 @@ export function HistoryPage({
                 </div>
               </div>
             )}
-              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <div ref={trendRef} className="bg-white rounded-lg shadow p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-900">성적 추이</h2>
                   <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
@@ -396,7 +416,7 @@ export function HistoryPage({
                           </button>
                           <button
                             onClick={() =>
-                              navigate('/result', { state: isCombined ? { results: group } : { result: firstRecord } })
+                              navigate('/result', { state: isCombined ? { results: group, entry_source: showOfficialExample ? 'example' : 'history' } : { result: firstRecord, entry_source: showOfficialExample ? 'example' : 'history' } })
                             }
                             className="text-sm text-blue-600 hover:text-blue-700 font-semibold whitespace-nowrap"
                           >
@@ -434,7 +454,7 @@ export function HistoryPage({
                 </div>
               </div>
             )}
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div ref={trendRef} className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold text-gray-900">성적 추이</h2>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -582,7 +602,7 @@ export function HistoryPage({
           </>
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div ref={trendRef} className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold text-gray-900">성적 추이</h2>
                 <div className="flex items-center gap-3 w-full sm:w-auto">

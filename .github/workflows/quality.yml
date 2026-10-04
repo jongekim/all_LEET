@@ -25,6 +25,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run test:edge
+      - run: npm run test:analytics
       - run: npm run test:e2e
       - run: npm run build
       - run: npm run test:prerender

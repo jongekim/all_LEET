@@ -1,4 +1,5 @@
 import { PageHeader } from '../components/PageHeader';
+import { usageAnalytics } from '../utils/usageAnalytics';
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Files, SlidersHorizontal, BookOpen, ClipboardList, ChartNoAxesCombined } from 'lucide-react';
@@ -99,7 +100,11 @@ export function PastExamsPage() {
             <p>법학적성시험 문제의 저작권은 법학전문대학원협의회에 있습니다.</p>
           </div>
         </section>
-        <PastExamReview key={`${year}:${subject}:${examType}`}>
+        <PastExamReview key={`${year}:${subject}:${examType}`} onOpen={() => {
+          const attrs = { year, subjects: subject, exam_type: isSingleForm ? 'single' : examType };
+          if (hasAnswers) usageAnalytics().track('reference_opened', 'past_exams', { ...attrs, reference_kind: 'answers' });
+          if (scores) usageAnalytics().track('reference_opened', 'past_exams', { ...attrs, reference_kind: 'conversion' });
+        }}>
           <section aria-labelledby="answer-key-heading" className="past-exam-panel">
             <div className="past-exam-table-heading">
               <div className="past-exam-section-heading"><ClipboardList size={20} aria-hidden="true" />

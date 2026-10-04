@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import type { MockExamRecord } from '../types/mockExam';
 import { MOCK_EXAM_BASE_PROVIDERS } from '../types/mockExam';
 import { ArrowLeft } from 'lucide-react';
+import { analyticsId } from '../utils/analyticsId';
+import { usageAnalytics } from '../utils/usageAnalytics';
 
 interface MockExamInputPageProps {
   existingRecords: MockExamRecord[];
@@ -97,8 +99,12 @@ export function MockExamInputPage({ existingRecords, onAddRecord }: MockExamInpu
     };
 
     setSaving(true);
+    const saveAttemptId = analyticsId();
+    const analyticsIdentity = usageAnalytics().identity();
     try {
       await onAddRecord(record);
+      const institutions: Record<string, string> = { '시대인재': 'sidae', '해커스': 'hackers', '메가로스쿨': 'mega', '프라임': 'prime', '법률저널': 'lawjournal' };
+      usageAnalytics().trackForIdentity(analyticsIdentity, 'mock_saved', 'mock', { save_attempt_id: saveAttemptId, outcome: 'success', institution: institutions[provider] || 'other', subjects: hasVerbal && hasReasoning ? 'both' : hasVerbal ? 'verbal' : 'reasoning' }, saveAttemptId);
       navigate('/mock-history');
     } catch (e) {
       console.error(e);

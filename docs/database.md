@@ -76,3 +76,26 @@ DB 변경 전에는 다음을 수행한다.
 2. 저장소에 없는 운영 변경을 가정하지 않는다.
 3. RLS, 외래 키, 인덱스, Storage 정책, 클라이언트 호출을 함께 검토한다.
 4. 실제 마이그레이션 작성·적용은 명시적으로 요청된 경우에만 한다.
+
+## 이용 통계 DB
+
+`supabase/migrations/20261003141220_product_usage_analytics.sql`과 후속 `20261004050638_admin_dashboard_and_member_options.sql`을 2026-10-04 운영 이력/스키마에 적용했다. 실제 기존 `private.admin_roles`, `current_user_is_admin()`, Auth 필드, KV와 마이그레이션 이력은 읽기 전용으로 대조했다.
+
+| private 객체 | 역할 |
+|---|---|
+| product_analytics_settings / collection_gaps | 기본 false 수집 스위치·최초 개시·확인된 중단 구간 |
+| product_analytics_test_accounts | 승인된 테스트 회원 제외 목록 |
+| product_usage_events | 실제 user_id/익명 세션·문서/진입/흐름/실행 ID·수신/활동 시각·허용 속성·채널 |
+| product_usage_session_state | 문서별 마지막 유효 수신과 미복구 처리 실패 |
+| product_member_activity_days | KST 회원 활동일·기능·채널·OS·기기·핵심 여부 |
+| product_member_first_usage | 실제 회원/버전별 최초 핵심·채점·확인 후 채점·PWA·PWA 핵심·브라우저 핵심 시각 및 보수적 known 플래그 |
+| product_usage_ingestion_quality / rate_limits | 분 단위 기능/상태 품질·원본 IP를 저장하지 않는 임시 속도 제한 키 |
+| product_admin_access_logs | 실제 관리자·대상·기간·허용 필터·반환 수의 개인 조회 감사 |
+
+모두 RLS 활성화, anon/authenticated/PUBLIC 권한 없음, 브라우저 정책 없음이다. 서버 service role에만 SELECT/INSERT/UPDATE와 필요한 시퀀스 USAGE/SELECT를 부여한다. 운영 service-role 조회 및 일반 역할 EXECUTE 차단은 실제 스키마 롤백 검증과 PostgREST로 확인했다. 자동 DELETE·Cron·Auth 탈퇴 cascade는 없다. 원본 조회 90일과 실제 행 보존/삭제는 별개이며 이번 활성화에서는 자동 삭제·탈퇴 cascade를 추가하지 않았다. 논리 조회 범위와 물리 삭제를 구분한다.
+
+공개 SECURITY INVOKER RPC `product_analytics_ingest`, `product_analytics_report`, `product_analytics_member_directory`, `product_analytics_member_activity`, `product_analytics_access_history`는 service role에만 EXECUTE를 부여한다. 서버 관리자가 승인된 실제 user_id를 전달하고 모든 조회 RPC는 `private.admin_roles`를 재확인한다. 기존 역할 RPC·RLS·KV 저장 API를 변경하지 않는다. private 스키마를 PostgREST에 추가 노출하지 않는다. 이벤트 UUID 및 행위자+실행/흐름/진입 의미 키가 중복을 막으며 항목별 하위 트랜잭션으로 처리 실패를 격리한다. 관리자 조회 이력 쓰기가 실패하면 응답 전체를 실패시킨다.
+
+원본에서는 실제 회원 UUID를 유지하고 이름·이메일은 현재 Auth 계정 검색에서만 반환한다. 현재 보관 KV는 서버에서 검증/전개 후 합계만 반환하며 답안·점수 JSON을 관리자 브라우저로 전송하지 않는다. 기존 `public.analytics_summary`와 누락된 legacy analytics 테이블을 새 기능의 기반으로 사용하지 않는다. [통계 구현·운영](admin-analytics.md)에 정확한 시간/필터/권한/활성화 범위를 설명한다.
+
+추가 운영 마이그레이션 `20261004050638_admin_dashboard_and_member_options.sql`은 private 일별 최소 사실 `product_usage_fact_days`와 완료/부분 발행 `product_usage_day_publications`, service-role 전용 `dashboard_source`, `publish_days`, `member_options`, `activity_feed` RPC를 준비한다. 파생 사실 교체에만 DELETE를 허용하고 원본 삭제/자동 삭제/예약 작업은 없다. 공개 조회 이력 RPC는 피드의 실제 대상 UUID 배열도 대상 조건에 포함한다. RLS·인가 재검사·감사 실패 차단·원자 발행은 합성 PostgreSQL에서 검증했다. 원본 90일, 발행 자료 25개월은 조회 논리 범위이며 물리 보존 자동화가 아니다. [확장 구현 문서](admin-dashboard-implementation.md)에 계정/장기 경계를 설명한다. 현재 적용 상태는 [v1.5.0 운영 적용](admin-analytics-rollout.md)을 따른다.

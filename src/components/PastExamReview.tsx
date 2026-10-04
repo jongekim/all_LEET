@@ -2,11 +2,11 @@ import { useState, type ReactNode } from 'react';
 import { ChevronDown, ClipboardList } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
-export function PastExamReview({ children }: { children: ReactNode }) {
+export function PastExamReview({ children, onOpen }: { children: ReactNode; onOpen?: () => void }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={next => { setOpen(next); if (next) onOpen?.(); }}>
       <CollapsibleTrigger
         className="past-exam-review-trigger past-exam-panel"
         aria-label={open ? '정답·점수표 숨기기' : '정답표·점수 환산표 보기'}

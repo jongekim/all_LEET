@@ -10,6 +10,8 @@ import { Subject, Year, User, GradingResult, ExamType } from '../App';
 import { LogOut, History, BookOpen, Brain, Calendar, GraduationCap, LogIn, HelpCircle, X, Mail, MessagesSquare, MessageCircle, Files } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
+import { analyticsId } from '../utils/analyticsId';
+import { usageAnalytics } from '../utils/usageAnalytics';
 
 interface HomePageProps {
   user: User;
@@ -35,6 +37,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   const ddayText = getDdayText();
 
   const handleYearChange = (year: Year) => {
+    usageAnalytics().resetInput();
     setSelectedYear(year);
     if (isSingleFormYear(year)) setExamType('odd');
     setVerbalAnswers({});
@@ -42,12 +45,14 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   };
 
   const handleExamTypeChange = (type: ExamType) => {
+    usageAnalytics().resetInput();
     setExamType(type);
     setVerbalAnswers({});
     setReasoningAnswers({});
   };
 
   const handleVerbalAnswerChange = (questionNumber: number, answer: number) => {
+    usageAnalytics().input(selectedYear, isSingleFormYear(selectedYear) ? 'single' : examType, Object.keys(verbalAnswers).length + Object.keys(reasoningAnswers).length > 0);
     setVerbalAnswers(prev => ({
       ...prev,
       [questionNumber]: answer
@@ -55,6 +60,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   };
 
   const handleReasoningAnswerChange = (questionNumber: number, answer: number) => {
+    usageAnalytics().input(selectedYear, isSingleFormYear(selectedYear) ? 'single' : examType, Object.keys(verbalAnswers).length + Object.keys(reasoningAnswers).length > 0);
     setReasoningAnswers(prev => ({
       ...prev,
       [questionNumber]: answer
@@ -64,10 +70,15 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
   const handleGrade = async () => {
     if (isGrading) return;
 
+    const hasVerbalAnswers = Object.keys(verbalAnswers).length > 0;
+    const hasReasoningAnswers = Object.keys(reasoningAnswers).length > 0;
+    if (!hasVerbalAnswers && !hasReasoningAnswers) { alert('최소 한 과목의 답안을 입력해주세요.'); return; }
+    const tracking = usageAnalytics();
+    const telemetry = tracking.beginGrading(selectedYear, isSingleFormYear(selectedYear) ? 'single' : examType, hasVerbalAnswers && hasReasoningAnswers ? 'both' : hasVerbalAnswers ? 'verbal' : 'reasoning');
+
     const results: GradingResult[] = [];
     const groupTimestamp = Date.now();
     // 언어이해 답안이 있으면 채점
-    const hasVerbalAnswers = Object.keys(verbalAnswers).length > 0;
     if (hasVerbalAnswers) {
       const verbalResult: GradingResult = {
         ...gradeAnswers(selectedYear, 'verbal', verbalAnswers, verbalQuestionCount, examType),
@@ -77,7 +88,6 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     }
 
     // 추리논증 답안이 있으면 채점
-    const hasReasoningAnswers = Object.keys(reasoningAnswers).length > 0;
     if (hasReasoningAnswers) {
       const reasoningResult: GradingResult = {
         ...gradeAnswers(selectedYear, 'reasoning', reasoningAnswers, reasoningQuestionCount, examType),
@@ -86,18 +96,18 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
       results.push(reasoningResult);
     }
 
-    if (results.length === 0) {
-      alert('최소 한 과목의 답안을 입력해주세요.');
-      return;
-    }
+    tracking.trackGrading('grading_completed', telemetry);
 
     setIsGrading(true);
     const saveErrors: string[] = [];
     try {
       for (const result of results) {
+        const saveAttemptId = analyticsId();
         try {
           await onAddToHistory(result);
+          if (currentUser) tracking.trackGrading('history_save_outcome', telemetry, { subjects: result.subject, save_attempt_id: saveAttemptId, outcome: 'success' }, `${saveAttemptId}:${result.subject}`);
         } catch (error) {
+          if (currentUser) tracking.trackGrading('history_save_outcome', telemetry, { subjects: result.subject, save_attempt_id: saveAttemptId, outcome: error instanceof Error && 'code' in error && error.code === 'RESULT_UNKNOWN' ? 'unknown' : 'failed' }, `${saveAttemptId}:${result.subject}`);
           console.error('채점 결과 저장 실패', error);
           const subject = result.subject === 'verbal' ? '언어이해' : '추리논증';
           saveErrors.push(`${subject}: ${error instanceof Error ? error.message : '저장 결과를 확인하지 못했습니다.'}`);
@@ -108,11 +118,12 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     }
 
     // 결과 페이지로 이동
-    navigate('/result', { state: { results, saveErrors } });
+    navigate('/result', { state: { results, saveErrors, telemetry, entry_source: 'new_grading' } });
   };
 
   const handleReset = () => {
     if (window.confirm('모든 답안을 초기화하시겠습니까?')) {
+      usageAnalytics().resetInput();
       setVerbalAnswers({});
       setReasoningAnswers({});
     }

@@ -5,3 +5,9 @@ project_id = "jkxxtyaanyhmjbdtybkp"
 
 [functions.make-server-cd835c22]
 verify_jwt = false
+
+[functions.usage-events]
+verify_jwt = false
+
+[functions.admin-analytics]
+verify_jwt = false

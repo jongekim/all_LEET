@@ -1,5 +1,6 @@
 import { Download, FileText, ArrowUpRight } from 'lucide-react';
 import type { PastExamDocument } from '../types/pastExam';
+import { usageAnalytics } from '../utils/usageAnalytics';
 
 export function PastExamFiles({ documents }: { documents: PastExamDocument[] }) {
   if (documents.length === 0) {
@@ -18,10 +19,10 @@ export function PastExamFiles({ documents }: { documents: PastExamDocument[] }) 
             </div>
           </div>
           <div className="past-exam-file-actions">
-            <a className="past-exam-link" href={document.url} target="_blank" rel="noopener noreferrer">
+            <a className="past-exam-link" href={document.url} target="_blank" rel="noopener noreferrer" onClick={() => usageAnalytics().track('past_exam_file_clicked', 'past_exams', { year: document.year, subjects: document.subject, exam_type: document.examType, target_type: 'pdf', target_id: `${document.year}:${document.subject}:${document.examType}` })}>
               <ArrowUpRight size={16} aria-hidden="true" /> PDF 열기<span className="sr-only"> (새 탭)</span>
             </a>
-            <a className="past-exam-link past-exam-download" href={`${document.url}?download=${encodeURIComponent(document.fileName)}`} download={document.fileName}>
+            <a className="past-exam-link past-exam-download" href={`${document.url}?download=${encodeURIComponent(document.fileName)}`} download={document.fileName} onClick={() => usageAnalytics().track('past_exam_file_clicked', 'past_exams', { year: document.year, subjects: document.subject, exam_type: document.examType, target_type: 'pdf', target_id: `${document.year}:${document.subject}:${document.examType}` })}>
               <Download size={16} aria-hidden="true" /> 다운로드
             </a>
           </div>

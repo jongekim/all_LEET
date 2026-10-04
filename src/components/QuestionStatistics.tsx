@@ -6,6 +6,7 @@ import { formatRate } from '../utils/questionStatisticsModel';
 import { getCorrectAnswers } from '../utils/answerData';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
 import '../styles/question-statistics.css';
+import { usageAnalytics } from '../utils/usageAnalytics';
 
 const StatisticsContext = createContext<StatisticsSnapshot | undefined>(undefined);
 const warning = '채점 기록이 30건 이하로 데이터가 충분하지 않아 정답률의 정확도가 떨어질 수 있습니다.';
@@ -42,7 +43,7 @@ export function QuestionRate({ question, variant = 'result' }: { question: numbe
   const n = snapshot.sample_count;
   const rate = formatRate(item.choice_counts[correct - 1], n);
   const rows = [...item.choice_counts, item.unanswered_count];
-  return <Dialog>
+  return <Dialog onOpenChange={open => { if (open) usageAnalytics().track('question_distribution_opened', 'grading', { year: snapshot.year, subjects: snapshot.subject, exam_type: isSingleFormYear(snapshot.year) ? 'single' : snapshot.exam_type, question_no: question, target_type: 'question', target_id: `${snapshot.year}:${snapshot.subject}:${question}` }); }}>
     <DialogTrigger asChild>
       <button type="button" className={`question-rate${variant === 'answer-key' ? ' question-rate--answer-key' : ''}`} aria-label={`${question}번 정답률 ${rate}, 응답 분포 보기`}>
         {variant === 'result' && <span className="question-rate-caption">정답률</span>}<span>{rate}</span>

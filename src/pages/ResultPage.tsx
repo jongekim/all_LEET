@@ -1,4 +1,4 @@
-import { getExamTypeLabel } from '../utils/examType';
+import { getExamTypeLabel, isSingleFormYear } from '../utils/examType';
 import { PageHeader } from '../components/PageHeader';
 import { PageBackButton } from '../components/PageBackButton';
 import { useEffect, useMemo, useState } from 'react';
@@ -12,6 +12,8 @@ import { Home, X } from 'lucide-react';
 import { useAuth, supabase } from '../contexts/AuthContext';
 import { Textarea } from '../components/ui/textarea';
 import { Button } from '../components/ui/button';
+import { usageAnalytics } from '../utils/usageAnalytics';
+import type { GradingContext } from '../utils/analyticsClient';
 
 interface ResultWithAnswers extends GradingResult {
   correctAnswers?: Record<number, number>;
@@ -107,6 +109,19 @@ export function ResultPage() {
 
   // 이전 버전과의 호환성을 위해 단일 결과도 처리
   const finalResults = results || (singleResult ? [singleResult] : undefined);
+
+  useEffect(() => {
+    const viewedResults = results || (singleResult ? [singleResult] : undefined);
+    if (!viewedResults?.length) return;
+    const tracking = usageAnalytics();
+    const context = location.state?.telemetry as GradingContext | undefined;
+    if (location.state?.entry_source === 'new_grading' && context) {
+      tracking.trackGrading('grading_result_viewed', context, { entry_source: 'new_grading' });
+    } else if (location.state?.entry_source === 'history' || location.state?.entry_source === 'example') {
+      const first = viewedResults[0];
+      tracking.track('past_result_viewed', 'history', { entry_source: location.state.entry_source, year: first.year, exam_type: isSingleFormYear(first.year) ? 'single' : first.examType, subjects: viewedResults.length > 1 ? 'both' : first.subject }, location.key);
+    }
+  }, [location.key, location.state, results, singleResult]);
 
   if (!finalResults || finalResults.length === 0) {
     return (
