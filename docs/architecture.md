@@ -110,3 +110,9 @@ DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 �
 현재 상태·출처별 필터·후속 기능·운영 적용 순서는 [통계 구현·운영](admin-analytics.md)을 따른다. 두 통계 함수도 main 변경 배포 대상에 포함했다. 실제 운영 적용·수집 개시·배포 검증 기록은 [v1.5.0 운영 적용](admin-analytics-rollout.md)을 따른다.
 
 대시보드·회원 선택 확장에는 `_shared/dashboard.ts`의 순수 기간/집계/정책 계산, `AdminDashboard`/`AdminMemberPicker`의 서비스 주입, `AdminAnalyticsError`/화면 단위 `AnalyticsAuthorizationScope`를 추가했다. 현재 계정의 HTTP 401/403은 모든 개인 결과를 제거하고 취소·세대 검사로 늦은 성공을 차단한다. AuthContext 외 인증 원본을 추가하지 않는다. `dashboard_source`는 SQL 한 읽기 스냅샷의 내부 사실을 서버에 제공하고 공개 DTO는 집계만 반환한다. 목록/피드의 개인 응답과 감사는 동일 트랜잭션이다. 신규 UI 컴포넌트는 사용자의 명시적 승인 뒤 실제 통계 페이지에 연결했다. 개인 선택 상태를 가진 화면 본문은 권한 거절 때 전체 언마운트하여 모든 메모리 결과·선택·검색·커서를 제거한다. [확장 구현 문서](admin-dashboard-implementation.md)를 따른다.
+
+## 관리자 사용자 데이터 경계 (v1.7.0)
+
+`/admin/user-data`는 기존 관리자 인증을 유지하고 선택 사용자의 데이터를 서버 adapter로 기존 페이지에 주입한다. `admin-user-data`는 매 JWT/현재 역할을 검증하고 service-only `user_data_*` RPC로 읽기·준비·승인 적용·상태 대조를 수행한다. 소유자 RLS를 관리자용으로 넓히거나 사용자 세션을 대체하지 않는다. 선택/입력은 메모리에서만 유지하며 대상 전환·403·새로고침 시 비운다.
+
+`admission-history`는 유효한 분석 실행을 headless 저장하고 결과 이동을 기다리지 않는다. 계산 모듈은 `supabase/functions/_shared/user-data-rules/`에서 프론트와 Edge가 공유하며 `src/utils`는 기존 export 계약을 유지한다. 기존 이력 Edge 쓰기는 `user_history_mutate`로 옮겨 관리자와 같은 키 잠금을 사용한다. Storage/Auth 외부 변경은 영속 작업 의도·hash 대조·outbox·unknown/partial 상태로 관리한다. 구성/배포 순서는 [구현·운영](admin-user-data-implementation.md)을 따른다.

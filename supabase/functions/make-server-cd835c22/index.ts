@@ -1,9 +1,9 @@
 import { createHistoryApp } from "./app.ts";
 import { createUserVerifier } from "./auth.ts";
-import * as kv from "./kv_store.ts";
+import { atomicHistoryStore } from "./atomic-store.ts";
 
 const app = createHistoryApp({
-  kv,
+  kv: atomicHistoryStore(),
   verifyUser: createUserVerifier({
     url: Deno.env.get("SUPABASE_URL"),
     anonKey: Deno.env.get("SUPABASE_ANON_KEY"),

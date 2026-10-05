@@ -6,13 +6,14 @@ import { useEffect, useState } from 'react';
 import { ToeicInfoNotice } from '../components/ToeicInfoDialog';
 import { usageAnalytics } from '../utils/usageAnalytics';
 
-export function AdmissionResultPage() {
+export function AdmissionResultPage({ admin }: { admin?: { analyses: LawSchoolAnalysis[]; input: {leet: number; gpa: number}; onBack: () => void } } = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const [analyses, setAnalyses] = useState<LawSchoolAnalysis[] | null>(null);
   const [input, setInput] = useState<{ leet: number; gpa: number } | null>(null);
 
   useEffect(() => {
+    if (admin) { setAnalyses(admin.analyses); setInput(admin.input); return; }
     // state에서 먼저 가져오기 시도
     const stateAnalyses = location.state?.analyses as LawSchoolAnalysis[] | undefined;
     const stateInput = location.state?.input as { leet: number; gpa: number } | undefined;
@@ -37,11 +38,11 @@ export function AdmissionResultPage() {
         navigate('/admission');
       }
     }
-  }, [location.state, navigate]);
+  }, [location.state, navigate, admin]);
 
   useEffect(() => {
-    if (analyses && input) usageAnalytics().track('admission_result_viewed', 'admission', {}, location.key);
-  }, [analyses, input, location.key]);
+    if (!admin && analyses && input) usageAnalytics().track('admission_result_viewed', 'admission', {}, location.key);
+  }, [analyses, input, location.key, admin]);
 
   if (!analyses || !input) {
     return (
@@ -107,6 +108,7 @@ export function AdmissionResultPage() {
         title="합격 가능성 분석 결과"
         description={`LEET ${input.leet} / GPA ${input.gpa}`}
         backTo="/admission"
+        onBack={admin?.onBack}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -183,7 +185,7 @@ export function AdmissionResultPage() {
         {/* 액션 버튼 */}
         <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={() => navigate('/admission')}
+            onClick={() => admin ? admin.onBack() : navigate('/admission')}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
             다른 점수로 다시 분석하기

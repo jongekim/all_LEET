@@ -1,7 +1,7 @@
-import { isSingleFormYear } from './examType';
-import { Subject, Year, GradingResult, ExamType } from '../App';
-import { getCorrectAnswers, getFieldMapping } from './answerData';
-import { getScoreConversion } from './scoreData';
+import { isSingleFormYear } from './examType.ts';
+import type { Subject, Year, GradingResult, ExamType } from './types.ts';
+import { getCorrectAnswers, getFieldMapping } from './answerData.ts';
+import { getScoreConversion } from './scoreData.ts';
 
 // 문제 수 결정
 export function getQuestionCount(year: Year, subject: Subject): number {

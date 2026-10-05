@@ -22,6 +22,7 @@ interface HistoryPageProps {
   loading?: Record<HistoryKind, boolean>;
   errors?: Record<HistoryKind, string | null>;
   onRetry?: (kind: HistoryKind) => void;
+  admin?: { onBack: () => void; onOpen: (group: GradingResult[]) => void; onDelete: (group: GradingResult[]) => void; onEditMock: (record: MockExamRecord) => void; onDeleteMock: (record: MockExamRecord) => void; page: number; onPageChange: (page: number) => void; initialTab?: HistoryTab; };
 }
 
 type HistoryTab = 'official' | 'mock';
@@ -36,35 +37,36 @@ export function HistoryPage({
   loading,
   errors,
   onRetry,
+  admin,
 }: HistoryPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const showOfficialExample = history.length === 0 && !loading?.history && !errors?.history;
-  const showMockExample = mockHistory.length === 0 && !loading?.['mock-history'] && !errors?.['mock-history'];
+  const showOfficialExample = !admin && history.length === 0 && !loading?.history && !errors?.history;
+  const showMockExample = !admin && mockHistory.length === 0 && !loading?.['mock-history'] && !errors?.['mock-history'];
   const officialHistoryForView = showOfficialExample ? EXAMPLE_OFFICIAL_HISTORY : history;
   const mockHistoryForView = showMockExample ? EXAMPLE_MOCK_HISTORY : mockHistory;
 
   const tabFromQuery = (searchParams.get('tab') || '').toLowerCase();
   const tabFromPath: HistoryTab = location.pathname === '/mock-history' ? 'mock' : 'official';
-  const initialTab: HistoryTab = tabFromQuery === 'mock' ? 'mock' : tabFromPath;
+  const initialTab: HistoryTab = admin?.initialTab ?? (tabFromQuery === 'mock' ? 'mock' : tabFromPath);
   const [tab, setTab] = useState<HistoryTab>(initialTab);
   const currentKind: HistoryKind = tab === 'official' ? 'history' : 'mock-history';
   const currentLoading = !!loading?.[currentKind];
   const currentError = errors?.[currentKind];
 
   useEffect(() => {
-    if (currentLoading || currentError) return;
+    if (admin || currentLoading || currentError) return;
     const hasRecords = tab === 'official' ? history.length > 0 : mockHistory.length > 0;
     usageAnalytics().track('history_viewed', 'history', { history_kind: tab, has_records: hasRecords }, `${location.key}:${tab}`);
-  }, [currentLoading, currentError, tab, history.length, mockHistory.length, location.key]);
+  }, [currentLoading, currentError, tab, history.length, mockHistory.length, location.key, admin]);
 
   const [sortBy, setSortBy] = useState<'date' | 'year'>('date'); // 기본값: 채점 순서
   const [providerFilter, setProviderFilter] = useState<string>('all');
   const trendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (currentLoading || currentError || !trendRef.current || typeof IntersectionObserver === 'undefined') return;
+    if (admin || currentLoading || currentError || !trendRef.current || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(entries => {
       if (entries.some(e => e.isIntersecting) && document.visibilityState === 'visible') {
         const hasRecords = tab === 'official' ? history.length > 0 : mockHistory.length > 0;
@@ -73,7 +75,7 @@ export function HistoryPage({
     });
     observer.observe(trendRef.current);
     return () => observer.disconnect();
-  }, [currentLoading, currentError, tab, history.length, mockHistory.length, location.key]);
+  }, [currentLoading, currentError, tab, history.length, mockHistory.length, location.key, admin]);
 
 
   const getGroupTime = (record: GradingResult) => record.groupTimestamp ?? record.timestamp;
@@ -118,6 +120,7 @@ export function HistoryPage({
 
   const setTabAndSyncQuery = (next: HistoryTab) => {
     setTab(next);
+    if (admin) { admin.onPageChange(0); return; }
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set('tab', next);
     setSearchParams(nextParams, { replace: true });
@@ -164,13 +167,13 @@ export function HistoryPage({
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => admin ? admin.onBack() : navigate('/')}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">돌아가기</span>
               </button>
-              {tab === 'mock' && (
+              {!admin && tab === 'mock' && (
                 <button
                   onClick={() => navigate('/mock-input')}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -180,7 +183,7 @@ export function HistoryPage({
               )}
               <button
                 onClick={tab === 'official' ? onClearHistory : onClearMockHistory}
-                disabled={currentLoading || !!currentError || (tab === 'official' ? showOfficialExample : showMockExample)}
+                disabled={currentLoading || !!currentError || (!!admin && (tab === 'official' ? !history.length : !mockHistory.length)) || (tab === 'official' ? showOfficialExample : showMockExample)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                   (tab === 'official' ? showOfficialExample : showMockExample)
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -222,6 +225,7 @@ export function HistoryPage({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {admin && !currentLoading && !currentError && (tab === 'official' ? history.length : mockHistory.length) === 0 && <p>실제 기록 0건</p>}
         {currentLoading && <p role="status">이력을 불러오는 중입니다.</p>}
         {currentError && (
           <div role="alert" className="bg-amber-50 text-amber-900 rounded-lg p-4">
@@ -287,7 +291,7 @@ export function HistoryPage({
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {sortedGroupedHistory.map((group, groupIndex) => {
+                  {(admin ? sortedGroupedHistory.slice(admin.page * 50, (admin.page + 1) * 50) : sortedGroupedHistory).map((group, groupIndex) => {
               const firstRecord = group[0];
               const groupTime = getGroupTime(firstRecord);
               const date = new Date(groupTime).toLocaleDateString('ko-KR');
@@ -407,7 +411,7 @@ export function HistoryPage({
                           <button
                             onClick={() => {
                               const uniqueTimestamps = Array.from(new Set(group.map(r => r.timestamp)));
-                              onDeleteRecord(uniqueTimestamps);
+                              if (admin) admin.onDelete(group); else onDeleteRecord(uniqueTimestamps);
                             }}
                             className="text-sm text-red-600 hover:text-red-700 font-semibold whitespace-nowrap flex items-center gap-1"
                           >
@@ -416,7 +420,7 @@ export function HistoryPage({
                           </button>
                           <button
                             onClick={() =>
-                              navigate('/result', { state: isCombined ? { results: group, entry_source: showOfficialExample ? 'example' : 'history' } : { result: firstRecord, entry_source: showOfficialExample ? 'example' : 'history' } })
+                              admin ? admin.onOpen(group) : navigate('/result', { state: isCombined ? { results: group, entry_source: showOfficialExample ? 'example' : 'history' } : { result: firstRecord, entry_source: showOfficialExample ? 'example' : 'history' } })
                             }
                             className="text-sm text-blue-600 hover:text-blue-700 font-semibold whitespace-nowrap"
                           >
@@ -461,7 +465,7 @@ export function HistoryPage({
                   <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">시험기관:</span>
                   <select
                     value={providerFilter}
-                    onChange={(e) => setProviderFilter(e.target.value)}
+                    onChange={(e) => { setProviderFilter(e.target.value); admin?.onPageChange(0); }}
                     className="flex-1 sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   >
                     <option value="all">전체</option>
@@ -486,7 +490,7 @@ export function HistoryPage({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {sortedMock.map((record) => {
+                  {(admin ? sortedMock.slice(admin.page * 50, (admin.page + 1) * 50) : sortedMock).map((record) => {
                     const createdAtText = new Date(record.createdAt).toLocaleString('ko-KR');
 
                     const subjects: Array<{ key: 'verbal' | 'reasoning'; label: string; color: string }> = [];
@@ -581,13 +585,16 @@ export function HistoryPage({
                               </div>
                             </div>
                             {!showMockExample ? (
+                              <>
+                              {admin && <button type="button" className="text-sm text-blue-600 mr-3" onClick={() => admin.onEditMock(record)}>수정</button>}
                               <button
-                                onClick={() => onDeleteMockRecord([record.id])}
+                                onClick={() => admin ? admin.onDeleteMock(record) : onDeleteMockRecord([record.id])}
                                 className="text-sm text-red-600 hover:text-red-700 font-semibold whitespace-nowrap flex items-center gap-1"
                               >
                                 <Trash2 className="w-4 h-4" />
                                 삭제
                               </button>
+                              </>
                             ) : (
                               <div className="text-xs text-gray-500">예시 데이터</div>
                             )}
@@ -609,7 +616,7 @@ export function HistoryPage({
                   <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">시험기관:</span>
                   <select
                     value={providerFilter}
-                    onChange={(e) => setProviderFilter(e.target.value)}
+                    onChange={(e) => { setProviderFilter(e.target.value); admin?.onPageChange(0); }}
                     className="flex-1 sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm shadow-sm"
                   >
                     <option value="all">전체</option>
@@ -634,7 +641,7 @@ export function HistoryPage({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {sortedMock.map((record) => {
+                  {(admin ? sortedMock.slice(admin.page * 50, (admin.page + 1) * 50) : sortedMock).map((record) => {
                     const createdAtText = new Date(record.createdAt).toLocaleString('ko-KR');
 
                     const subjects: Array<{ key: 'verbal' | 'reasoning'; label: string; color: string }> = [];
@@ -728,8 +735,9 @@ export function HistoryPage({
                                 </span>
                               </div>
                             </div>
+                            {admin && <button type="button" className="text-sm text-blue-600 mr-3" onClick={() => admin.onEditMock(record)}>수정</button>}
                             <button
-                              onClick={() => onDeleteMockRecord([record.id])}
+                              onClick={() => admin ? admin.onDeleteMock(record) : onDeleteMockRecord([record.id])}
                               className="text-sm text-red-600 hover:text-red-700 font-semibold whitespace-nowrap flex items-center gap-1"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -745,6 +753,11 @@ export function HistoryPage({
             </div>
           </>
         ))}
+        {admin && <div className="flex justify-center items-center gap-3 mt-4">
+          <button type="button" className="border rounded px-3 py-2" disabled={admin.page === 0} onClick={() => admin.onPageChange(admin.page - 1)}>이전 목록</button>
+          <span>{admin.page + 1}페이지 · 페이지당 최대 50회</span>
+          <button type="button" className="border rounded px-3 py-2" disabled={(admin.page + 1) * 50 >= (tab === 'official' ? sortedGroupedHistory.length : sortedMock.length)} onClick={() => admin.onPageChange(admin.page + 1)}>다음 목록</button>
+        </div>}
       </main>
     </div>
   );

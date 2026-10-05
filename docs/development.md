@@ -11,6 +11,7 @@
 | 테스트 1회 실행 | `npm run test` |
 | 테스트 감시 실행 | `npm run test:watch` |
 | 이력 Edge Function 타입·보안 회귀 검사 | `npm run test:edge` (Deno 2.9.5) |
+| 관리자 사용자 데이터 SQL·Edge 회귀 검사 | `npm run test:user-data` |
 | 읽기 전용 화면 E2E 테스트 | `npm run test:e2e` |
 | Playwright UI 모드 | `npm run test:e2e:ui` |
 | 프로덕션 빌드·공개 HTML 생성 | `npm run build` |
@@ -180,3 +181,9 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 사용자의 실제 서비스 반영·커밋·푸시 요청에 따라 운영 DB·함수·수집 설정을 적용했다. [v1.5.0 운영 적용](admin-analytics-rollout.md)에 실제 스키마 롤백 검증·PostgREST·RLS·수집 및 웹 배포 확인을 기록한다. 자동 삭제·탈퇴 cascade·예약 발행은 추가하지 않았으며 실제 설치 기기의 OS별 확인은 브라우저 모의 검사와 구분한다.
 
 대시보드 확장은 `scripts/test-dashboard-sql.ts`로 두 로컬 마이그레이션·121명 복합 커서·기간 DISTINCT·원자 재발행/롤백·일반 역할/실제 service-role 권한·감사 실패 차단을 합성 DB에서 검증한다. `adminDashboard.test.ts`, `adminAnalyticsErrors.test.ts`, `AdminMemberPicker.test.tsx`는 계산/인가/IME·목록 상태를 확인한다. `e2e/admin-dashboard-preview.spec.ts`는 외부 요청 없이 실제 재사용 컴포넌트의 모바일/데스크톱 미리보기를 확인한다. `node --import tsx scripts/build-dashboard-preview.ts`로 새 예시 미리보기를 재생성한다. 구현·검증·운영 적용 경계는 [확장 구현 문서](admin-dashboard-implementation.md)를 따른다.
+
+## 관리자 사용자 데이터 검증·릴리스
+
+`npm run test:user-data`는 PGlite 합성 스키마의 실제 권한/트랜잭션과 Deno 주입 API를 확인하며 운영 데이터에 접근하지 않는다. 새 프론트 단위 검사와 `e2e/admin-user-data.spec.ts`는 계정 범위·승인·이미지·권한 회수·분석 저장 실패의 UI를 검사한다. E2E의 변경 제출은 모든 Supabase 요청을 모킹한 합성 API에만 실행한다. 운영에 연결된 브라우저에서 변경·업로드·좋아요 등 쓰기를 검증하지 않는다.
+
+전체 `check`와 CI에 새 SQL·Edge 검사가 포함된다. DB migration, 기존 원자 이력 함수, 새 관리자/분석 함수, 웹의 순서로 조정해야 하며 실제 적용·배포·push는 명시적 요청 뒤 수행한다. 함수 CI는 Supabase CLI 2.119.0을 고정하고 기존 이력 함수를 먼저 배포하며 `admin-user-data`·`admission-history`도 포함한다. 새 DB migration은 main push 전에 별도 적용해야 한다. v1.7.0 실제 적용은 [운영 적용 기록](admin-user-data-rollout.md), 세부 목록과 검증 한계는 [사용자 데이터 구현·운영](admin-user-data-implementation.md)을 따른다.

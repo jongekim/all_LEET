@@ -109,3 +109,11 @@ RLS와 명시적 grants를 함께 설정한다. anon/authenticated는 SELECT, �
 원본에서는 실제 회원 UUID를 유지하고 이름·이메일은 현재 Auth 계정 검색에서만 반환한다. 현재 보관 KV는 서버에서 검증/전개 후 합계만 반환하며 답안·점수 JSON을 관리자 브라우저로 전송하지 않는다. 기존 `public.analytics_summary`와 누락된 legacy analytics 테이블을 새 기능의 기반으로 사용하지 않는다. [통계 구현·운영](admin-analytics.md)에 정확한 시간/필터/권한/활성화 범위를 설명한다.
 
 추가 운영 마이그레이션 `20261004050638_admin_dashboard_and_member_options.sql`은 private 일별 최소 사실 `product_usage_fact_days`와 완료/부분 발행 `product_usage_day_publications`, service-role 전용 `dashboard_source`, `publish_days`, `member_options`, `activity_feed` RPC를 준비한다. 파생 사실 교체에만 DELETE를 허용하고 원본 삭제/자동 삭제/예약 작업은 없다. 공개 조회 이력 RPC는 피드의 실제 대상 UUID 배열도 대상 조건에 포함한다. RLS·인가 재검사·감사 실패 차단·원자 발행은 합성 PostgreSQL에서 검증했다. 원본 90일, 발행 자료 25개월은 조회 논리 범위이며 물리 보존 자동화가 아니다. [확장 구현 문서](admin-dashboard-implementation.md)에 계정/장기 경계를 설명한다. 현재 적용 상태는 [v1.5.0 운영 적용](admin-analytics-rollout.md)을 따른다.
+
+## 관리자 사용자 데이터 migration (로컬 작성·미적용)
+
+`20261005052901_admin_user_data.sql`은 운영 기존 컬럼·정책·grants·관계와 Storage 객체 컬럼을 읽기 전용으로 확인한 뒤 작성했다. 신규 객체는 `private.user_data_operations`, `user_data_audit`, `user_data_tombstones`, `user_data_storage_cleanup`, `admission_history`, `admission_save_diagnostics`다. 모두 RLS를 활성화하고 anon/authenticated 직접 접근을 차단한다. Edge service role 전용 `user_data_*`, `admission_execution_save`, `user_history_mutate` RPC가 접근하며 관리자 RPC는 실제 actor의 `private.admin_roles`를 재검사한다. 감사는 service role도 UPDATE/DELETE하지 못한다. 지원 분석/감사는 Auth 삭제 cascade를 두지 않는다.
+
+KV 쓰기는 키 advisory lock, 관계형 승인/소유자 쓰기는 분야별 statement trigger 잠금으로 직렬화한다. 승인 snapshot은 원본과 연결 자료 전체의 hash이며 원본 복구 백업은 저장하지 않는다. 삭제 이벤트 재수신은 UUID/semantic 해시 tombstone으로 막는다. 기존 analytics ingest/publish는 `_v1`로 보존하고 동일 공개 signature wrapper에서 삭제와 같은 잠금을 사용한다. 이벤트 삭제에는 원본과 영향 날짜 파생 재생성/가용 상태 변경이 포함된다. 새 권한은 원본 events/activity_days DELETE와 신규 객체 및 검증된 Storage 메타데이터 SELECT에 한정한다.
+
+Storage 객체를 SQL로 삭제하지 않는다. 게시글 변경과 cleanup outbox를 함께 등록한 뒤 Storage API로 삭제하며 대기 중 URL 재참조는 trigger로 막는다. 새 이미지 manifest 의도를 먼저 보관하고 실제 파일 hash 확인 뒤 URL을 적용한다. v1.7.0에서 신규 마이그레이션만 운영에 적용했으며 기존 정책·이력은 보존했다. 실제 스키마의 RLS·기존 FK/카운터 트리거는 합성 데이터 전체 롤백으로 확인했다. 외부 Auth/Storage 변경의 실연동 검증 한계와 적용 기록은 [운영 적용](admin-user-data-rollout.md), 세부 구조는 [구현·운영](admin-user-data-implementation.md) 참고.

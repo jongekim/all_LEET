@@ -1,0 +1,15 @@
+.admin-user-data-container { max-width: 1280px; margin: 0 auto; }
+.admin-user-data-container .admin-list li { align-items: flex-start; }
+.admin-user-data-container button:disabled { opacity: .5; cursor: not-allowed; }
+.admin-user-data-container details pre { max-height: 24rem; overflow: auto; }
+/* Portals are outside the page container; classes apply only to admin dialogs. */
+.admin-user-data-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: calc(100vw - 2rem); max-width: 672px; max-height: 85dvh; overflow: auto; z-index: 60; background: white; display: grid; gap: 16px; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; }
+.admin-user-data-overlay { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / .5); }
+.admin-user-data-approval { z-index: 70; max-width: 576px; }
+.admin-user-data-approval-overlay { z-index: 70; }
+.admin-user-data-dialog input:not([type=checkbox]):not([type=file]), .admin-user-data-dialog textarea, .admin-user-data-dialog select { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; margin-top: 8px; }
+.admin-user-data-dialog button[data-slot=button] { background: #2563eb; color: white; padding: 8px 14px; border-radius: 6px; }
+.admin-user-data-dialog button[data-slot=button].border { background: white; color: #374151; border: 1px solid #d1d5db; }
+.admin-user-data-dialog button:disabled { opacity: .5; cursor: not-allowed; }
+.admin-user-data-dialog img { max-height: 240px; object-fit: contain; }
+.admin-user-data-dialog fieldset > label + label { margin-top: 16px; }

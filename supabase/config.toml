@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.admin-analytics]
 verify_jwt = false
+
+[functions.admin-user-data]
+verify_jwt = false
+
+[functions.admission-history]
+verify_jwt = false

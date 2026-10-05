@@ -197,7 +197,12 @@ test('전개년·전과목·전문형 선택이 워터마크 PDF에 연결되고
   await expect(page.getByRole('link', { name: /출처/ })).toHaveCount(0);
   for (const document of PAST_EXAM_DOCUMENTS) {
     await page.getByLabel('시험 학년도').selectOption(document.year);
-    await page.getByRole('button', { name: document.subject === 'verbal' ? '언어이해' : '추리논증', exact: true }).click();
+    await page.waitForURL(url => url.searchParams.get('year') === document.year);
+    const subjectButton = page.getByRole('button', { name: document.subject === 'verbal' ? '언어이해' : '추리논증', exact: true });
+    await subjectButton.click();
+    // Wait for the selection render before another URL update; rapid clicks
+    // must not test an old render's searchParams closure.
+    await expect(subjectButton).toHaveAttribute('aria-pressed', 'true');
     if (document.examType !== 'single') await page.getByRole('button', { name: document.examType === 'odd' ? '홀수형' : '짝수형', exact: true }).click();
     await expect(page.getByRole('link', { name: /PDF 열기/ })).toHaveAttribute('href', document.url);
     await expect(page.getByRole('link', { name: '다운로드', exact: true })).toHaveAttribute('href', downloadUrl(document.fileName));

@@ -99,11 +99,17 @@ const modalBtnSecondary = `${modalBtnBase} bg-gray-200 hover:bg-gray-300 text-gr
 const modalBtnOutline = `${modalBtnBase} border border-gray-300 bg-white hover:bg-gray-50 text-gray-900`;
 const modalBtnDestructive = `${modalBtnBase} border border-red-300 bg-white text-red-700 hover:bg-red-50 hover:border-red-400`;
 
-export function ResultPage() {
+export interface AdminResultView {
+  results: GradingResult[];
+  loadNotes: () => Promise<{subject: Subject; question_no: number; content: string}[]>;
+  changeNote: (subject: Subject, question: number, content: string | null) => Promise<void>;
+  onBack: () => void;
+}
+export function ResultPage({ admin }: { admin?: AdminResultView } = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const results = location.state?.results as GradingResult[] | undefined;
+  const results = admin?.results ?? location.state?.results as GradingResult[] | undefined;
   const singleResult = location.state?.result as GradingResult | undefined;
   const saveErrors = location.state?.saveErrors as string[] | undefined;
 
@@ -112,7 +118,7 @@ export function ResultPage() {
 
   useEffect(() => {
     const viewedResults = results || (singleResult ? [singleResult] : undefined);
-    if (!viewedResults?.length) return;
+    if (admin || !viewedResults?.length) return;
     const tracking = usageAnalytics();
     const context = location.state?.telemetry as GradingContext | undefined;
     if (location.state?.entry_source === 'new_grading' && context) {
@@ -121,7 +127,7 @@ export function ResultPage() {
       const first = viewedResults[0];
       tracking.track('past_result_viewed', 'history', { entry_source: location.state.entry_source, year: first.year, exam_type: isSingleFormYear(first.year) ? 'single' : first.examType, subjects: viewedResults.length > 1 ? 'both' : first.subject }, location.key);
     }
-  }, [location.key, location.state, results, singleResult]);
+  }, [location.key, location.state, results, singleResult, admin]);
 
   if (!finalResults || finalResults.length === 0) {
     return (
@@ -175,12 +181,13 @@ export function ResultPage() {
     setNotesLoading(true);
     setNotesError(null);
     try {
-      const { data, error } = await supabase
+      const response = admin ? { data: await admin.loadNotes(), error: null } : await supabase
         .from('grading_notes')
         .select('subject, question_no, content')
         .eq('group_timestamp', attemptGroupTimestamp)
         .order('subject', { ascending: true })
         .order('question_no', { ascending: true });
+      const { data, error } = response;
 
       if (error) throw error;
 
@@ -245,6 +252,7 @@ export function ResultPage() {
   const saveActiveNote = async () => {
     if (!currentUser) return;
 
+    if (admin) { await admin.changeNote(activeSubject, activeQuestionNo, noteDraft.trim() || null); return; }
     const trimmed = noteDraft.trim();
     setNoteSaving(true);
     try {
@@ -313,6 +321,7 @@ export function ResultPage() {
       return;
     }
 
+    if (admin) { await admin.changeNote(activeSubject, activeQuestionNo, null); return; }
     if (!window.confirm('이 메모를 삭제할까요?')) return;
 
     setNoteSaving(true);
@@ -379,9 +388,9 @@ export function ResultPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <PageBackButton />
+              <PageBackButton onClick={admin?.onBack} />
                 <Button
-                  onClick={() => navigate('/history')}
+                  onClick={() => admin ? admin.onBack() : navigate('/history')}
                   className="gap-2 whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 shadow-md"
                 >
                   <Home className="w-4 h-4" />
@@ -459,13 +468,13 @@ export function ResultPage() {
         {/* 액션 버튼 */}
         <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => admin ? admin.onBack() : navigate('/')}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
             새로운 시험 채점하기
           </button>
           <button
-            onClick={() => navigate('/history')}
+            onClick={() => admin ? admin.onBack() : navigate('/history')}
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
           >
             전체 히스토리 보기

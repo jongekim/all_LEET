@@ -1,6 +1,6 @@
 import { PageHeader } from '../components/PageHeader';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar, ChartNoAxesCombined, Megaphone } from 'lucide-react';
+import { ArrowRight, Calendar, ChartNoAxesCombined, Megaphone, Users } from 'lucide-react';
 import '../styles/admin.css';
 
 export function AdminPage() {
@@ -18,6 +18,9 @@ export function AdminPage() {
             <ChartNoAxesCombined size={28} />
             <div><h2>이용 통계</h2><p>서비스·채점·PWA 이용 현황과 회원별 활동을 확인합니다.</p></div>
             <ArrowRight size={20} />
+          </Link>
+          <Link to="/admin/user-data" className="admin-menu-card" style={{ marginTop: 18 }}>
+            <Users size={28} /><div><h2>사용자 데이터</h2><p>선택 사용자의 성적·활동 기록을 조회하고 승인 후 수정·삭제합니다.</p></div><ArrowRight size={20} />
           </Link>
           <Link to="/admin/dday" className="admin-menu-card" style={{ marginTop: 18 }}>
             <Calendar size={28} />

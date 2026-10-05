@@ -5,9 +5,12 @@ import { GraduationCap, Calculator, TrendingUp } from 'lucide-react';
 import { analyzeLawSchools } from '../utils/lawschool';
 import { usageAnalytics } from '../utils/usageAnalytics';
 import { analyticsId } from '../utils/analyticsId';
+import { useAuth } from '../contexts/AuthContext';
+import { persistAdmissionExecution } from '../utils/admissionPersistence';
 
 export function AdmissionPage() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [leet, setLeet] = useState<string>('');
   const [gpa, setGpa] = useState<string>('');
   const [leetError, setLeetError] = useState<string>('');
@@ -60,7 +63,9 @@ export function AdmissionPage() {
     }
 
     const analyses = analyzeLawSchools(leetNum, gpaNum);
-    usageAnalytics().track('admission_completed', 'admission', { target_type: 'admission', target_id: analyticsId() });
+    const executionId = analyticsId();
+    usageAnalytics().track('admission_completed', 'admission', { target_type: 'admission', target_id: executionId });
+    if (currentUser) void persistAdmissionExecution(currentUser.id, executionId, { leet: leetNum, gpa: gpaNum });
     
     // sessionStorage에 저장
     sessionStorage.setItem('admissionAnalyses', JSON.stringify(analyses));

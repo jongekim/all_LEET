@@ -4,7 +4,7 @@ import type { UserVerifier } from "./auth.ts";
 
 interface HistoryStore {
   get(key: string): Promise<any>;
-  set(key: string, value: any): Promise<void>;
+  mutate(owner: string, kind: "history" | "mock_history", action: "append" | "clear" | "delete", input?: any): Promise<any>;
 }
 
 type HistoryEnv = { Variables: { historyOwner: string } };
@@ -123,32 +123,9 @@ export function createHistoryApp({ kv, verifyUser, log }: {
   app.post("/make-server-cd835c22/history/:userId", async (c) => {
     try {
       const userId = c.get("historyOwner");
-      const key = `history:${userId}`;
       const result = await c.req.json();
 
-      // Get existing history
-      const history = await kv.get(key) || [];
-
-      // Calculate round number
-      const sameYearSubject = history.filter(
-        (h: any) => h.year === result.year && h.subject === result.subject,
-      );
-      const maxRound = sameYearSubject.length > 0
-        ? Math.max(...sameYearSubject.map((h: any) => h.round || 1))
-        : 0;
-
-      const resultWithRound = {
-        ...result,
-        round: maxRound + 1,
-        timestamp: Date.now(),
-        groupTimestamp: typeof result.groupTimestamp === "number"
-          ? result.groupTimestamp
-          : result.timestamp,
-      };
-
-      // Add new result
-      const updatedHistory = [...history, resultWithRound];
-      await kv.set(key, updatedHistory);
+      const resultWithRound = await kv.mutate(userId, "history", "append", result);
 
       return c.json({
         success: true,
@@ -167,9 +144,8 @@ export function createHistoryApp({ kv, verifyUser, log }: {
   app.delete("/make-server-cd835c22/history/:userId", async (c) => {
     try {
       const userId = c.get("historyOwner");
-      const key = `history:${userId}`;
 
-      await kv.set(key, []);
+      await kv.mutate(userId, "history", "clear");
 
       return c.json({
         success: true,
@@ -188,18 +164,8 @@ export function createHistoryApp({ kv, verifyUser, log }: {
     try {
       const userId = c.get("historyOwner");
       const timestamp = parseInt(c.req.param("timestamp"));
-      const key = `history:${userId}`;
 
-      // Get current history
-      const history = await kv.get(key) || [];
-
-      // Filter out the record with matching timestamp
-      const updatedHistory = history.filter((record: any) =>
-        record.timestamp !== timestamp
-      );
-
-      // Save updated history
-      await kv.set(key, updatedHistory);
+      await kv.mutate(userId, "history", "delete", { timestamp });
 
       return c.json({
         success: true,
@@ -241,25 +207,9 @@ export function createHistoryApp({ kv, verifyUser, log }: {
   app.post("/make-server-cd835c22/mock-history/:userId", async (c) => {
     try {
       const userId = c.get("historyOwner");
-      const key = `mock_history:${userId}`;
       const input = await c.req.json();
 
-      const history = await kv.get(key) || [];
-
-      const generatedId = typeof input?.id === "string"
-        ? input.id
-        : (globalThis.crypto?.randomUUID
-          ? globalThis.crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-
-      const record = {
-        ...input,
-        id: generatedId,
-        createdAt: Date.now(),
-      };
-
-      const updatedHistory = [...history, record];
-      await kv.set(key, updatedHistory);
+      const record = await kv.mutate(userId, "mock_history", "append", input);
 
       return c.json({
         success: true,
@@ -278,8 +228,7 @@ export function createHistoryApp({ kv, verifyUser, log }: {
   app.delete("/make-server-cd835c22/mock-history/:userId", async (c) => {
     try {
       const userId = c.get("historyOwner");
-      const key = `mock_history:${userId}`;
-      await kv.set(key, []);
+      await kv.mutate(userId, "mock_history", "clear");
 
       return c.json({
         success: true,
@@ -298,11 +247,8 @@ export function createHistoryApp({ kv, verifyUser, log }: {
     try {
       const userId = c.get("historyOwner");
       const id = c.req.param("id");
-      const key = `mock_history:${userId}`;
 
-      const history = await kv.get(key) || [];
-      const updatedHistory = history.filter((record: any) => record?.id !== id);
-      await kv.set(key, updatedHistory);
+      await kv.mutate(userId, "mock_history", "delete", { id });
 
       return c.json({
         success: true,

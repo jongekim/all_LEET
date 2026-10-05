@@ -50,6 +50,16 @@ function fixture(
       calls.push(`get:${key}`);
       return Promise.resolve(structuredClone(values.get(key)));
     },
+    async mutate(owner: string, kind: "history" | "mock_history", action: "append" | "clear" | "delete", input: any = {}) {
+      const key = `${kind}:${owner}`;
+      const history = await this.get(key) || [];
+      let result;
+      if (action === "append") {
+        result = kind === "history" ? { ...input, round: Math.max(0, ...history.filter((h: any) => h.year === input.year && h.subject === input.subject).map((h: any) => h.round || 1)) + 1, timestamp: Date.now(), groupTimestamp: typeof input.groupTimestamp === "number" ? input.groupTimestamp : input.timestamp } : { ...input, id: typeof input.id === "string" ? input.id : crypto.randomUUID(), createdAt: Date.now() };
+        await this.set(key, [...history, result]);
+      } else await this.set(key, action === "clear" ? [] : history.filter((h: any) => kind === "history" ? h.timestamp !== input.timestamp : h.id !== input.id));
+      return result || {};
+    },
     set(key: string, value: any) {
       calls.push(`set:${key}`);
       values.set(key, structuredClone(value));
@@ -231,7 +241,7 @@ Deno.test("public health and browser OPTIONS do not require Auth or touch KV", a
 Deno.test("request logs use route templates without user IDs or bearer values", async () => {
   const events: unknown[] = [];
   const app = createHistoryApp({
-    kv: { get: async () => [], set: async () => {} },
+    kv: { get: async () => [], mutate: async () => ({}) },
     verifyUser: async () => ({ userId: "owner-a" }),
     log: (event) => events.push(event),
   });

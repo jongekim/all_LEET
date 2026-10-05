@@ -5,6 +5,8 @@ on:
     branches: [ main ]
     paths:
       - 'supabase/functions/**'
+      - 'supabase/config.toml'
+      - '.github/workflows/supabase-edge-functions-deploy.yml'
 
 jobs:
   deploy:
@@ -19,12 +21,20 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.119.0
 
-      - name: Deploy edge function
+      # The matching DB migration must be applied before pushing this release.
+      # Owner writes must use the same lock before administrator writes go live.
+      - name: Deploy owner history function first
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           mkdir -p supabase/.temp
-          supabase --workdir . functions deploy make-server-cd835c22 usage-events admin-analytics --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+          supabase --workdir . functions deploy make-server-cd835c22 --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+      - name: Deploy dependent and analytics functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          supabase --workdir . functions deploy admin-user-data admission-history usage-events admin-analytics --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
