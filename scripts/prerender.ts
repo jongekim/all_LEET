@@ -4,8 +4,17 @@ import { build } from 'vite';
 import { pathToFileURL } from 'node:url';
 import { getPageSeo, WEBSITE_SCHEMA } from '../src/utils/pageSeo';
 import { getPrerenderPages, getPrerenderRewrites } from './prerenderRoutes';
+import { loadPublicStatistics, validatePublicStatistics } from './prerenderStatistics';
+import type { StatisticsSnapshot } from '../src/types/questionStatistics';
 
 async function prerender() {
+  const args = process.argv.slice(2);
+  const fixtureArgument = '--statistics-fixture=e2e/fixtures/question-statistics-2026.json';
+  if (args.some(arg => arg !== fixtureArgument) || args.length > 1) throw new Error('지원하지 않는 사전 렌더링 옵션입니다.');
+  if (args.length && process.env.VERCEL) throw new Error('Vercel 배포에서는 테스트 통계 파일을 사용할 수 없습니다.');
+  const statistics = args.length
+    ? validatePublicStatistics(JSON.parse(readFileSync('e2e/fixtures/question-statistics-2026.json', 'utf8')))
+    : await loadPublicStatistics();
   const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
   const actual = config.rewrites.filter((rule: { destination: string }) => rule.destination.startsWith('/prerender/'));
   if (JSON.stringify(actual) !== JSON.stringify(getPrerenderRewrites())) throw new Error('사전 렌더링 라우팅이 등록 자료와 다릅니다. npm run prerender:routes를 실행하세요.');
@@ -27,7 +36,9 @@ async function prerender() {
         rollupOptions: { output: { entryFileNames: 'entry.mjs' } },
       },
     });
-    const { renderPublicPage } = await import(pathToFileURL(resolve(serverOutput, 'entry.mjs')).href) as { renderPublicPage: (url: string) => string };
+    const { renderPublicPage } = await import(pathToFileURL(resolve(serverOutput, 'entry.mjs')).href) as {
+      renderPublicPage: (url: string, statistics: readonly StatisticsSnapshot[]) => string;
+    };
     const pages = getPrerenderPages();
     for (const page of pages) {
       const url = new URL(page.url, 'https://all-leet.vercel.app');
@@ -41,7 +52,7 @@ async function prerender() {
       html = html.replace(/<script id="ldjson-website" type="application\/ld\+json">.*?<\/script>/s,
         `<script id="ldjson-website" type="application/ld+json">${JSON.stringify(WEBSITE_SCHEMA).replace(/</g, '\\u003c')}</script>`);
       html = html.replace('</head>', `<link rel="canonical" href="${escape(seo.canonical)}" /></head>`);
-      const body = renderPublicPage(page.url);
+      const body = renderPublicPage(page.url, statistics);
       if (!body.includes('<h1')) throw new Error(`공개 페이지 본문이 생성되지 않았습니다: ${page.url}`);
       html = html.replace('<div id="root"></div>', `<div id="root">${body}</div>`);
       const output = resolve('build', '.' + page.output);
@@ -49,6 +60,7 @@ async function prerender() {
       writeFileSync(output, html);
     }
     console.log(`공개 페이지 ${pages.length}개 본문·메타데이터를 HTML로 생성했습니다.`);
+    console.log(`공개 문항 통계: ${statistics.length}개 조합, 발행본 ${statistics[0]?.snapshot_id ?? '없음'}${args.length ? ' (테스트 파일)' : ''}`);
   } finally {
     globalThis.fetch = originalFetch;
     rmSync(serverOutput, { recursive: true, force: true });

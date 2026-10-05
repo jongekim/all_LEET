@@ -2,6 +2,54 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { getPrerenderPages } from '../scripts/prerenderRoutes';
 import { getPageSeo } from '../src/utils/pageSeo';
+import { answerKeyVersion } from '../src/utils/questionStatisticsModel';
+
+test('첫 기출 HTML은 접힌 정답표·문항별 정답률을 실제 본문에 포함한다', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto('/past-exams?year=2026&subject=verbal&type=odd');
+  const content = page.locator('.past-exam-review-content');
+  await expect(content).toHaveAttribute('hidden', '');
+  await expect(content).toBeHidden();
+  await expect(page.getByRole('button', { name: '정답표·점수 환산표 보기' })).toHaveAttribute('aria-expanded', 'false');
+  await expect(content.locator('.answer-key-cell')).toHaveCount(30);
+  await expect(content.locator('.question-rate--answer-key')).toHaveCount(30);
+  const rates = await content.locator('.question-rate').allTextContents();
+  expect(rates.every(rate => /^(?:\d+\.\d%|—)›$/.test(rate))).toBe(true);
+  await expect(content.locator('.question-statistics-notice')).not.toContainText('불러오는 중');
+  expect(await content.innerHTML()).not.toMatch(/sample_count|choice_counts|source_snapshot_at|published_at/);
+  await context.close();
+});
+
+test('앱 시작 후에는 HTML의 과거 정답률 대신 기존 DB 최신 조회·모달을 유지한다', async ({ page }) => {
+  const requests: string[] = [];
+  await page.route('https://*.supabase.co/**', route => {
+    requests.push(route.request().method());
+    const url = route.request().url();
+    if (!url.includes('/rest/v1/question_statistics_snapshots')) return route.fulfill({ json: [] });
+    return route.fulfill({ json: [{
+      year: '2026', subject: 'verbal', exam_type: 'odd', snapshot_id: '999',
+      answer_key_version: answerKeyVersion({ year: '2026', subject: 'verbal', examType: 'odd' }), aggregation_version: 'all_saved_records_v1',
+      question_count: 30, sample_count: '40', source_snapshot_at: '2026-10-05T00:00:00Z', published_at: '2026-10-05T01:00:00Z',
+      items: Array.from({ length: 30 }, (_, i) => ({ question_no: i + 1, choice_counts: [0, 0, 0, 40, 0], unanswered_count: 0 })),
+    }] });
+  });
+  await page.goto('/past-exams?year=2026&subject=verbal&type=odd');
+  await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
+  await expect(page.locator('#prerender-shell')).toHaveCount(0);
+  await expect(page.locator('.past-exam-review-content')).toBeHidden();
+  await page.getByRole('button', { name: '정답표·점수 환산표 보기' }).click();
+  const rate = page.getByRole('button', { name: '1번 정답률 100.0%, 응답 분포 보기', exact: true });
+  await expect(rate).toBeVisible();
+  await rate.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('listitem')).toHaveCount(6);
+  await page.keyboard.press('Escape');
+  await expect(rate).toBeFocused();
+  await page.getByRole('button', { name: '정답·점수표 숨기기' }).click();
+  await expect(page.locator('.past-exam-review-content')).toBeHidden();
+  expect(requests.every(method => ['GET', 'HEAD', 'OPTIONS'].includes(method))).toBe(true);
+});
 
 test('모든 공개 URL은 첫 응답에 본문·고유 메타데이터를 포함한다', async ({ request }) => {
   for (const page of getPrerenderPages()) {

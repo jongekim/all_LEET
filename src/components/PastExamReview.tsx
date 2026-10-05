@@ -18,7 +18,8 @@ export function PastExamReview({ children, onOpen }: { children: ReactNode; onOp
         </span>
         <span className="past-exam-review-action">{open ? '접기' : '보기'}<ChevronDown className="past-exam-review-chevron" size={18} aria-hidden="true" /></span>
       </CollapsibleTrigger>
-      <CollapsibleContent className="past-exam-review-content space-y-6">
+      {/* 접힌 표도 HTML에 보관한다. 기본 화면·접근성·보기/접기 동작은 유지한다. */}
+      <CollapsibleContent forceMount hidden={!open} className="past-exam-review-content space-y-6">
         {children}
       </CollapsibleContent>
     </Collapsible>

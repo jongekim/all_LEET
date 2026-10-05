@@ -14,6 +14,7 @@
 | 읽기 전용 화면 E2E 테스트 | `npm run test:e2e` |
 | Playwright UI 모드 | `npm run test:e2e:ui` |
 | 프로덕션 빌드·공개 HTML 생성 | `npm run build` |
+| 운영 DB 없이 고정 공개 통계 파일로 HTML 검증 빌드 | `npm run build:test` |
 | 빌드 HTML·자바스크립트 없는 화면 검증 | `npm run test:prerender` |
 | 기출 선택 HTML 배포 라우팅 갱신 | `npm run prerender:routes` |
 | 전체 품질 게이트 | `npm run check` |
@@ -63,7 +64,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 - typecheck: `tsconfig.json`이 프론트엔드와 스크립트를 strict 모드로 검사한다. Deno 전용 `src/supabase/functions/`는 제외된다.
 - test: Vitest + jsdom + Testing Library를 사용한다. 현재 D-day 계산의 회귀 테스트가 포함되어 있다.
 - 화면 E2E: Playwright Chromium이 `e2e/`의 공개 읽기 전용 흐름을 실행한다. 로컬 최초 실행 전에는 `npx playwright install chromium`으로 브라우저를 설치한다.
-- CI: `.github/workflows/quality.yml`은 pull request와 수동 실행에서 Node 20.19.0과 Deno 2.9.5로 lint, typecheck, unit test, Edge 타입·보안 테스트, 화면 E2E, build를 실행한다. lockfile의 설치 전략에 맞춰 `npm ci --legacy-peer-deps`를 사용한다. `main` push 이후가 아니라 PR 단계에서 실패를 발견하도록 구성했다.
+- CI: `.github/workflows/quality.yml`은 pull request와 수동 실행에서 Node 20.19.0과 Deno 2.9.5로 lint, typecheck, unit test, Edge 타입·보안 테스트, 화면 E2E, `build:test`와 HTML 검증을 실행한다. HTML 테스트는 고정 공개 집계 파일을 사용하여 운영 DB에 접근하지 않는다. lockfile의 설치 전략에 맞춰 `npm ci --legacy-peer-deps`를 사용한다. `main` push 이후가 아니라 PR 단계에서 실패를 발견하도록 구성했다.
 
 기출문제 78개는 Supabase Storage의 워터마크 PDF를 직접 참조하므로 빌드에 PDF·HWP를 복사하지 않는다. 이전 정적 원본은 `downloads/past-exams-original-archive/`에 보존하며, `downloads/`의 원본·ZIP은 git에서 제외한다. 공개 파일 URL·등록 목록·검증 기록은 버전 관리한다. 문제지 정정 시 기존 파일을 덮어쓰지 않고 새 Storage 버전 경로로 등록한다. [등록 절차](past-exams.md)를 따른다.
 
@@ -144,7 +145,11 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 ## 공개 HTML 사전 렌더링
 
-`npm run build`는 Vite 정적 빌드 후 `node --import tsx scripts/prerender.ts`를 실행한다. 새 패키지나 Chromium 없이 기존 React 서버 렌더러로 공개 83개 화면을 생성한다. 빌드 중 Supabase 등 외부 fetch는 허용하지 않으며 인증 세션·공지·실제 통계·개인 데이터를 가져오지 않는다. 실제 데이터는 앱이 시작된 뒤 기존 조회 흐름을 따른다.
+`npm run build`는 Vite 정적 빌드 후 `node --import tsx scripts/prerender.ts`를 실행한다. 새 패키지나 Chromium 없이 기존 React 서버 렌더러로 공개 83개 화면을 생성한다. 렌더링 전에 기존 anon 키로 현재 공개 문항 통계 전체를 GET 한 번 수행한다. 15초 제한·건수/구조/발행본 검증을 적용하며 실패하면 빌드도 실패한다. 이후 실제 React 렌더링 중에는 외부 fetch를 금지하며 인증 세션·공지·개인 데이터를 가져오지 않는다. 브라우저는 HTML의 통계를 캐시에 넣지 않고 기존 DB 최신 조회 흐름을 따른다. 로컬 `npm run check`의 build 단계도 이 공개 읽기를 사용하므로 네트워크 연결이 필요하다.
+
+`npm run build:test`는 `e2e/fixtures/question-statistics-2026.json`의 기존 공개 집계 파일로 같은 생성기를 검증하며 운영 DB 요청은 없다. 고정 파일은 2026학년도 두 과목/두 문형뿐이므로 다른 시험은 미발행 상태로 검증된다. Vercel 환경에서는 fixture 옵션을 거절하여 테스트 파일이 실서비스에 배포되지 않도록 한다. Vercel Build Command는 계속 `npm run build`를 사용해야 한다. 테스트 빌드 산출물은 운영 배포에 사용하지 않는다.
+
+정답률은 코드에 하드코딩하지 않는다. 기존 절차로 DB 공개 통계를 발행한 뒤 최신 Production 배포의 Vercel Redeploy를 실행하면 새 commit/push 없이 HTML이 최신 발행본으로 바뀐다. Build Cache 사용은 해제한다. 새 학년도·정답표·집계 규칙 변경은 코드/DB 지원 범위 변경이므로 별도 개발과 배포 절차가 필요하다. [HTML 갱신 운영 절차](question-statistics-html.md)를 따른다.
 
 기출문제 등록·공개 정적 경로 변경 시 `npm run sitemap:generate`와 `npm run prerender:routes`를 실행하고 `vercel.json` 변경도 검토한다. 빌드는 생성 규칙과 실제 배포 rewrite의 일치를 검사하고 불일치하면 실패한다. 일반 코드 빌드는 배포 설정을 자동 수정하지 않는다. 공개 HTML의 query 순서·불필요한 매개변수·기본값·잘못된 선택·단일 문형 처리는 클라이언트 선택과 같아야 한다.
 
@@ -157,6 +162,8 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 `build/prerender/`와 `build/app.html`은 git에서 제외한 재생성 산출물이다. 기존 추적 중인 `build/index.html`과 assets 변경은 빌드 후 확인한다. 사전 렌더링 진입점과 preview 스크립트는 브라우저 배포 번들에 포함되지 않는다.
 
 ## 디데이 설정 검증·적용 경계
+
+미저장 변경 이동 검사는 `src/hooks/useUnsavedDdayChanges.test.tsx`의 가드/복구/해제/새로고침 경고와 `e2e/admin-dday.spec.ts`의 실제 브라우저 뒤로가기·앞으로가기 취소/승인으로 검증한다. E2E는 입력값뿐 아니라 같은 입력 DOM 인스턴스가 유지되는지도 확인하여 URL만 복구하고 폼은 재마운트되는 오류를 검출한다. 반복 검증은 `npm run test:e2e -- e2e/admin-dday.spec.ts --grep '브라우저' --repeat-each=5`로 실행한다.
 
 `npm run test:schedule`은 임시 PGlite에서 합성 Auth·관리자 역할·RLS를 만들고 신규 `20261004082512_exam_schedule.sql`만 실행한다. 운영 DB 접근은 없다. `npm run check`와 CI에 포함한다. 공통 계산·템플릿·캐시·API 및 자정 갱신은 Vitest에 포함하고 `e2e/admin-dday.spec.ts`는 모든 Supabase 요청을 모의 응답으로 처리해 관리자 저장 성공·충돌·응답 유실·권한 거절·입력 보존 및 모바일 화면을 검사한다.
 

@@ -56,7 +56,13 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 공개 페이지의 사이트맵은 `scripts/generate-sitemap.ts`가 `src/public/sitemap.xml`에 생성한다. 기출문제 URL은 등록된 문제지 78개와 일대일로 대응한다. 검색 제목·설명·canonical은 `src/utils/pageSeo.ts`를 빌드와 브라우저가 공유한다. 홈의 검색 제목·설명은 LEET 채점, 문항별 정답률·선지별 응답 분포, 기출문제 PDF·정답표·환산표를 강조하며 기존 화면의 본문·레이아웃은 유지한다.
 
-`npm run build`는 Vite 빌드 후 `scripts/prerender.ts`가 기존 React 화면을 Vite SSR/React 서버 렌더러로 HTML에 기록한다. 대상은 홈, 성적 이력 예시 두 경로, 정책 두 경로, 기출문제 선택 URL 78개로 총 83개다. `src/entry-prerender.tsx`는 `StaticRouter`와 세션 없는 인증 Context로 `AppContent`를 렌더링한다. AuthProvider는 실행하지 않으며 React effect·로그인·데이터 요청·변경도 실행하지 않는다. 외부 fetch를 금지하고 실제 문항 통계·공지·개인 이력을 빌드 HTML에 복사하지 않는다. 실제 문항 정답률은 기존 공개 조회로 불러오며 접힌 정답표의 동작은 유지한다. 검색엔진만을 위한 숨김 본문은 추가하지 않는다.
+`npm run build`는 Vite 빌드 후 `scripts/prerender.ts`가 기존 React 화면을 Vite SSR/React 서버 렌더러로 HTML에 기록한다. 대상은 홈, 성적 이력 예시 두 경로, 정책 두 경로, 기출문제 선택 URL 78개로 총 83개다. `scripts/prerenderStatistics.ts`가 기존 anon 키와 SELECT/RLS로 현재 공개 발행 통계 전체를 GET 한 번으로 읽고, 응답 건수·문항 합계·시험 조합 중복·발행본 일치를 검증한다. 요청은 15초 제한·redirect 금지·캐시 미사용이다. 조회 실패·부분 응답·잘못된 통계에는 빌드를 실패시키며 오래된 파일로 대체하지 않는다.
+
+`src/entry-prerender.tsx`는 `StaticRouter`, 세션 없는 인증 Context, 빌드 전용 `PrerenderStatisticsContext`로 `AppContent`를 렌더링한다. AuthProvider·React effect는 실행하지 않는다. 공개 통계 조회를 마친 뒤 실제 React 렌더링에서는 외부 fetch를 금지하며 공지·개인 이력·인증·쓰기 요청은 실행하지 않는다. 원본 통계 JSON·집계 건수·조회 일자는 HTML에 직렬화하지 않고 기존 문항별 정답률과 경고만 렌더링한다. 미발행 시험과 정답 버전 불일치는 기존 상태를 유지한다.
+
+`PastExamReview`는 기존 정답표를 forceMount하고 닫혀 있을 때 `hidden`을 적용하여 실제 사용자가 펼쳐 볼 표를 최초 HTML과 브라우저 DOM에 보관한다. 기본 접힘·버튼·디자인·정답률 모달·시험 변경 후 다시 접힘은 유지하며 별도의 검색엔진 전용 본문을 추가하지 않는다. 브라우저는 빌드 통계를 초기 캐시에 넣지 않고 기존 공개 DB 조회·5분 공유 캐시·포커스 재조회·오류 재시도를 사용한다. 통계 조회는 기출 페이지의 접힌 표가 마운트되는 시점부터 시작한다.
+
+DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 변경되지 않는다. 통계를 새로 발행한 뒤 Vercel의 최신 Production 배포를 빌드 캐시 없이 Redeploy하면 코드 변경·새 커밋·push 없이 현재 공개 통계로 HTML을 다시 생성한다. 새 학년도 등 코드/DB 지원 범위 변경은 별도 개발·검증·배포가 필요하다. 운영 절차는 [정답률 HTML 갱신](question-statistics-html.md)을 따른다.
 
 `vercel.json`의 query 조건부 rewrite는 유효한 학년도·과목·문형에 맞는 `build/prerender/past-exams/*.html`을 제공한다. 생략·잘못된 선택과 단일 문형 보정은 기존 선택 규칙과 일치한다. 정적 정책·이력 경로도 각각의 HTML을 받는다. 홈은 `build/index.html`이며 로그인·관리자·개인 화면 및 커뮤니티의 fallback은 빈 앱 본문을 가진 `build/app.html`이다. 커뮤니티 목록·게시글은 최신 공개 DB 조회가 필요한 동적 화면으로 기존 클라이언트 렌더링을 유지하며, 게시글 메타데이터는 조회 결과로 갱신한다.
 
@@ -86,6 +92,8 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - 원격 Supabase 마이그레이션 이력과 저장소의 `supabase/migrations/` 파일 목록이 일치하지 않는다. DB 작업 시 어느 쪽이 운영 기준인지 먼저 확인해야 한다.
 
 ## 관리자 디데이 설정
+
+`src/main.tsx`는 `BrowserRouter` 마운트 전 미저장 디데이 변경용 popstate 리스너를 설치한다. 폼의 `useUnsavedDdayChanges`가 현재 가드를 연결하며, 이동 취소와 이력 복구 이벤트를 라우터에 전달하지 않아 같은 폼 인스턴스·입력을 유지한다. 확인창 승인 시에는 기존 라우터 이동을 허용한다.
 
 `/admin/dday`는 기존 `AdminRoute`·`AuthContext`를 사용하고 계정 ID로 재마운트된다. `examScheduleApi`가 기존 Supabase 클라이언트로 공개 한 행을 읽고 날짜·문구만 버전 조건으로 수정한다. 15초 제한·요청 취소·요청 전후 계정 검사·충돌·응답 미확인 재조회를 적용한다. 별도 Edge Function이나 인증 원본은 추가하지 않는다.
 

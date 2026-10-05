@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { supabase } from '../contexts/AuthContext';
+import { PrerenderStatisticsContext } from '../contexts/PrerenderStatisticsContext';
 import type { ExamStatisticsSelection, StatisticsSnapshot, StatisticsState } from '../types/questionStatistics';
-import { answerKeyVersion, validateSnapshot } from '../utils/questionStatisticsModel';
+import { answerKeyVersion, PUBLIC_STATISTICS_SELECT, statisticsStateForSelection, validateSnapshot } from '../utils/questionStatisticsModel';
 
 const TTL = 5 * 60 * 1000;
 type Group = { time: number; rows: StatisticsSnapshot[] };
@@ -17,7 +18,7 @@ function loadGroup(year: string, examType: string, key: string): Promise<Group> 
   const request = (async () => {
     // Both subjects are read together so a result page cannot mix generations.
     const { data, error } = await supabase.from('question_statistics_snapshots')
-      .select('year,subject,exam_type,snapshot_id::text,answer_key_version,aggregation_version,question_count,sample_count::text,items,source_snapshot_at,published_at')
+      .select(PUBLIC_STATISTICS_SELECT)
       .eq('year', year).eq('exam_type', examType);
     if (error && error.code !== 'PGRST205' && error.code !== '42P01') throw error;
     const rows = error ? [] : (data ?? []).map(validateSnapshot);
@@ -39,7 +40,9 @@ export function useQuestionStatistics(selection: ExamStatisticsSelection, enable
   const version = answerKeyVersion(selection);
   const groupKey = `${year}:${examType}`;
   const key = `${groupKey}:${subject}:${version}`;
-  const [result, setResult] = useState<{ key: string; state: StatisticsState }>();
+  const prerenderRows = useContext(PrerenderStatisticsContext);
+  const [result, setResult] = useState<{ key: string; state: StatisticsState } | undefined>(() =>
+    prerenderRows ? { key, state: statisticsStateForSelection(prerenderRows, selection) } : undefined);
   const [revision, setRevision] = useState(0);
   const retry = useCallback(() => { cache.delete(groupKey); setRevision(value => value + 1); }, [groupKey]);
   useEffect(() => {
@@ -47,9 +50,7 @@ export function useQuestionStatistics(selection: ExamStatisticsSelection, enable
     let active = true;
     void loadGroup(year, examType, groupKey).then(group => {
       if (!active) return;
-      const snapshot = group.rows.find(row => row.subject === subject);
-      const state: StatisticsState = !snapshot ? { status: 'unavailable' }
-        : snapshot.answer_key_version === version ? { status: 'ready', data: snapshot } : { status: 'mismatch' };
+      const state = statisticsStateForSelection(group.rows, { year, subject, examType });
       setResult({ key, state });
     }).catch(error => {
       if (!active) return;

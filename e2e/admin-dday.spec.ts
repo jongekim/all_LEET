@@ -58,11 +58,36 @@ test('일반 사용자의 메뉴·직접 접근은 차단된다',async({page})=>
   const state=await mock(page,false);await page.goto('/admin/dday');await expect(page).toHaveURL('/');expect(state.patches).toHaveLength(0);
 });
 test('브라우저 뒤로가기 취소는 미저장 입력을 유지한다',async({page})=>{
-  await mock(page);await page.goto('/admin');await page.getByRole('link',{name:/디데이 관리/}).click();
-  await page.getByLabel('표시 문구',{exact:true}).fill('유지할 문구 {dday}');
-  page.once('dialog',dialog=>dialog.dismiss());await page.goBack();
-  await expect(page).toHaveURL(/\/admin\/dday$/);await expect(page.getByLabel('표시 문구',{exact:true})).toHaveValue('유지할 문구 {dday}');
+  const state=await mock(page);await page.goto('/admin');await page.getByRole('link',{name:/디데이 관리/}).click();
+  const template=page.getByLabel('표시 문구',{exact:true});
+  await page.getByLabel('LEET 시험일').fill('2027-07-18');
+  await template.fill('유지할 문구 {dday}');
+  await template.evaluate(input=>input.setAttribute('data-draft-instance','original'));
+  for(let attempt=0;attempt<3;attempt++){
+    page.once('dialog',dialog=>dialog.dismiss());await page.goBack();
+    await expect(page).toHaveURL(/\/admin\/dday$/);
+    await expect(template).toHaveValue('유지할 문구 {dday}');
+    await expect(template).toHaveAttribute('data-draft-instance','original');
+    await expect(page.getByLabel('LEET 시험일')).toHaveValue('2027-07-18');
+    await expect(page.getByRole('button',{name:'저장',exact:true})).toBeEnabled();
+  }
+  expect(state.patches).toHaveLength(0);
   page.once('dialog',dialog=>dialog.accept());await page.goBack();await expect(page).toHaveURL(/\/admin$/);
+});
+test('브라우저 앞으로가기 취소도 같은 폼을 유지하고 승인하면 이동한다',async({page})=>{
+  const state=await mock(page);await page.goto('/admin');await page.getByRole('link',{name:/디데이 관리/}).click();
+  await expect(page.getByLabel('표시 문구',{exact:true})).toHaveValue(initial.display_template);
+  await page.getByRole('button',{name:'돌아가기',exact:true}).click();
+  await expect(page).toHaveURL(/\/admin$/);await page.goBack();
+  const template=page.getByLabel('표시 문구',{exact:true});
+  await template.fill('앞으로가기 유지 {dday}');
+  await template.evaluate(input=>input.setAttribute('data-draft-instance','original'));
+  page.once('dialog',dialog=>dialog.dismiss());await page.goForward();
+  await expect(page).toHaveURL(/\/admin\/dday$/);
+  await expect(template).toHaveValue('앞으로가기 유지 {dday}');
+  await expect(template).toHaveAttribute('data-draft-instance','original');
+  expect(state.patches).toHaveLength(0);
+  page.once('dialog',dialog=>dialog.accept());await page.goForward();await expect(page).toHaveURL(/\/admin$/);
 });
 test('충돌 시 입력을 보존하고 최신 설정 확인 전 재저장을 차단한다',async({page})=>{
   const state=await mock(page);state.mode='conflict';await page.goto('/admin/dday');

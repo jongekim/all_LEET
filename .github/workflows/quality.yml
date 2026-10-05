@@ -28,5 +28,7 @@ jobs:
       - run: npm run test:analytics
       - run: npm run test:schedule
       - run: npm run test:e2e
-      - run: npm run build
+      # 운영 DB에 접근하지 않는 고정 공개 집계 파일로 HTML 생성/화면을 검증한다.
+      # 실제 Vercel 빌드는 npm run build로 현재 발행본을 조회한다.
+      - run: npm run build:test
       - run: npm run test:prerender

@@ -1,6 +1,14 @@
 import { ANSWER_DATA, getCorrectAnswers } from './answerData';
 import { getQuestionCount } from './grading';
-import { AGGREGATION_VERSION, type ExamStatisticsSelection, type StatisticsCohort, type StatisticsSnapshot } from '../types/questionStatistics';
+import { AGGREGATION_VERSION, type ExamStatisticsSelection, type StatisticsCohort, type StatisticsSnapshot, type StatisticsState } from '../types/questionStatistics';
+
+export const PUBLIC_STATISTICS_SELECT = 'year,subject,exam_type,snapshot_id::text,answer_key_version,aggregation_version,question_count,sample_count::text,items,source_snapshot_at,published_at';
+
+export function statisticsStateForSelection(rows: readonly StatisticsSnapshot[], selection: ExamStatisticsSelection): StatisticsState {
+  const snapshot = rows.find(row => row.year === selection.year && row.subject === selection.subject && row.exam_type === selection.examType);
+  return !snapshot ? { status: 'unavailable' }
+    : snapshot.answer_key_version === answerKeyVersion(selection) ? { status: 'ready', data: snapshot } : { status: 'mismatch' };
+}
 
 export function answerKeyVersion(selection: ExamStatisticsSelection): string {
   const answers = getCorrectAnswers(selection.year, selection.subject, selection.examType);

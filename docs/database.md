@@ -68,6 +68,8 @@ POST와 DELETE는 배열 전체를 읽어 수정한 뒤 같은 키에 다시 저
 
 기존 KV를 원본으로 집계한 발행본을 개발자가 필요할 때 수동 교체한다. 자동/예약 갱신은 없다. 발행·롤백 함수는 private SECURITY INVOKER이고 advisory lock·예상 세대 검사·전체 트랜잭션을 사용한다. [설계](question-statistics-design.md) 및 [수동 갱신](question-statistics.md)에 구조·검증·운영 규칙을 명시한다. 이번 변경은 기존 이력 API의 인증 모델을 보완하지 않는다.
 
+기출문제 정답률 HTML 생성은 기존 `question_statistics_snapshots`의 anon SELECT/RLS로 현재 공개 발행본만 읽는다. DB 스키마·정책·발행 함수·마이그레이션·원본 KV 변경은 없다. service role이나 관리 토큰은 빌드에 필요하지 않다. 2026-10-05 운영 공개 읽기 확인: HTTP 200, 76조합, 발행 ID `1`, 09예비~2026학년도. 2027학년도 통계는 발행되어 있지 않았으므로 HTML에 임의 정답률을 넣지 않는다. DB 발행과 정적 HTML 재배포는 별개이며 [HTML 운영 절차](question-statistics-html.md)를 따른다.
+
 저장소에는 채팅, 채점 메모, 커뮤니티 이미지 관련 SQL 파일이 있다. 원격 마이그레이션 이력에는 KV 테이블, 커뮤니티 보드/쿨다운/태그, 커뮤니티 이미지, 홈 공지가 기록되어 있다. 양쪽 목록은 동일하지 않다.
 
 DB 변경 전에는 다음을 수행한다.

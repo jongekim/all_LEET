@@ -1,7 +1,11 @@
 
   import { createRoot } from "react-dom/client";
   import App from "./App.tsx";
+  import { installUnsavedDdayNavigationGuard } from './utils/unsavedDdayNavigation';
   import "./index.css";
+
+  const removeNavigationGuard = installUnsavedDdayNavigationGuard(window);
+  if (import.meta.hot) import.meta.hot.dispose(removeNavigationGuard);
 
   if ('serviceWorker' in navigator) {
     let registrationPromise: Promise<ServiceWorkerRegistration> | null = null;
@@ -59,4 +63,3 @@
     rootElement.before(shell);
   }
   createRoot(rootElement).render(<App />);
-  

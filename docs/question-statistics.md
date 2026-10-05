@@ -72,6 +72,8 @@ publish/rollback 도구는 마지막에 status를 다시 읽는다. 실패 시 D
 - 답안/정답/메모/PDF/환산표·접기·시험 선택이 그대로 동작하는지 읽기 전용으로 확인한다.
 - `anon`/`authenticated`의 SELECT만 허용되며 이전 세대·private 이력 조회와 공개 쓰기/발행 RPC가 허용되지 않는지 권한을 확인한다.
 
+- 기출 페이지의 정적 HTML도 갱신하려면 DB 발행 확인 후 Vercel의 최신 Production 배포를 빌드 캐시 없이 Redeploy한다. 같은 코드로 최신 공개 통계를 다시 읽으므로 데이터 갱신만을 위한 코드 수정·commit·push는 필요하지 않다. 브라우저의 DB 조회와 정적 HTML은 갱신 시점이 다르다. 자세한 절차는 [정답률 HTML 갱신](question-statistics-html.md)을 따른다.
+
 화면 캐시는 5분이다. 즉시 확인하려면 새로고침한다. 로그인이나 채점 기록 저장을 위해 운영 서버에 테스트 쓰기를 발생시키지 않는다.
 
 ## 문제 시 롤백 (DB 쓰기)
