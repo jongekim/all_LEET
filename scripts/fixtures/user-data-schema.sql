@@ -53,3 +53,12 @@ alter table public.chat_profiles add primary key(user_id);
 alter table public.chat_profiles add unique(nickname);
 
 create schema storage;create table storage.objects(id uuid primary key,bucket_id text,name text,created_at timestamptz default now(),updated_at timestamptz default now(),metadata jsonb,version text,owner_id text);alter table storage.objects enable row level security;
+
+-- Actual ownership FKs, required to exercise withdrawal retention.
+do $$declare t text;begin
+ foreach t in array array['grading_notes','chat_profiles','chat_messages','chat_rate_limits',
+  'community_posts','community_comments','community_post_likes','community_comment_likes',
+  'community_post_reports','community_comment_reports','home_announcement_comments','home_announcement_likes'] loop
+  execute format('alter table public.%I add foreign key(user_id) references auth.users(id) on delete cascade',t);
+ end loop;
+end $$;

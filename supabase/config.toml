@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.admission-history]
 verify_jwt = false
+
+[functions.service-activity]
+verify_jwt = false

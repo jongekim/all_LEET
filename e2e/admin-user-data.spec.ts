@@ -42,11 +42,17 @@ async function mock(page: Page, allowed = true) {
             name: "합성 회원",
             email: "member@example.test",
             created_at: null,
+            grading_count: 12,
+            mock_count: 3,
+            last_seen_at: '2026-10-06T01:00:00Z',
           }, {
             user_id: admin,
             name: "관리자 계정",
             email: "admin@example.test",
             created_at: null,
+            grading_count: 0,
+            mock_count: 0,
+            last_seen_at: null,
           }],
           next_cursor: null,
         },
@@ -98,6 +104,72 @@ async function mock(page: Page, allowed = true) {
   });
   return requests;
 }
+test('탈퇴 회원 이름·횟수·이메일 보관 표시와 새로고침 선택 초기화', async ({ page }) => {
+  await mock(page);
+  await page.route('https://*.supabase.co/functions/v1/admin-user-data/members', route => route.fulfill({ json: {
+    items: [{ user_id: member, name: '보관 회원', email: 'retained@example.test', created_at: null,
+      grading_count: 12, mock_count: 3, last_seen_at: '2026-10-06T01:00:00Z', is_deleted: true }], next_cursor: null,
+  } }));
+  await page.goto('/admin/user-data');
+  const picker = page.getByLabel('사용자 선택', { exact: true });
+  await expect(picker.locator('option').nth(1)).toHaveText('보관 회원 (탈퇴 회원) · 채점 12회 · 사설 3회 · retained@example.test');
+  await expect(picker.locator('option').nth(1)).not.toContainText(member);
+  await picker.selectOption(member);
+  await page.getByRole('button', { name: '계정 정보', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '기존 이름', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(picker).toHaveValue('');
+});
+test('회원 목록 서버 순서·추가 페이지·검색과 선택 보존', async ({ page }) => {
+  await mock(page);
+  const items = Array.from({ length: 51 }, (_, n) => ({
+    user_id: `00000000-0000-4000-8000-${String(301 + n).padStart(12, '0')}`,
+    name: `최근 회원 ${n + 1}`, email: `recent${n + 1}@example.test`, created_at: null,
+    grading_count: n, mock_count: 0, last_seen_at: null,
+  }));
+  await page.route('https://*.supabase.co/functions/v1/admin-user-data/members', async route => {
+    const body = route.request().postDataJSON();
+    return route.fulfill({ json: body.query ? { items: [], next_cursor: null } : body.cursor
+      ? { items: [items[49], items[50]], next_cursor: null }
+      : { items: items.slice(0, 50), next_cursor: 'signed-test-cursor' } });
+  });
+  await page.goto('/admin/user-data');
+  const picker = page.getByLabel('사용자 선택', { exact: true });
+  await expect(picker.locator('option')).toHaveCount(51);
+  expect(await picker.locator('option').nth(1).getAttribute('value')).toBe(items[0].user_id);
+  await page.getByRole('button', { name: '사용자 더 보기', exact: true }).click();
+  await expect(picker.locator('option')).toHaveCount(52);
+  await picker.selectOption(items[50].user_id);
+  await page.getByLabel('사용자 검색', { exact: true }).fill('검색 결과 없음');
+  await expect(picker.locator('option')).toHaveCount(2);
+  await expect(picker).toHaveValue(items[50].user_id);
+  await expect(picker.locator('option').nth(1)).toHaveText('최근 회원 51 · 채점 50회 · 사설 0회 · recent51@example.test');
+  expect(await picker.textContent()).not.toContain(items[50].user_id);
+});
+test('검색 전환 뒤 도착한 이전 추가 페이지는 목록에 섞이지 않는다', async ({ page }) => {
+  await mock(page);
+  let release!: () => void;
+  const delayed = new Promise<void>(resolve => { release = resolve; });
+  let extraPageStarted = false;
+  await page.route('https://*.supabase.co/functions/v1/admin-user-data/members', async route => {
+    const body = route.request().postDataJSON();
+    if (body.cursor) { extraPageStarted = true; await delayed; }
+    return route.fulfill({ json: body.query ? { items: [], next_cursor: null } : {
+      items: [{ user_id: member, name: '이전 목록', email: 'member@example.test', created_at: null, grading_count: 1, mock_count: 0 }],
+      next_cursor: body.cursor ? null : 'signed-test-cursor',
+    } });
+  });
+  await page.goto('/admin/user-data');
+  const picker = page.getByLabel('사용자 선택', { exact: true });
+  await expect(picker.locator('option')).toHaveCount(2);
+  await page.getByRole('button', { name: '사용자 더 보기', exact: true }).click();
+  await expect.poll(() => extraPageStarted).toBe(true);
+  await page.getByLabel('사용자 검색', { exact: true }).fill('새 검색');
+  await expect(picker.locator('option')).toHaveCount(1);
+  const response = page.waitForResponse(r => r.url().endsWith('/members') && Boolean(r.request().postDataJSON().cursor));
+  release(); await response;
+  await expect(picker.locator('option')).toHaveCount(1);
+});
 for (const width of [390, 1280]) {
   test(
     `사용자 데이터 승인·실제 0건·새로고침 초기화 ${width}`,
@@ -108,6 +180,10 @@ for (const width of [390, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/admin");
       await page.getByRole("link", { name: /사용자 데이터/ }).click();
+      const picker = page.getByLabel('사용자 선택', { exact: true });
+      await expect(picker.locator(`option[value="${member}"]`)).toHaveText('합성 회원 · 채점 12회 · 사설 3회 · member@example.test');
+      await expect(picker.locator(`option[value="${admin}"]`)).toHaveText('관리자 계정 · 채점 0회 · 사설 0회 · admin@example.test');
+      expect(await picker.textContent()).not.toContain(member);
       await page.getByLabel("사용자 선택", { exact: true }).selectOption(
         member,
       );

@@ -184,6 +184,8 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 
 ## 관리자 사용자 데이터 검증·릴리스
 
+로컬 회원 목록 확장의 `test:user-data`는 최근 이용 시각 SQL·`service-activity` 타입/인증·서명 커서를 추가 검사하며 함수 CI 대상에도 `service-activity`를 추가했다. DB → `admin-user-data`/`service-activity` → 웹 순서가 필요하다. 전체 이력 탈퇴 보관 정책·운영 미적용 상태와 검사 범위는 [회원 목록 확장](admin-user-data-member-list.md)을 따른다.
+
 `npm run test:user-data`는 PGlite 합성 스키마의 실제 권한/트랜잭션과 Deno 주입 API를 확인하며 운영 데이터에 접근하지 않는다. 새 프론트 단위 검사와 `e2e/admin-user-data.spec.ts`는 계정 범위·승인·이미지·권한 회수·분석 저장 실패의 UI를 검사한다. E2E의 변경 제출은 모든 Supabase 요청을 모킹한 합성 API에만 실행한다. 운영에 연결된 브라우저에서 변경·업로드·좋아요 등 쓰기를 검증하지 않는다.
 
 전체 `check`와 CI에 새 SQL·Edge 검사가 포함된다. DB migration, 기존 원자 이력 함수, 새 관리자/분석 함수, 웹의 순서로 조정해야 하며 실제 적용·배포·push는 명시적 요청 뒤 수행한다. 함수 CI는 Supabase CLI 2.119.0을 고정하고 기존 이력 함수를 먼저 배포하며 `admin-user-data`·`admission-history`도 포함한다. 새 DB migration은 main push 전에 별도 적용해야 한다. v1.7.0 실제 적용은 [운영 적용 기록](admin-user-data-rollout.md), 세부 목록과 검증 한계는 [사용자 데이터 구현·운영](admin-user-data-implementation.md)을 따른다.

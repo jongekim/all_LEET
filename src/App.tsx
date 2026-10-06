@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { useUserHistory } from './hooks/useUserHistory';
 import { useUsageTracking } from './hooks/useUsageTracking';
+import { useServiceActivity } from './hooks/useServiceActivity';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
@@ -73,6 +74,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
 export function AppContent() {
   useUsageTracking();
+  useServiceActivity();
   useLayoutEffect(() => {
     // 인증 초기화가 끝나 실제 화면이 준비된 뒤 정적 화면을 교체한다.
     document.getElementById('root')?.setAttribute('data-app-ready', 'true');

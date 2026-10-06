@@ -113,6 +113,8 @@ DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 �
 
 ## 관리자 사용자 데이터 경계 (v1.7.0)
 
+로컬 회원 목록 확장은 `user_data_members_recent`의 전체 최근 이용순·건수 요약과 HMAC 복합 커서를 사용한다. `useServiceActivity`·`service-activity`는 일반 UI 변경 없이 운영 로그인 사용자의 마지막 이용 시각만 기록하고 기존 통계 제외 정책과 독립적이다. 구성·전체 이력 탈퇴 보관·운영 미적용 상태는 [회원 목록 확장](admin-user-data-member-list.md)을 따른다.
+
 `/admin/user-data`는 기존 관리자 인증을 유지하고 선택 사용자의 데이터를 서버 adapter로 기존 페이지에 주입한다. `admin-user-data`는 매 JWT/현재 역할을 검증하고 service-only `user_data_*` RPC로 읽기·준비·승인 적용·상태 대조를 수행한다. 소유자 RLS를 관리자용으로 넓히거나 사용자 세션을 대체하지 않는다. 선택/입력은 메모리에서만 유지하며 대상 전환·403·새로고침 시 비운다.
 
 `admission-history`는 유효한 분석 실행을 headless 저장하고 결과 이동을 기다리지 않는다. 계산 모듈은 `supabase/functions/_shared/user-data-rules/`에서 프론트와 Edge가 공유하며 `src/utils`는 기존 export 계약을 유지한다. 기존 이력 Edge 쓰기는 `user_history_mutate`로 옮겨 관리자와 같은 키 잠금을 사용한다. Storage/Auth 외부 변경은 영속 작업 의도·hash 대조·outbox·unknown/partial 상태로 관리한다. 구성/배포 순서는 [구현·운영](admin-user-data-implementation.md)을 따른다.

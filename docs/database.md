@@ -89,6 +89,8 @@ RLS와 명시적 grants를 함께 설정한다. anon/authenticated는 SELECT, �
 
 ## 이용 통계 DB
 
+사용자 데이터 목록의 로컬 추가 마이그레이션 `20261006104150_user_data_recent_activity.sql`은 `private.user_last_activity`, 서비스 소유자/탈퇴 보관 `user_data_member_archive`와 Auth 등록·삭제 전 보관 트리거, service-only `service_activity_touch`·`user_data_members_recent`, 회차 묶음 helper를 정의한다. 두 표는 탈퇴 후에도 유지한다. 운영 미적용이다. 12개 서비스 소유자 FK를 보관 표에 연결하고 Auth/Storage 활성 계정 확인을 기존 RLS에 추가한다. 탈퇴 전 개인 계정 정보와 모든 서비스 이력을 유지하며 공개 게시글·댓글·채팅도 유지한다. 관리자 권한 FK/인증 자료 삭제는 기존 Auth 동작을 유지한다. 기존 통계 테이블·조회 범위는 유지한다. [회원 목록 확장](admin-user-data-member-list.md)을 따른다.
+
 `supabase/migrations/20261003141220_product_usage_analytics.sql`과 후속 `20261004050638_admin_dashboard_and_member_options.sql`을 2026-10-04 운영 이력/스키마에 적용했다. 실제 기존 `private.admin_roles`, `current_user_is_admin()`, Auth 필드, KV와 마이그레이션 이력은 읽기 전용으로 대조했다.
 
 | private 객체 | 역할 |

@@ -45,6 +45,10 @@ export interface DataMember {
   name: string | null;
   email: string | null;
   created_at: string | null;
+  grading_count?: number | null;
+  mock_count?: number | null;
+  last_seen_at?: string | null;
+  is_deleted?: boolean;
 }
 export interface DataMembers {
   items: DataMember[];

@@ -57,7 +57,7 @@ const fieldKeys: Partial<Record<DataDomain, string>> = {
 const context = (actor: string, target: string, domain: string) =>
   JSON.stringify([actor, target, domain, "user-data-v1"]);
 export function createUserDataApp(
-  kind: "admin" | "admission",
+  kind: "admin" | "admission" | "activity",
   d: UserDataDependencies,
 ) {
   const app = new Hono<{ Variables: { actor: string } }>();
@@ -81,6 +81,10 @@ export function createUserDataApp(
     c.header("Cache-Control", "no-store");
     c.header("Referrer-Policy", "no-referrer");
     if (c.req.method === "OPTIONS") return c.body(null, 204);
+    if (kind === "activity" && c.req.header("Origin") &&
+      c.req.header("Origin") !== "https://all-leet.vercel.app") {
+      return c.json({ code: "ORIGIN_FORBIDDEN" }, 403);
+    }
     const token = /^Bearer[ \t]+([^\s,]+)$/i.exec(
       c.req.header("Authorization") || "",
     )?.[1];
@@ -138,7 +142,14 @@ export function createUserDataApp(
         : 503,
     );
   });
-  const prefix = kind === "admin" ? "/admin-user-data" : "/admission-history";
+  const prefix = kind === "admin" ? "/admin-user-data" : kind === "activity" ? "/service-activity" : "/admission-history";
+  if (kind === "activity") {
+    app.post(`${prefix}/touch`, async (c) => {
+      if (Object.keys(row(await c.req.json())).length) throw new Error("INVALID_INPUT");
+      return c.json(await d.rpc("service_activity_touch", { p_owner: c.get("actor") }));
+    });
+    return app;
+  }
   if (kind === "admission") {
     app.post(`${prefix}/save`, async (c) => {
       const body = row(await c.req.json());
@@ -207,13 +218,20 @@ export function createUserDataApp(
       b.query !== undefined &&
       (typeof b.query !== "string" || b.query.length > 120)
     ) throw new Error("INVALID_INPUT");
-    return c.json(
-      await d.rpc("user_data_members", {
+    const query = String(b.query || "");
+    const cursorContext = JSON.stringify([c.get("actor"), query, "members-recent-v1"]);
+    const after = b.cursor ? row(await d.codec.decode(String(b.cursor), cursorContext)) : null;
+    if (after) {
+      uuid(after.id);
+      if (after.last_seen_at !== null && (typeof after.last_seen_at !== "string" || !Number.isFinite(Date.parse(after.last_seen_at)))) throw new Error("INVALID_CURSOR");
+    }
+    const page = await d.rpc("user_data_members_recent", {
         p_actor: c.get("actor"),
-        p_query: b.query || "",
-        p_after: b.cursor ? uuid(b.cursor) : null,
-      }),
-    );
+        p_query: query,
+        p_after: after,
+      });
+    if (page.next_cursor) page.next_cursor = await d.codec.encode(page.next_cursor, cursorContext);
+    return c.json(page);
   });
   const targetDomain = (b: DataRow) => {
     const target = uuid(b.target);

@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+// These assertions cover form rendering; initial SW installation can reload
+// the document while filling inputs. SW updates are outside these assertions.
+test.use({ serviceWorkers: 'block' });
+
 test.describe('공개 읽기 전용 화면', () => {
   test.beforeEach(async ({ page }) => {
     await page.route('https://*.supabase.co/**', route => route.fulfill({ json: [] }));

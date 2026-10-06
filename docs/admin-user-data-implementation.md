@@ -4,6 +4,8 @@
 
 ## 구성
 
+2026-10-06 로컬 목록 확장은 [회원 목록 확장](admin-user-data-member-list.md)에 별도로 기록한다. 운영 적용 완료된 아래 v1.7.0 구성과 구분하며 탈퇴 후 모든 이력 보관/공개 게시글·댓글·채팅 유지 정책을 반영했으며 별도 운영 적용이 필요하다.
+
 - 진입: `AdminPage` → `/admin/user-data` → 기존 `AdminRoute`, `AuthContext`의 관리자 인증.
 - 관리자 프론트: `AdminUserDataPage`, `UserDataDialogs`, `UserDataImageEditor`, `UserDataRecord`, `adminUserDataApi`.
 - 재사용: `HistoryPage`, `ResultPage`, `AdmissionResultPage`의 선택적 admin adapter, 기존 차트, 추출한 `CommunityPostBody`·`ChatMessageList`의 동일 JSX.

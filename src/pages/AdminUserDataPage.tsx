@@ -28,6 +28,7 @@ import type { LawSchoolAnalysis } from "../utils/lawschool";
 import { Button } from "../components/ui/button";
 import "../styles/admin.css";
 import "../styles/admin-user-data.css";
+import { userDataMemberLabel } from '../utils/userDataMemberLabel';
 interface Detail {
   domain: DataDomain;
   page: DataPage;
@@ -61,6 +62,7 @@ export function AdminUserDataPage() {
   const [members, setMembers] = useState<DataMember[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [target, setTarget] = useState<DataMember | null>(null);
+  const targetId = target?.user_id;
   const [domain, setDomain] = useState<DataDomain>("history");
   const [data, setData] = useState<DataPage>(emptyPage);
   const [mock, setMock] = useState<DataPage>(emptyPage);
@@ -81,6 +83,9 @@ export function AdminUserDataPage() {
   const generation = useRef(0);
   const controller = useRef(new AbortController());
   const mounted = useRef(true);
+  const selectedId = useRef<string | null>(null);
+  const memberGeneration = useRef(0);
+  useEffect(() => { selectedId.current = target?.user_id || null; }, [target?.user_id]);
   const reset = useCallback(() => {
     generation.current++;
     controller.current.abort();
@@ -131,14 +136,21 @@ export function AdminUserDataPage() {
     setError(message);
   }, [reset]);
   useEffect(() => {
+    memberGeneration.current++;
     if (!owner || !isAdmin || revoked) return;
     const request = new AbortController();
     const timer = setTimeout(() => {
       setMemberError("");
-      void api.members(owner, query, null, request.signal).then((page) => {
+      const selected = selectedId.current;
+      void Promise.all([
+        api.members(owner, query, null, request.signal),
+        selected && revision ? api.members(owner, selected, null, request.signal) : Promise.resolve(null),
+      ]).then(([page, selectedPage]) => {
         if (!request.signal.aborted) {
           setMembers(page.items);
           setCursor(page.next_cursor);
+          setTarget(previous => previous ?
+            [...page.items, ...(selectedPage?.items || [])].find(member => member.user_id === previous.user_id) || previous : null);
         }
       }).catch((e) => {
         if (!request.signal.aborted) {
@@ -153,9 +165,9 @@ export function AdminUserDataPage() {
       clearTimeout(timer);
       request.abort();
     };
-  }, [owner, isAdmin, query, handleError, revoked]);
+  }, [owner, isAdmin, query, handleError, revoked, revision]);
   useEffect(() => {
-    if (!target || !owner || !isAdmin || revoked) return;
+    if (!targetId || !owner || !isAdmin || revoked) return;
     const id = ++generation.current;
     controller.current.abort();
     controller.current = new AbortController();
@@ -175,15 +187,15 @@ export function AdminUserDataPage() {
       ? Promise.all([
         api.read(
           owner,
-          target.user_id,
+          targetId,
           "history_summary",
           0,
           undefined,
           signal,
         ),
-        api.read(owner, target.user_id, "mock_summary", 0, undefined, signal),
+        api.read(owner, targetId, "mock_summary", 0, undefined, signal),
       ])
-      : api.read(owner, target.user_id, domain, offset, undefined, signal).then(
+      : api.read(owner, targetId, domain, offset, undefined, signal).then(
         (page) => [page, emptyPage],
       );
     void read.then(([page, mockPage]) => {
@@ -199,7 +211,7 @@ export function AdminUserDataPage() {
     return () => {
       if (!signal.aborted) controller.current.abort();
     };
-  }, [target, domain, owner, isAdmin, offset, revision, handleError, revoked]);
+  }, [targetId, domain, owner, isAdmin, offset, revision, handleError, revoked]);
   const select = (member: DataMember | null) => {
     if (mutating) return;
     reset();
@@ -474,11 +486,10 @@ export function AdminUserDataPage() {
               >
                 <option value="">사용자를 선택해주세요</option>
                 {target && !members.some((m) => m.user_id === target.user_id) &&
-                  <option value={target.user_id}>{targetLabel}</option>}
+                  <option value={target.user_id}>{userDataMemberLabel(target)}</option>}
                 {members.map((member) => (
                   <option key={member.user_id} value={member.user_id}>
-                    {member.name || "이름 없음"} ·{" "}
-                    {member.email || "탈퇴한 계정"} · {member.user_id}
+                    {userDataMemberLabel(member)}
                   </option>
                 ))}
               </select>
@@ -492,15 +503,17 @@ export function AdminUserDataPage() {
                 className="mt-3"
                 variant="outline"
                 disabled={mutating}
-                onClick={() =>
+                onClick={() => {
+                  const memberRequest = memberGeneration.current;
                   void scoped((signal) =>
                     api.members(owner, query, cursor, signal)
                   ).then((page) => {
-                    if (page) {
-                      setMembers((previous) => [...previous, ...page.items]);
+                    if (page && memberRequest === memberGeneration.current) {
+                      setMembers((previous) => [...previous, ...page.items.filter(item => !previous.some(old => old.user_id === item.user_id))]);
                       setCursor(page.next_cursor);
                     }
-                  })}
+                  });
+                }}
               >
                 사용자 더 보기
               </Button>

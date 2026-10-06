@@ -77,6 +77,38 @@ Deno.test("verified actor is authoritative and personal filters stay in POST bod
   );
   equal(f.calls[0].args.p_actor, actor);
   equal(f.calls[0].args.p_query, "name@example.test");
+  equal(f.calls[0].name, "user_data_members_recent");
+});
+Deno.test("member cursor is signed and bound to administrator and search", async () => {
+  const position = { id: target, last_seen_at: "2026-10-06T01:00:00Z" };
+  const f = fixture({ rpc: async () => ({ items: [], next_cursor: position }) });
+  const first = await (await f.request("members", { query: "member" })).json();
+  assert(typeof first.next_cursor === "string");
+  const decoded = await f.d.codec.decode(first.next_cursor, JSON.stringify([actor, "member", "members-recent-v1"]));
+  equal(decoded, position);
+  const next = fixture();
+  equal((await next.request("members", { query: "member", cursor: first.next_cursor })).status, 200);
+  equal(next.calls[0].args.p_after, position);
+  equal((await next.request("members", { query: "different", cursor: first.next_cursor })).status, 400);
+  equal((await next.request("members", { cursor: target })).status, 400);
+  const other = await f.d.codec.encode(position, JSON.stringify([target, "member", "members-recent-v1"]));
+  equal((await next.request("members", { query: "member", cursor: other })).status, 400);
+  equal(next.calls.length, 1);
+});
+Deno.test("activity records the verified user, including non-admins, with no body identity or clock", async () => {
+  const f = fixture({ isAdmin: async () => false });
+  const app = createUserDataApp("activity", f.d);
+  const request = (body: DataRow, token = "admin-token", origin?: string) => app.request('/service-activity/touch', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(origin ? { Origin: origin } : {}) }, body: JSON.stringify(body),
+  });
+  equal((await request({})).status, 200);
+  equal(f.calls, [{ name: 'service_activity_touch', args: { p_owner: actor } }]);
+  for (const body of [{ owner: target }, { last_seen_at: '2099-01-01' }]) equal((await request(body)).status, 400);
+  equal((await request({}, 'invalid')).status, 401);
+  equal((await request({}, 'admin-token', 'http://localhost:3000')).status, 403);
+  equal((await request({}, 'admin-token', 'https://all-leet.vercel.app')).status, 200);
+  equal((await app.request('/service-activity/members', { method: 'POST', headers: { Authorization: 'Bearer admin-token' }, body: '{}' })).status, 404);
+  equal(f.calls.length, 2);
 });
 Deno.test("HMAC references cannot be moved to another target or another domain", async () => {
   const f = fixture();
