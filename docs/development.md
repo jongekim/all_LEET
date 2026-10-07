@@ -189,3 +189,9 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 `npm run test:user-data`는 PGlite 합성 스키마의 실제 권한/트랜잭션과 Deno 주입 API를 확인하며 운영 데이터에 접근하지 않는다. 새 프론트 단위 검사와 `e2e/admin-user-data.spec.ts`는 계정 범위·승인·이미지·권한 회수·분석 저장 실패의 UI를 검사한다. E2E의 변경 제출은 모든 Supabase 요청을 모킹한 합성 API에만 실행한다. 운영에 연결된 브라우저에서 변경·업로드·좋아요 등 쓰기를 검증하지 않는다.
 
 전체 `check`와 CI에 새 SQL·Edge 검사가 포함된다. DB migration, 기존 원자 이력 함수, 새 관리자/분석 함수, 웹의 순서로 조정해야 하며 실제 적용·배포·push는 명시적 요청 뒤 수행한다. 함수 CI는 Supabase CLI 2.119.0을 고정하고 기존 이력 함수를 먼저 배포하며 `admin-user-data`·`admission-history`도 포함한다. 새 DB migration은 main push 전에 별도 적용해야 한다. v1.7.0 실제 적용은 [운영 적용 기록](admin-user-data-rollout.md), 세부 목록과 검증 한계는 [사용자 데이터 구현·운영](admin-user-data-implementation.md)을 따른다.
+
+## 웹·PWA 푸시 후속 구현 계획 (현재 설계만 작성)
+
+[수동 푸시 설계](push-notifications-design.md)에 원격 메타데이터 재확인, Deno Web Push 호환성, private outbox 권한·동시 점유·결과 미확인, 익명 구독 소유 확인·회원 연결, 모의 브라우저·실기기 검증과 운영 적용 순서를 기록했다. 이번에는 설계/분리 HTML 미리보기와 링크만 변경하며 새 실행 명령·마이그레이션·Edge Function·UI를 추가하지 않는다. 미리보기는 외부 요청·알림 권한 요청·실제 발송 없이 볼 수 있다. 실제 개발 시 UI 범위를 먼저 승인받고 운영 연결 로컬에서는 등록/발송을 시험하지 않는다. 최종 코드에 npm run check와 SQL/Edge 추가 검사, 승인된 기기 실연동을 수행한다. 운영 DB/함수/Cron 반영과 main push는 명시적 요청 뒤 진행한다.
+
+보완 검증은 대상 증가/감소·pending 선점·A detach/B bind·늦은 worker 결과, 테스트 확인 우회/내용 변경·초안 계정 격리/충돌·중복 확인·중단 경쟁·부하/quota를 포함한다. private preview·초안·테스트 확인도 서버 쓰기이므로 운영 연결 로컬에서 실행하지 않는다. 분리 목업의 초안은 메모리 가상 저장이며 외부 요청·실제 알림이 없다.

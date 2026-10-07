@@ -118,3 +118,9 @@ DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 �
 `/admin/user-data`는 기존 관리자 인증을 유지하고 선택 사용자의 데이터를 서버 adapter로 기존 페이지에 주입한다. `admin-user-data`는 매 JWT/현재 역할을 검증하고 service-only `user_data_*` RPC로 읽기·준비·승인 적용·상태 대조를 수행한다. 소유자 RLS를 관리자용으로 넓히거나 사용자 세션을 대체하지 않는다. 선택/입력은 메모리에서만 유지하며 대상 전환·403·새로고침 시 비운다.
 
 `admission-history`는 유효한 분석 실행을 headless 저장하고 결과 이동을 기다리지 않는다. 계산 모듈은 `supabase/functions/_shared/user-data-rules/`에서 프론트와 Edge가 공유하며 `src/utils`는 기존 export 계약을 유지한다. 기존 이력 Edge 쓰기는 `user_history_mutate`로 옮겨 관리자와 같은 키 잠금을 사용한다. Storage/Auth 외부 변경은 영속 작업 의도·hash 대조·outbox·unknown/partial 상태로 관리한다. 구성/배포 순서는 [구현·운영](admin-user-data-implementation.md)을 따른다.
+
+## 웹·PWA 푸시 설계 (미구현)
+
+[수동 푸시 설계](push-notifications-design.md)는 비로그인 기기 구독, 현재 회원 연결, 관리자 수동 발송과 private DB 영속 대기열·Supabase Edge 발송 작업자를 제안한다. 전체 구독자·전체 회원·선택 회원·관리자 현재 기기 테스트를 구분한다. 예약·공지 연결·댓글 자동 알림은 범위에서 제외하며 기존 서비스 워커에 수신/클릭 처리를 추가할 계획이다. 현재 앱·DB·함수·배포에는 적용하지 않았고 UI는 [분리 미리보기](previews/push-notifications.html) 단계다. 운영 스키마의 최신 조회는 실행 환경 DNS 실패로 미완료이며 구현 전 재확인이 필요하다.
+
+검토 보완은 private 대상 preview·영속 등록 확인·시도 이력·worker slot/기동 의도를 포함한다. 전체 발송 전 같은 내용의 기기 테스트 확인과 관리자별 서버 초안도 설계 범위다. 정상 로그아웃은 접수 캠페인을 중단하지 않으며 작성자 역할 회수는 미시작 전송을 차단한다. 세부 계약은 설계 본문을 따른다.

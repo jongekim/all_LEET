@@ -119,3 +119,9 @@ RLS와 명시적 grants를 함께 설정한다. anon/authenticated는 SELECT, �
 KV 쓰기는 키 advisory lock, 관계형 승인/소유자 쓰기는 분야별 statement trigger 잠금으로 직렬화한다. 승인 snapshot은 원본과 연결 자료 전체의 hash이며 원본 복구 백업은 저장하지 않는다. 삭제 이벤트 재수신은 UUID/semantic 해시 tombstone으로 막는다. 기존 analytics ingest/publish는 `_v1`로 보존하고 동일 공개 signature wrapper에서 삭제와 같은 잠금을 사용한다. 이벤트 삭제에는 원본과 영향 날짜 파생 재생성/가용 상태 변경이 포함된다. 새 권한은 원본 events/activity_days DELETE와 신규 객체 및 검증된 Storage 메타데이터 SELECT에 한정한다.
 
 Storage 객체를 SQL로 삭제하지 않는다. 게시글 변경과 cleanup outbox를 함께 등록한 뒤 Storage API로 삭제하며 대기 중 URL 재참조는 trigger로 막는다. 새 이미지 manifest 의도를 먼저 보관하고 실제 파일 hash 확인 뒤 URL을 적용한다. v1.7.0에서 신규 마이그레이션만 운영에 적용했으며 기존 정책·이력은 보존했다. 실제 스키마의 RLS·기존 FK/카운터 트리거는 합성 데이터 전체 롤백으로 확인했다. 외부 Auth/Storage 변경의 실연동 검증 한계와 적용 기록은 [운영 적용](admin-user-data-rollout.md), 세부 구조는 [구현·운영](admin-user-data-implementation.md) 참고.
+
+## 웹·PWA 푸시 신규 데이터 설계 (미적용)
+
+[수동 푸시 설계](push-notifications-design.md)의 설치 소유 증명·구독·캠페인·기기별 전송·관리자 감사는 신규 private 객체 제안이다. 비로그인 구독에도 설치 비밀과 수신 확인을 사용하고 회원 연결에는 검증 JWT가 추가로 필요하다. 전송 행은 원자 접수·점유 lease·세대 검사로 관리하며 외부 전송 결과 미확인을 별도 상태로 유지한다. 신규 SQL·마이그레이션·정책을 작성/적용하지 않았고 현재 원격에 객체가 없다고 단정하지 않는다. 구현 전 스키마·grants/RLS·Auth sessions·마이그레이션·Cron 확장을 재확인한다. 기존 서비스 데이터의 탈퇴 보관 정책과 별개이며 자동 삭제를 추가하지 않는다.
+
+추가 제안은 pending 등록 요청/검증 active 소유권 분리, 후보 preview 스냅샷, 관리자별 초안·테스트 확인, 시도별 추가 기록, worker slot·quota/cooldown이다. 안전한 대상 감소만 허용하며 CAS와 감사는 원자 처리한다. 첫 버전 자동 삭제는 하지 않고 저장량·성장률을 관찰한다. 최근 90일은 기본 이력 조회 범위이며 과거 기록도 보관·조회한다.
