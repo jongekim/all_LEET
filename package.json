@@ -1,6 +1,6 @@
 {
       "name": "all_LEET",
-      "version": "1.8.0",
+      "version": "1.9.0",
       "private": true,
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
@@ -85,7 +85,7 @@
             "test:e2e:ui": "playwright test --ui",
             "build": "vite build && node --import tsx scripts/prerender.ts",
             "build:test": "vite build && node --import tsx scripts/prerender.ts --statistics-fixture=e2e/fixtures/question-statistics-2026.json",
-            "check": "npm run lint && npm run typecheck && npm run test && npm run test:edge && npm run test:user-data && npm run test:analytics && npm run test:schedule && npm run test:e2e && npm run build && npm run test:prerender",
+            "check": "npm run lint && npm run typecheck && npm run test && npm run test:edge && npm run test:user-data && npm run test:analytics && npm run test:schedule && npm run test:push && npm run test:e2e:push && npm run test:e2e && npm run build && npm run test:prerender",
             "test:schedule": "node --import tsx scripts/test-exam-schedule-sql.ts",
             "version:verify": "node scripts/verify-version.mjs",
             "release:patch": "npm version patch --no-git-tag-version",
@@ -98,6 +98,8 @@
             "prerender:routes": "node --import tsx scripts/generate-prerender-routes.ts",
             "test:prerender": "playwright test --config playwright.prerender.config.ts",
             "test:analytics": "node --import tsx scripts/test-analytics-sql.ts && node --import tsx scripts/test-dashboard-sql.ts && deno check --config supabase/functions/usage-events/deno.json supabase/functions/usage-events/index.ts supabase/functions/admin-analytics/index.ts && deno test --config supabase/functions/usage-events/deno.json supabase/functions/_shared/analytics-app_test.ts",
-            "test:user-data": "node --import tsx scripts/test-user-data-sql.ts && deno check --config supabase/functions/admin-user-data/deno.json supabase/functions/admin-user-data/index.ts supabase/functions/admission-history/index.ts && deno check --config supabase/functions/service-activity/deno.json supabase/functions/service-activity/index.ts && deno test --config supabase/functions/admin-user-data/deno.json supabase/functions/_shared/user-data-app_test.ts"
+            "test:user-data": "node --import tsx scripts/test-user-data-sql.ts && deno check --config supabase/functions/admin-user-data/deno.json supabase/functions/admin-user-data/index.ts supabase/functions/admission-history/index.ts && deno check --config supabase/functions/service-activity/deno.json supabase/functions/service-activity/index.ts && deno test --config supabase/functions/admin-user-data/deno.json supabase/functions/_shared/user-data-app_test.ts",
+            "test:push": "node --import tsx scripts/test-push-sql.ts && deno check --config supabase/functions/push-subscriptions/deno.json supabase/functions/push-subscriptions/index.ts supabase/functions/admin-push/index.ts supabase/functions/push-dispatch/index.ts && deno test --allow-env=ECE_KEYLOG --config supabase/functions/push-subscriptions/deno.json supabase/functions/_shared/push/app_test.ts supabase/functions/_shared/push/runtime_test.ts",
+            "test:e2e:push": "playwright test --config playwright.push.config.ts"
       }
 }

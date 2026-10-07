@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>all LEET 알림 동의 팝업 · 분리 미리보기</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;color:#172033;background:#f7f9fc;color-scheme:light}
+    *{box-sizing:border-box}body{margin:0}button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #6d93ff;outline-offset:3px}
+    .toolbar{padding:18px 24px;background:white;border-bottom:1px solid #e3e8f0;display:flex;flex-wrap:wrap;align-items:center;gap:12px;font-size:14px;position:relative;z-index:1}
+    .toolbar strong{margin-right:auto}.toolbar button,.toolbar select{padding:9px 12px;border:1px solid #d4dce8;border-radius:9px;background:white;color:#172033}
+    main{max-width:950px;margin:40px auto;padding:0 24px}h1{font-size:34px;letter-spacing:-1.1px;margin:0 0 12px}.subtitle{color:#667085;line-height:1.7}
+    .home{background:white;border:1px solid #e3e8f0;border-radius:18px;padding:28px;margin-top:28px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0}.card{padding:22px 16px;background:#f4f7fc;border-radius:12px;min-height:110px}.card strong{display:block;margin-bottom:10px}.card span{color:#667085;font-size:13px;line-height:1.6}
+    .rules{padding:18px 22px;background:#eef3fc;border-radius:12px;line-height:1.85;font-size:14px;margin-top:22px}.rules ul{margin:8px 0;padding-left:20px}.status{color:#667085;font-size:14px;min-height:24px;line-height:1.7}
+    dialog{border:1px solid #e4e8ef;border-radius:26px;padding:36px;width:min(440px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;color:#172033;background:white;box-shadow:0 24px 80px #17203333;text-align:center}
+    dialog::backdrop{background:#10182888}.close{position:absolute;top:12px;right:12px;width:36px;height:36px;border:0;border-radius:50%;background:#f4f6f9;color:#667085;font-size:24px;line-height:1}
+    .icon{width:74px;height:74px;border-radius:24px;margin:5px auto 24px;display:grid;place-items:center;background:#edf3ff;color:#2455d6}.icon svg{width:34px;height:34px}
+    .brand{font-size:13px;font-weight:650;color:#2455d6;letter-spacing:.3px;margin:0 0 12px}dialog h2{font-size:27px;line-height:1.4;letter-spacing:-.9px;margin:0 0 16px}dialog .description{font-size:15px;line-height:1.8;color:#667085;margin:0 0 22px}.benefit{background:#f7f9fc;padding:16px;border-radius:14px;text-align:left;font-size:14px;line-height:1.8;margin-bottom:24px}
+    .primary{display:block;width:100%;border:0;background:#2455d6;color:white;border-radius:12px;padding:15px 16px;font-size:16px;font-weight:650}.secondary{display:block;width:100%;background:none;color:#667085;border:0;padding:14px 16px;margin-top:4px}.footnote{font-size:12px;color:#7a8599;line-height:1.7;margin:10px 0 0}.progress{font-size:13px;color:#2455d6;line-height:1.7;margin-bottom:18px}.demo{font-size:12px;color:#7a8599;margin-top:18px}
+    [hidden]{display:none!important}
+    @media(max-width:560px){main{margin-top:28px;padding:0 18px}.toolbar{padding:14px 18px;gap:10px}.toolbar strong{width:100%}h1{font-size:28px}.home{padding:22px}.cards{grid-template-columns:1fr;margin-top:20px}.card{min-height:80px}.rules{padding:16px}dialog{padding:32px 24px;border-radius:22px}dialog h2{font-size:25px}.icon{margin-bottom:20px}}
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <strong>알림 동의 팝업 · 제안 미리보기</strong>
+    <label>기기 상태 <select id="scenario"><option value="default">아직 동의하지 않음</option><option value="ios">iPhone · 아직 설치 안 함</option><option value="denied">알림 권한 차단됨</option><option value="pending">허용 후 등록 대기</option><option value="failed">허용 후 등록 실패</option><option value="active">등록 완료</option></select></label>
+    <button type="button" id="reset">홈 진입 재현</button>
+  </header>
+  <main>
+    <h1>all LEET</h1>
+    <p class="subtitle">기존 홈과 분리된 예시입니다. 실제 앱·Supabase·브라우저 알림 권한에 연결하지 않습니다.</p>
+    <div class="home">
+      <strong>홈 화면 예시</strong>
+      <div class="cards"><div class="card"><strong>기출문제</strong><span>문제지와 정답표 확인</span></div><div class="card"><strong>성적 이력</strong><span>나의 기록 확인</span></div><div class="card"><strong>커뮤니티</strong><span>함께 나누는 이야기</span></div></div>
+      <p id="status" class="status" aria-live="polite"></p>
+    </div>
+    <aside class="rules"><strong>제안하는 표시 규칙</strong><ul><li>회원·비회원 구분 없이 일반 서비스 접속 3초 뒤 자동 표시. 권한 허용 기기는 등록 상태 확인 후 미등록일 때 표시.</li><li>‘나중에’·닫기·Esc·바깥 클릭은 같은 동작: 이 브라우저에서 7일 동안 자동 표시하지 않음.</li><li>등록 완료·등록 대기·7일 유예 중에는 자동 표시하지 않음.</li><li>차단·설치 필요·등록 오류도 설정/설치/재등록 안내를 자동 표시.</li><li>동의 버튼을 누른 뒤에만 실제 브라우저 권한 요청. 허용하면 팝업은 바로 닫고 등록은 계속 진행.</li><li>상단 알림 링크 없이 팝업으로만 진행. 가입·로그인은 필요 없음.</li></ul><span>7일 간격은 사용자 요청을 반영했습니다. 실제 앱에서도 팝업과 7일 유예를 적용합니다.</span></aside>
+  </main>
+  <dialog id="popup" aria-labelledby="title" aria-describedby="description">
+    <button type="button" class="close" id="close" aria-label="나중에 안내 받기">×</button>
+    <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg></div>
+    <p class="brand">all LEET</p>
+    <h2 id="title">all LEET 소식을<br>놓치지 마세요</h2>
+    <p id="description" class="description">운영 안내와 서비스 소식을<br>이 기기의 알림으로 받아보세요.</p>
+    <div id="benefit" class="benefit">✓ 로그인 없이도 받을 수 있어요<br>✓ 브라우저·OS 설정에서 언제든 철회할 수 있어요</div>
+    <p id="progress" class="progress" hidden></p>
+    <button type="button" id="allow" class="primary">알림 받을게요</button>
+    <button type="button" id="later" class="secondary">나중에</button>
+    <p id="footnote" class="footnote">다음 단계에서 브라우저의 알림 허용을 선택해주세요.</p>
+    <p class="demo">분리 미리보기 · 실제 권한 요청이나 발송은 없습니다.</p>
+  </dialog>
+  <script>
+    const el = id => document.getElementById(id);
+    const modal = el('popup');
+    let timer, snoozed = false;
+    const states = {
+      default: {title:'all LEET 소식을\n놓치지 마세요',description:'운영 안내와 서비스 소식을\n이 기기의 알림으로 받아보세요.',button:'알림 받을게요',footnote:'다음 단계에서 브라우저의 알림 허용을 선택해주세요.'},
+      ios: {title:'홈 화면에 추가하고\n알림을 받아보세요',description:'공유 메뉴에서 홈 화면에 추가한 뒤,\n추가한 all LEET 앱에서 알림 받기를 눌러주세요.',button:null,footnote:'설치한 앱에서는 최초 알림 허용만 진행하면 됩니다.'},
+      denied: {title:'이 기기의 알림이\n차단되어 있어요',description:'브라우저의 사이트 설정에서\n알림 권한을 변경한 뒤 다시 확인해주세요.',button:null,footnote:'차단된 권한은 이 팝업에서 변경할 수 없습니다.'},
+      pending: {title:'알림 등록을\n확인하고 있어요',description:'권한은 허용됐습니다. 등록 확인 알림과\n서버 확인이 끝나면 발송 대상에 포함됩니다.',button:'등록 상태 확인',footnote:'등록 완료를 확인하면 이 안내는 닫힙니다.'},
+      failed: {title:'알림 등록을\n다시 확인해주세요',description:'권한은 허용됐지만 등록을 마치지 못했습니다.\n온라인 상태에서 다시 확인해주세요.',button:'등록 다시 확인',footnote:'알림 허용 창을 다시 띄우지 않고 등록을 재확인합니다.'}
+    };
+    function render(){
+      const name=el('scenario').value;
+      if(name==='active'){if(modal.open)modal.close();el('status').textContent='등록 완료: 팝업을 표시하지 않습니다.';return;}
+      const state=states[name];
+      el('title').replaceChildren(...state.title.split('\n').flatMap((part,i)=>i?[document.createElement('br'),document.createTextNode(part)]:[document.createTextNode(part)]));
+      el('description').textContent=state.description;
+      el('description').style.whiteSpace='pre-line';
+      el('allow').hidden=!state.button;
+      el('allow').textContent=state.button||'';
+      el('benefit').hidden=name!=='default';
+      el('progress').hidden=true;
+      el('footnote').textContent=state.footnote;
+      el('later').textContent=name==='default'?'나중에':'닫기';
+      el('status').textContent=!['active','pending'].includes(name)?'서비스 접속 후 3초 대기 중…':'등록 대기에는 자동 팝업을 띄우지 않습니다.';
+    }
+    function dismiss(){clearTimeout(timer);snoozed=true;modal.close();el('status').textContent='닫았습니다. 이 브라우저에서는 7일 뒤 서비스 접속 시 다시 안내합니다. 별도 재진입 링크는 없습니다.';}
+    function start(){clearTimeout(timer);if(modal.open)modal.close();snoozed=false;render();if(!['active','pending'].includes(el('scenario').value))timer=setTimeout(()=>{if(!snoozed&&!modal.open){modal.showModal();el('status').textContent='3초 후 팝업이 표시됐습니다.';}},3000);}
+    el('later').addEventListener('click',dismiss);el('close').addEventListener('click',dismiss);
+    modal.addEventListener('cancel',event=>{event.preventDefault();dismiss();});
+    modal.addEventListener('click',event=>{const box=modal.getBoundingClientRect();if(event.target===modal&&(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom))dismiss();});
+    el('scenario').addEventListener('change',start);el('reset').addEventListener('click',start);
+    el('allow').addEventListener('click',()=>{if(el('scenario').value==='pending'){el('scenario').value='active';render();return;}el('scenario').value='pending';render();if(modal.open)modal.close();el('status').textContent='가상 권한 허용: 팝업은 닫고 서버 등록은 계속합니다.';});
+    start();
+  </script>
+</body>
+</html>

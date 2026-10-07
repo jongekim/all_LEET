@@ -20,3 +20,14 @@ verify_jwt = false
 
 [functions.service-activity]
 verify_jwt = false
+
+# Each new handler explicitly authenticates user JWT / installation capability / internal secret.
+[functions.push-subscriptions]
+verify_jwt = false
+static_files = ["./functions/_shared/push/THIRD_PARTY_NOTICES.txt"]
+[functions.admin-push]
+verify_jwt = false
+static_files = ["./functions/_shared/push/THIRD_PARTY_NOTICES.txt"]
+[functions.push-dispatch]
+verify_jwt = false
+static_files = ["./functions/_shared/push/THIRD_PARTY_NOTICES.txt"]

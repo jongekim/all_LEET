@@ -190,8 +190,10 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 
 전체 `check`와 CI에 새 SQL·Edge 검사가 포함된다. DB migration, 기존 원자 이력 함수, 새 관리자/분석 함수, 웹의 순서로 조정해야 하며 실제 적용·배포·push는 명시적 요청 뒤 수행한다. 함수 CI는 Supabase CLI 2.119.0을 고정하고 기존 이력 함수를 먼저 배포하며 `admin-user-data`·`admission-history`도 포함한다. 새 DB migration은 main push 전에 별도 적용해야 한다. v1.7.0 실제 적용은 [운영 적용 기록](admin-user-data-rollout.md), 세부 목록과 검증 한계는 [사용자 데이터 구현·운영](admin-user-data-implementation.md)을 따른다.
 
-## 웹·PWA 푸시 후속 구현 계획 (현재 설계만 작성)
+## 웹·PWA 푸시 검증·운영 준비
 
-[수동 푸시 설계](push-notifications-design.md)에 원격 메타데이터 재확인, Deno Web Push 호환성, private outbox 권한·동시 점유·결과 미확인, 익명 구독 소유 확인·회원 연결, 모의 브라우저·실기기 검증과 운영 적용 순서를 기록했다. 이번에는 설계/분리 HTML 미리보기와 링크만 변경하며 새 실행 명령·마이그레이션·Edge Function·UI를 추가하지 않는다. 미리보기는 외부 요청·알림 권한 요청·실제 발송 없이 볼 수 있다. 실제 개발 시 UI 범위를 먼저 승인받고 운영 연결 로컬에서는 등록/발송을 시험하지 않는다. 최종 코드에 npm run check와 SQL/Edge 추가 검사, 승인된 기기 실연동을 수행한다. 운영 DB/함수/Cron 반영과 main push는 명시적 요청 뒤 진행한다.
+서비스 접속 팝업의 7일 유예는 `PushConsent.test.tsx`와 푸시 E2E의 모의 시계로 검증한다. 상단 재진입 링크 없음·새로고침·Esc·기간 만료, 홈 밖 회원/비회원 자동 안내·권한 허용 후 등록 실패 재접속을 모바일/PC에서 확인하며 실제 알림 권한과 Supabase는 모킹한다. 분리 미리보기는 `docs/previews/push-consent-popup.html`이며 실제 등록하지 않는다. 로컬 안내 UI만 확인하려면 정확한 localhost origin을 지정해 `VITE_PUSH_ENABLED=true VITE_PUSH_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000 npm run dev -- --port 3000 --strictPort`로 실행할 수 있다. 실제 등록/저장 버튼 검증은 운영 연결 대신 모의 E2E에서 진행한다.
 
-보완 검증은 대상 증가/감소·pending 선점·A detach/B bind·늦은 worker 결과, 테스트 확인 우회/내용 변경·초안 계정 격리/충돌·중복 확인·중단 경쟁·부하/quota를 포함한다. private preview·초안·테스트 확인도 서버 쓰기이므로 운영 연결 로컬에서 실행하지 않는다. 분리 목업의 초안은 메모리 가상 저장이며 외부 요청·실제 알림이 없다.
+승인된 관리자/홈 UI와 신규 private SQL·Edge 세 함수·SW를 로컬 구현했다. `npm run test:push`는 실제 신규 SQL의 합성 PostgreSQL 및 Deno 타입/API/worker/라이브러리 암호화를 검사한다. `npm run test:e2e:push`는 별도 포트 3001에서 전체 Supabase/알림 API를 모킹하여 UI를 검사한다. SW 단위 검사는 기존 Vitest에 포함한다. 새 명령은 전체 check와 품질 CI에 추가했다. 운영에 연결된 로컬에서 등록·초안·preview·테스트 확인도 실행하지 않는다.
+
+개발 모드는 기본 off이며 프론트의 명시 true/정확 origin, Edge PUSH_ENABLED, DB enabled 및 수동 캠페인 별도 스위치가 필요하다. `.env.production`에는 비밀 없는 두 공개 푸시 설정만 기록하며 정식 origin 외 preview/localhost에서는 비활성화한다. 새 세 함수는 main 함수 CI 대상이므로 DB 준비가 main push보다 앞서야 한다. 별도 opt-in Cron SQL은 자동 migration 대상이 아니며 사용자 릴리스 요청에 따라 운영에 적용했다. Edge의 `ECE_KEYLOG=0`은 필수 서버 설정이며 읽기 전용 환경에서 변경하지 않는다. 기존 프론트 공개 키가 기본 anon 키와 다르면 `PUSH_PUBLIC_API_KEY`로 기존 공개 키를 지정한다. 이 차이와 읽기 전용 초기화는 Deno runtime 회귀 검사로 검증한다. 설정·키 보관·실기기/처리량 한계는 [구현·운영 준비](push-notifications-implementation.md), DB·secrets·함수·Cron 반영과 v1.9.0 릴리스 상태는 [운영 기록](push-notifications-rollout.md)을 따른다. 실제 기기 테스트 완료 전 일반 캠페인은 비활성화한다.

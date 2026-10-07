@@ -569,3 +569,42 @@ lockfile SHA-256: `4904ed762c672db67d2252924af381aa0e137f776841c652334da8c0cb90f
 | `npm:hono` / 등록 함수 `deno.lock` | 4.13.9 | 서버 런타임 | MIT | 해당 npm tarball 동봉 LICENSE, third-party-notices.txt 추가 수록 |
 
 Supabase JSR 2.49.8 import는 유지한다.
+
+
+## Web Push Edge Functions · 2026-10-07
+
+`supabase/functions/push-subscriptions/deno.lock` locks server-only packages. Original notices are bundled in `_shared/push/THIRD_PARTY_NOTICES.txt`.
+
+| Package | License | Original files |
+|---|---|---|
+| @supabase/auth-js@2.69.1 | MIT | LICENSE |
+| @supabase/functions-js@2.4.4 | MIT | LICENSE |
+| @supabase/node-fetch@2.6.15 | MIT | LICENSE.md |
+| @supabase/postgrest-js@1.19.4 | MIT | LICENSE |
+| @supabase/realtime-js@2.11.2 | MIT | LICENSE.md |
+| @supabase/storage-js@2.7.1 | MIT | LICENSE |
+| @types/node@26.6.4 | MIT | LICENSE |
+| @types/phoenix@1.6.7 | MIT | LICENSE |
+| @types/ws@8.18.2 | MIT | LICENSE |
+| agent-base@7.1.4 | MIT | LICENSE |
+| asn1.js@5.4.1 | MIT | LICENSE |
+| bn.js@4.12.5 | MIT | LICENSE |
+| buffer-equal-constant-time@1.0.1 | BSD-3-Clause | LICENSE.txt |
+| debug@4.4.3 | MIT | LICENSE |
+| ecdsa-sig-formatter@1.0.11 | Apache-2.0 | LICENSE |
+| http_ece@1.2.0 | MIT | upstream notice preserved; http_ece pinned 0562510a30819f52424724a6fd5504becacd98a1; tr46 existing original notice |
+| https-proxy-agent@7.0.6 | MIT | LICENSE |
+| inherits@2.0.4 | ISC | LICENSE |
+| jwa@2.0.1 | MIT | LICENSE |
+| jws@4.0.1 | MIT | LICENSE |
+| minimalistic-assert@1.0.1 | ISC | LICENSE |
+| minimist@1.2.8 | MIT | LICENSE |
+| ms@2.1.3 | MIT | license.md |
+| safe-buffer@5.2.1 | MIT | LICENSE |
+| safer-buffer@2.1.2 | MIT | LICENSE |
+| tr46@0.0.3 | MIT | upstream notice preserved; http_ece pinned 0562510a30819f52424724a6fd5504becacd98a1; tr46 existing original notice |
+| undici-types@8.9.0 | MIT | LICENSE |
+| web-push@3.6.7 | MPL-2.0 | LICENSE |
+| webidl-conversions@3.0.1 | BSD-2-Clause | LICENSE.md |
+| whatwg-url@5.0.0 | MIT | LICENSE.txt |
+| ws@8.22.0 | MIT | LICENSE |

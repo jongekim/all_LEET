@@ -120,8 +120,8 @@ KV 쓰기는 키 advisory lock, 관계형 승인/소유자 쓰기는 분야별 s
 
 Storage 객체를 SQL로 삭제하지 않는다. 게시글 변경과 cleanup outbox를 함께 등록한 뒤 Storage API로 삭제하며 대기 중 URL 재참조는 trigger로 막는다. 새 이미지 manifest 의도를 먼저 보관하고 실제 파일 hash 확인 뒤 URL을 적용한다. v1.7.0에서 신규 마이그레이션만 운영에 적용했으며 기존 정책·이력은 보존했다. 실제 스키마의 RLS·기존 FK/카운터 트리거는 합성 데이터 전체 롤백으로 확인했다. 외부 Auth/Storage 변경의 실연동 검증 한계와 적용 기록은 [운영 적용](admin-user-data-rollout.md), 세부 구조는 [구현·운영](admin-user-data-implementation.md) 참고.
 
-## 웹·PWA 푸시 신규 데이터 설계 (미적용)
+## 웹·PWA 푸시 migration (로컬 작성·미적용)
 
-[수동 푸시 설계](push-notifications-design.md)의 설치 소유 증명·구독·캠페인·기기별 전송·관리자 감사는 신규 private 객체 제안이다. 비로그인 구독에도 설치 비밀과 수신 확인을 사용하고 회원 연결에는 검증 JWT가 추가로 필요하다. 전송 행은 원자 접수·점유 lease·세대 검사로 관리하며 외부 전송 결과 미확인을 별도 상태로 유지한다. 신규 SQL·마이그레이션·정책을 작성/적용하지 않았고 현재 원격에 객체가 없다고 단정하지 않는다. 구현 전 스키마·grants/RLS·Auth sessions·마이그레이션·Cron 확장을 재확인한다. 기존 서비스 데이터의 탈퇴 보관 정책과 별개이며 자동 삭제를 추가하지 않는다.
+`20261007044858_web_push_notifications.sql`은 운영 push 객체 부재·Auth 열/세션 정책·기존 관리자 역할을 읽기 전용으로 확인한 뒤 작성했다. private push 설치/등록 요청/활성 구독·초안·preview/후보·캠페인/선택 회원/차례·delivery/attempt/이벤트·receipt/감사·worker slot/provider 제어를 준비한다. 전체 RLS, PUBLIC/anon/authenticated 직접 접근 및 RPC 실행 거절, service-only SECURITY INVOKER가 경계다. 시도/감사/receipt/테스트 확인 UPDATE와 모든 신규 행 DELETE는 service role에도 허용하지 않는다. 자동 삭제·Auth cascade·기존 데이터 변경은 없다.
 
-추가 제안은 pending 등록 요청/검증 active 소유권 분리, 후보 preview 스냅샷, 관리자별 초안·테스트 확인, 시도별 추가 기록, worker slot·quota/cooldown이다. 안전한 대상 감소만 허용하며 CAS와 감사는 원자 처리한다. 첫 버전 자동 삭제는 하지 않고 저장량·성장률을 관찰한다. 최근 90일은 기본 이력 조회 범위이며 과거 기록도 보관·조회한다.
+`push_control.enabled`와 `campaigns_enabled`는 각각 기본 false다. 세션 정책·quota·저장 한도와 정확한 객체/권한은 [구현 문서](push-notifications-implementation.md)를 따른다. 별도 opt-in `supabase/ops/install-push-cron.sql`은 migration에 설치/기동을 포함하지 않는다. 사용자 릴리스 요청에 따라 신규 마이그레이션·이력과 pg_cron/pg_net·Vault·전용 Cron 두 개를 운영에 적용했다. 후속 `20261007141129_web_push_safe_updates.sql`은 기존 RPC 세 개의 singleton 상태 갱신에 WHERE 조건을 추가해 운영 PostgREST의 safeupdate 정책을 지키며 기존 권한을 보존한다. 등록·현재 기기 테스트를 먼저 열고 일반 캠페인은 실기기/처리량 확인 전 잠근다. [v1.9.0 운영 기록](push-notifications-rollout.md)을 따른다.

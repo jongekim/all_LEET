@@ -129,3 +129,7 @@ shadcn/ui의 컴포넌트가 `src/components/ui/`에 복사되어 있다. npm �
 - 임시 빌드의 `third-party-notices.txt`가 원본과 바이트 단위로 동일함을 확인했다: 335,894 bytes, SHA-256 `de5600aab1a441d733f9431968164e45c21d7f824b2ca4ee985ef3a4bf7f28d1`.
 - 원문 미수집 항목 10개는 개발 의존성이다: SWC의 `Apache-2.0 AND MIT` 플랫폼 항목 9개 및 `stackback` 0.0.2. SWC 상위 Apache 원문은 다른 SWC 항목에 보존했지만 복합 라이선스의 MIT 대상 고지와 바이너리 내장 의존성 전체를 확보했다고 주장하지 않는다. 해당 도구 자체를 외부에 전달하기 전 추가 확인이 필요하다.
 - 문서 초안 작성 시 앱 코드·설정·package.json·lockfile·기존 build 파일을 변경하지 않았다. 이후 배포 준비에서 package.json·lockfile의 루트 버전만 1.1.3으로 갱신했다. 전체 `npm run check`와 운영 URL 응답 검증은 실행하지 않았다.
+
+## Web Push 서버 의존성 (2026-10-07)
+
+고정 `npm:web-push@3.6.7`과 같은 Deno lockfile의 npm 31개 패키지 원문 고지를 `supabase/functions/_shared/push/THIRD_PARTY_NOTICES.txt` 및 public 고지에 보존했다. npm 배포본에 없는 http_ece MIT 원문은 해당 1.2.0 gitHead `0562510a30819f52424724a6fd5504becacd98a1`에서 가져왔다. tr46 0.0.3의 당시 원본 커밋에는 LICENSE 파일이 없어 기존 public 고지에 보존한 동일 버전의 상위 MIT 원문을 재사용했다. 이 한계를 버전 일치 원문 확인으로 과장하지 않는다. 나머지는 다운로드한 고정 패키지 원문이며 [의존성 목록](licenses/dependency-inventory.md)에 출처를 기록했다. 기존 아이콘 SVG를 PNG로 렌더링했으며 외부 그림·폰트는 추가하지 않았다.

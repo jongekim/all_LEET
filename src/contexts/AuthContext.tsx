@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { createClient, User, Session } from '@supabase/supabase-js';
+import { pushEnabled } from '../utils/pushApi';
+import { syncPushInstallation, detachPushBeforeLogout } from '../utils/pushInstallation';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 interface AuthContextType {
@@ -101,6 +103,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function logout() {
+    await detachPushBeforeLogout();
     const { error } = await supabase.auth.signOut();
     if (error) {
       throw error;
@@ -123,6 +126,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!pushEnabled()) return;
+    const sync = () => { if (document.visibilityState === 'visible') void syncPushInstallation().catch(() => console.warn('push', { code: 'SYNC_PENDING' })); };
+    sync();
+    window.addEventListener('online', sync);
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', sync);
+    return () => { window.removeEventListener('online', sync); window.removeEventListener('focus', sync); document.removeEventListener('visibilitychange', sync); };
+  }, [currentUser?.id]);
 
   const value = {
     currentUser,

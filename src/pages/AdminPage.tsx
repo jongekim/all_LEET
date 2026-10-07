@@ -22,6 +22,7 @@ export function AdminPage() {
           <Link to="/admin/user-data" className="admin-menu-card" style={{ marginTop: 18 }}>
             <Users size={28} /><div><h2>사용자 데이터</h2><p>선택 사용자의 성적·활동 기록을 조회하고 승인 후 수정·삭제합니다.</p></div><ArrowRight size={20} />
           </Link>
+          <Link to="/admin/push" className="admin-menu-card" style={{ marginTop: 18 }}><Megaphone size={28} /><div><h2>푸시 알림</h2><p>동의한 기기에 안내를 작성하고 테스트·발송 이력을 관리합니다.</p></div><ArrowRight size={20} /></Link>
           <Link to="/admin/dday" className="admin-menu-card" style={{ marginTop: 18 }}>
             <Calendar size={28} />
             <div><h2>디데이 관리</h2><p>LEET 시험일과 홈·로그인·회원가입의 표시 문구를 설정합니다.</p></div>

@@ -119,8 +119,8 @@ DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 �
 
 `admission-history`는 유효한 분석 실행을 headless 저장하고 결과 이동을 기다리지 않는다. 계산 모듈은 `supabase/functions/_shared/user-data-rules/`에서 프론트와 Edge가 공유하며 `src/utils`는 기존 export 계약을 유지한다. 기존 이력 Edge 쓰기는 `user_history_mutate`로 옮겨 관리자와 같은 키 잠금을 사용한다. Storage/Auth 외부 변경은 영속 작업 의도·hash 대조·outbox·unknown/partial 상태로 관리한다. 구성/배포 순서는 [구현·운영](admin-user-data-implementation.md)을 따른다.
 
-## 웹·PWA 푸시 설계 (미구현)
+## 웹·PWA 수동 푸시
 
-[수동 푸시 설계](push-notifications-design.md)는 비로그인 기기 구독, 현재 회원 연결, 관리자 수동 발송과 private DB 영속 대기열·Supabase Edge 발송 작업자를 제안한다. 전체 구독자·전체 회원·선택 회원·관리자 현재 기기 테스트를 구분한다. 예약·공지 연결·댓글 자동 알림은 범위에서 제외하며 기존 서비스 워커에 수신/클릭 처리를 추가할 계획이다. 현재 앱·DB·함수·배포에는 적용하지 않았고 UI는 [분리 미리보기](previews/push-notifications.html) 단계다. 운영 스키마의 최신 조회는 실행 환경 DNS 실패로 미완료이며 구현 전 재확인이 필요하다.
+앱 공통 `PushConsent`는 사용자 요청에 따라 Radix Dialog 팝업으로 변경했다. `HomePage`에서 `AppContent`로 옮겨 회원·비회원이 일반 서비스 화면으로 직접 진입해도 자동 안내하며 관리자 작업 화면은 제외한다. `usePushSubscription`이 상태 조회 완료와 권한을 제공하고, 서비스 진입 후 3초 지연 안내한다. 미동의는 서버 확인 결과와 관계없이 안내하고 권한만 허용한 기기는 등록 확인 후 미등록일 때 안내한다. localStorage의 버전 있는 유예 키에 7일 뒤 시각만 기록하며 계정/등록 상태의 원본으로 사용하지 않는다. 새로고침·탭 간 storage 이벤트와 화면 복귀 시 재확인한다. 완료/등록 대기/유예 중에는 자동 표시하지 않으며 차단·미지원·설치 필요·서버 오류에는 해당 안내를 제공한다. 상단 재진입 링크를 제거하고 팝업 안의 명시적 권한·등록 처리만 제공한다. 브라우저에서 허용을 선택하거나 이미 허용한 기기에서 등록을 시작하면 팝업을 즉시 닫고 서버 등록은 계속한다. 허용 후에는 같은 서비스 방문 중 자동으로 다시 열지 않고, 7일 나중에 유예를 기록하지 않는다. 실패한 미등록 기기는 다음 접속에서 팝업으로 다시 안내한다.
 
-검토 보완은 private 대상 preview·영속 등록 확인·시도 이력·worker slot/기동 의도를 포함한다. 전체 발송 전 같은 내용의 기기 테스트 확인과 관리자별 서버 초안도 설계 범위다. 정상 로그아웃은 접수 캠페인을 중단하지 않으며 작성자 역할 회수는 미시작 전송을 차단한다. 세부 계약은 설계 본문을 따른다.
+사용자가 [분리 미리보기](previews/push-notifications.html) 범위의 UI를 승인했다. `/admin/push`와 앱 공통 `PushConsent`, 인증 연결, 기존 SW의 수신/클릭/등록 ACK를 연결했다. private 관계형 outbox·세대 고정 preview·append-only 시도/감사·worker slot을 Supabase Edge 세 함수에서 처리한다. 기본 기능 스위치는 꺼져 있으며 v1.9.0 운영에서는 등록·관리자 현재 기기 테스트를 먼저 활성화한다. 공지/앱 기능 연결·예약은 추가하지 않았다. [구현·운영 준비](push-notifications-implementation.md)에 실제 소스·권한·설정·기동/검증 경계를 기록한다. 운영 DB·Edge·키·Cron 적용과 일반 발송 개방 조건은 [v1.9.0 운영 기록](push-notifications-rollout.md)을 따른다.

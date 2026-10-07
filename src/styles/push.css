@@ -1,0 +1,280 @@
+.push-tabs,
+.push-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.push-tabs button,
+.push-actions button,
+.push-panel button {
+  font: inherit;
+  border: 1px solid #cad5e4;
+  border-radius: 8px;
+  background: white;
+  color: #23405f;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.push-tabs button[aria-selected=true],
+button.push-primary {
+  background: #245edb;
+  color: white;
+  border-color: #245edb;
+}
+.push-grid {
+  display: grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(0,1fr);
+  gap: 20px;
+}
+.push-panel {
+  border: 1px solid #dbe3ee;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 0;
+}
+.push-panel h2,
+.push-modal h2 {
+  font-size: 19px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.push-panel label {
+  display: block;
+  margin: 16px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.push-panel input:not([type=checkbox]),
+.push-panel textarea,
+.push-panel select {
+  display: block;
+  width: 100%;
+  font: inherit;
+  border: 1px solid #cbd6e6;
+  border-radius: 8px;
+  padding: 11px;
+  margin-top: 8px;
+  background: white;
+}
+.push-panel small {
+  display: block;
+  color: #69778b;
+  font-size: 12px;
+  text-align: right;
+  margin-top: 6px;
+}
+.push-panel p,
+.push-modal p {
+  margin: 12px 0;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.push-notice,
+.push-warning,
+.push-error {
+  padding: 13px;
+  border: 1px solid #c7daf5;
+  background: #eff5ff;
+  border-radius: 9px;
+  line-height: 1.7;
+  margin: 14px 0;
+  overflow-wrap: anywhere;
+}
+.push-error {
+  background: #fff0f1;
+  border-color: #ebc1c4;
+  color: #a82e40;
+}
+.push-warning {
+  background: #fff8e8;
+  border-color: #edd59f;
+}
+.push-notification {
+  padding: 18px;
+  background: #eef1f6;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+.push-notification strong {
+  display: block;
+  margin-top: 12px;
+}
+.push-notification small {
+  text-align: left;
+}
+.push-small {
+  font-size: 12px;
+  color: #68768b;
+  line-height: 1.7;
+}
+.push-check {
+  display: flex!important;
+  gap: 10px;
+  align-items: flex-start!important;
+  line-height: 1.7;
+}
+.push-check input {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.push-draft,
+.push-campaign {
+  padding: 18px;
+  border: 1px solid #dde4ef;
+  border-radius: 10px;
+  margin: 18px 0;
+  overflow-wrap: anywhere;
+}
+.push-campaign h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.push-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #182a4a80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.push-modal {
+  background: white;
+  width: min(540px,100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  border-radius: 13px;
+  padding: 24px;
+}
+.push-modal button {
+  font: inherit;
+  padding: 11px 14px;
+  border: 1px solid #cbd6e6;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+.push-modal .push-primary {
+  background: #245edb;
+  color: white;
+}
+.push-panel button:disabled,
+.push-modal button:disabled,
+.push-consent-popup button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+.push-panel button:focus-visible,
+.push-modal button:focus-visible,
+.push-panel input:focus-visible,
+.push-panel select:focus-visible,
+.push-panel textarea:focus-visible {
+  outline: 3px solid #91b5ff;
+  outline-offset: 3px;
+}
+@media (max-width:720px) {
+  .push-grid {
+    grid-template-columns: 1fr;
+  }
+  .push-panel,
+  .push-modal {
+    padding: 18px;
+  }
+  .push-actions button {
+    flex-grow: 1;
+  }
+  .push-campaign {
+    padding: 13px;
+  }
+}
+.push-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  z-index: 100;
+  max-width: calc(100vw - 32px);
+}
+.push-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: #182a4a80;
+}
+.push-consent-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  z-index: 100;
+  display: block;
+  width: min(440px,calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: white;
+  border: 1px solid #e3e8ef;
+  border-radius: 24px;
+  padding: 36px;
+  text-align: center;
+  color: #172033;
+  box-shadow: 0 24px 80px #17203333;
+}
+.push-consent-icon {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  margin: 5px auto 24px;
+  background: #edf3ff;
+  border-radius: 24px;
+  color: #245edb;
+}
+.push-consent-icon svg { width: 34px; height: 34px; }
+.push-consent-brand { font-size: 13px; font-weight: 600; color: #245edb; margin-bottom: 12px; }
+.push-consent-popup h2 { font-size: 26px; font-weight: 600; line-height: 1.4; letter-spacing: -.7px; margin-bottom: 16px; }
+.push-consent-popup [data-slot=dialog-description] { font-size: 15px; line-height: 1.8; color: #667085; margin-bottom: 22px; }
+.push-consent-benefit { padding: 16px; margin-bottom: 24px; background: #f7f9fc; border-radius: 14px; text-align: left; font-size: 14px; line-height: 1.8; }
+.push-consent-benefit p::before { content: "✓"; color: #245edb; margin-right: 6px; }
+.push-consent-popup > button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: #f4f6f9;
+  color: #667085;
+  padding: 0;
+  cursor: pointer;
+}
+.push-consent-popup > button svg { width: 20px; height: 20px; }
+.push-consent-popup > button span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+.push-consent-buttons { display: grid; gap: 4px; }
+.push-consent-buttons button { width: 100%; font: inherit; border-radius: 12px; padding: 14px 16px; cursor: pointer; }
+.push-consent-allow { background: #245edb; color: white; border: 1px solid #245edb; font-weight: 600!important; }
+.push-consent-later { background: transparent; border: 0; color: #667085; }
+.push-consent-footnote { margin-top: 10px; font-size: 12px; line-height: 1.7; color: #68768b; }
+.push-consent-popup button:focus-visible { outline: 3px solid #91b5ff; outline-offset: 3px; }
+@media (max-width:560px) {
+  .push-consent-popup { padding: 32px 24px; border-radius: 22px; }
+  .push-consent-popup h2 { font-size: 24px; }
+}

@@ -1,10 +1,10 @@
 # 웹·PWA 수동 푸시 발송 설계
 
-작성·보완일: 2026-10-07 KST. 상태: **검토 보완·추가 답변 반영 / 구현·실제 UI 승인·운영 적용 전**.
+작성·보완일: 2026-10-07 KST. 상태: **UI 승인·로컬 구현 완료 / 운영 적용·실기기 검증 전**. 실제 구성·초기 설정·검증 한계는 [구현·운영 준비](push-notifications-implementation.md)를 따른다.
 
 [검토 보고서](push-notifications-review.md)의 P1 5개·P2 4개와 추천 기능을 아래 계약에 통합했다. 전체 발송 전 같은 내용의 기기 테스트 확인은 필수이고, 관리자별 서버 초안 저장을 포함한다. 첫 버전은 기록을 자동 삭제하지 않고 저장량을 관찰한다.
 
-이번 산출물은 설계 문서와 실제 앱에서 분리된 [화면 미리보기](previews/push-notifications.html)다. 아래 라우트·DB 객체·API·설정은 신규 제안이며 구현된 기능이 아니다. 앱 코드, SQL·마이그레이션, DB, Edge Function, 배포 설정은 변경하지 않는다.
+사용자는 [분리 미리보기](previews/push-notifications.html) 범위 UI 적용을 승인했다. 아래 제품 계약을 기반으로 앱·로컬 SQL·Edge·배포 CI를 구현했다. 운영 DB·함수·Cron·웹 배포와 push는 아직 실행하지 않았다.
 
 ## 1. 확정한 제품 범위
 
@@ -24,6 +24,8 @@
 
 최초 동의는 브라우저 알림 권한과 해당 사이트의 푸시 등록 확인을 뜻한다. 가입·로그인·PWA 설치만으로 동의했다고 처리하지 않는다. 권한 철회는 브라우저/OS의 사이트 설정을 사용하며 확인된 철회 구독에는 보내지 않는다. 서버가 아직 관측하지 못한 기기 상태는 마지막 확인 상태로 표시한다.
 
+서비스의 최초 안내는 사용자 요청에 따라 배너에서 팝업으로 변경한다. 회원·비회원 구분 없이 일반 서비스 화면 접속 3초 후 자동 표시하며, ‘알림 받을게요’를 눌렀을 때만 브라우저 권한을 요청한다. ‘나중에’·닫기·Esc·바깥 클릭은 이 브라우저의 localStorage에 7일 유예 시각만 저장하고, 7일이 지난 서비스 방문에서 다시 표시한다. 상단 재진입 링크를 제공하지 않고 팝업으로만 진행한다. 등록 완료·등록 대기·7일 유예 중에는 자동 표시하지 않는다. 서버 오류나 브라우저 권한만 허용하고 미등록인 상태도 자동 안내하며, 차단·미지원·iPhone 미설치는 권한 설정/지원/설치 안내를 표시한다. 권한이 없으면 서버 상태 확인을 기다리지 않으며, 이미 허용한 기기는 상태 확인 후 미등록일 때 안내한다. 관리자 작업 화면은 제외한다. 다른 팝업이 열려 있으면 닫힌 뒤 재시도하고 백그라운드에서는 보류한다. 브라우저 권한을 허용하면 즉시 팝업을 닫고 서버 등록을 계속한다. 같은 방문 중 자동 재표시는 막되 나중에의 7일 유예로 취급하지 않는다. 실패한 미등록 기기는 다음 접속에서 팝업으로 다시 안내한다. 서버 계약과 관리자 화면은 유지한다. [팝업 미리보기](previews/push-consent-popup.html)를 따른다.
+
 메시지는 일반 운영 안내로 한정한다. 개인 성적·계정 비밀을 잠금 화면에 노출하지 않는다. 광고 캠페인·별도 광고 동의는 이번 설계에 추가하지 않는다. 설정 화면을 만들지 않아도 `권한 허용 → 등록 확인 중 → 완료/실패·재확인` 상태는 안내해야 한다.
 
 ## 2. 현재 구조와 확인 제한
@@ -37,7 +39,7 @@
 - 기존 관리자 서버는 JWT 검증과 `current_user_is_admin()`·service-role 전용 RPC를 사용한다. 통계 전용 회원 선택기에서 개인정보 조회 정책을 우회하지 않고 범용 UI만 추출하거나 푸시 adapter를 만든다.
 - 운영 문서의 프로젝트와 `supabase/config.toml` ref는 일치하며 웹 origin은 `https://all-leet.vercel.app`이다.
 
-Management API 읽기 전용 메타데이터 조회는 환경 DNS 실패로 미완료다. **원격에 푸시 객체가 없다고 단정하지 않는다.** 구현 전에 public/private 객체, RLS·grants, 관리자 함수, Auth sessions 컬럼·유효성, migration 이력, pg_cron/pg_net 버전을 재확인한다. 설계 조사에 회원 행·성적·endpoint 원문을 조회하지 않는다.
+설계 시 Management API DNS 실패는 구현 단계의 읽기 전용 확인으로 해결했다. 기존 프로젝트에는 push 객체·pg_cron·pg_net이 없으며 관리자 역할 RLS/실제 service-role 읽기, Auth users/sessions 열·세션 정책과 migration 이력을 확인했다. [운영 확인·미적용 상태](push-notifications-implementation.md)를 따른다. 회원 행·성적·endpoint 원문은 조사하지 않았다.
 
 ## 3. 책임·영속 실행 구조
 
@@ -184,8 +186,8 @@ preview API는 내용 검증·테스트 확인 후 **private 서버 preview와 �
 | `push_campaigns` / `push_campaign_members` | manual/test, actor·idempotency·내용·TTL·대상, 후보/제외/접수 수, 상태·중단 이유·revision, 선택 회원 snapshot |
 | `push_deliveries` | campaign 또는 등록 확인 요청 중 하나만 참조, 논리 대상·세대, 상태·current attempt·lease·next_due. 캠페인 구독/세대 조합 유일 |
 | `push_delivery_attempts` / `push_attempt_events` | delivery/attempt_no 유일한 불변 시도 식별·lease/수행자, append-only 시작/결과/늦은 관측 이벤트. 시도별 이력 |
-| `push_request_receipts` | 설치 또는 actor·operation·request UUID 유일. 요청 hash·처리 결과/revision 대조, bind/detach/sync·초안 저장·테스트 확인 멱등성. 비밀 원문 없음 |
-| `push_admin_audit` | 초안 변경·확인·접수·중단·재시도와 개인정보 조회 감사. 내용/비밀 원문 없음 |
+| `push_receipts` | 설치 또는 actor·operation·request UUID 유일. 요청 hash·처리 결과/revision 대조, bind/detach/sync·초안 저장·테스트 확인 멱등성. 비밀 원문 없음 |
+| `push_audit` | 초안 변경·확인·접수·중단·재시도와 개인정보 조회 감사. 내용/비밀 원문 없음 |
 | `push_dispatch_control` / `push_worker_slots` | 영속 기동 의도·next_due, 스위치·quota·provider/key cooldown, 동시 slot lease |
 
 등록 확인 delivery는 admin campaign을 생성하지 않으며 고정 payload/한도만 사용한다. 관리자 화면에 타인의 설치 자료나 challenge를 노출하지 않는다. 논리 delivery와 외부 시도 attempt를 구분한다. attempt 식별 행은 불변이고 시작·결과 이벤트는 별도 append-only 기록으로 보존한다. 같은 이벤트의 재저장은 이벤트 ID로 대조하며 원래 결과를 덮지 않는다. delivery에는 현재 집계 상태만 유지한다. 늦은 결과도 원 attempt의 추가 관측으로만 남긴다. 감사는 append-only이며 service role에도 UPDATE/DELETE를 주지 않는다.
@@ -222,7 +224,7 @@ private 전체 RLS, PUBLIC/anon/authenticated 직접 권한 없음, Data API sch
 
 ## 10. Worker·시도 이력·재시도·중단
 
-초기 부하 설정 제안은 worker slot 2개, worker별 HTTP 동시 5개, batch 최대 10개, 작업 예산 25초, HTTP timeout 5초, lease 60초다. **실측 전 운영 보장값이 아니다.** batch를 반복하되 각 호출 시작 전 timeout+DB 결과 기록 여유(초기 2초 제안)가 남아야 한다. 남지 않으면 외부 미시작 점유를 반납하고 영속 기동 의도를 남긴다. CPU·암호화·DB 왕복을 포함해 조정하며 Supabase CPU 제한을 별도 검증한다. [함수 제한](https://supabase.com/docs/guides/functions/limits)
+초기 부하 설정 제안은 worker slot 2개, worker별 HTTP 동시 5개, batch 5개, 작업 예산 25초, HTTP timeout 5초, lease 60초다. **실측 전 운영 보장값이 아니다.** batch를 반복하되 각 호출 시작 전 timeout+DB 결과 기록 여유(초기 2초 제안)가 남아야 한다. 남지 않으면 외부 미시작 점유를 반납하고 영속 기동 의도를 남긴다. CPU·암호화·DB 왕복을 포함해 조정하며 Supabase CPU 제한을 별도 검증한다. [함수 제한](https://supabase.com/docs/guides/functions/limits)
 
 1. due delivery를 공정하게 점유한다. 캠페인·provider별 작은 batch로 한 캠페인/장애 provider가 전체 slot을 독점하지 않게 한다. 새 lease token과 attempt ID를 생성한다.
 2. 외부 시작 RPC는 delivery 잠금 아래 `leased`, current attempt, token, delivery와 worker slot의 lease/token 유효성, TTL, 동의·구독 세대, 중단/운영 스위치, provider/key cooldown·quota를 검사한다. member/test는 연결 세대·계정·세션, 전체 구독자는 원래 대상 계정의 탈퇴/정지를 검사한다.
@@ -295,16 +297,16 @@ provider/key별 circuit breaker·cooldown과 전역 스위치를 분리한다. �
 
 구현 순서: 구체적인 분리 UI 승인 → 원격 메타데이터 → Deno/provider·주기/처리량 기술 검증 → 합성 DB/API/worker → 등록/연결 → 관리자/SW → npm run check·화면·실기기 → DB·secrets·함수·Cron·웹 운영 적용. 새 검사 명령은 구현 후 등록하며 현재 없는 명령을 실행 가능하다고 문서화하지 않는다. DB/Edge 배포·main push는 별도 명시 요청 뒤 실행한다.
 
-현재 문서/목업 검증은 링크·오프라인 렌더링·가상 흐름에 한정한다. 실제 푸시·DB 권한·부하 검증 완료를 의미하지 않는다.
+로컬 검증에는 합성 PostgreSQL 권한/영속 작업·1,000/10,000개 후보, Deno 실제 암호화 요청 생성/모의 worker, SW/모의 브라우저 흐름을 포함한다. 실제 provider 처리량·배포 Edge·OS 알림은 검증하지 않았다. [구현 검증 경계](push-notifications-implementation.md)를 따른다.
 
 ## 13. 남은 승인·기술 확인
 
-제품 선택은 이번 답변으로 확정했다. 실제 앱 UI를 변경하기 전 관리자 화면·초안·테스트 확인·중단·동의 위치/문구의 구체적 범위를 미리보기로 승인받는다. 설계 반영은 실제 UI 변경 승인으로 간주하지 않는다.
+제품 선택과 분리 미리보기 범위의 실제 UI 승인을 받았다. 후속 버전 관리·커밋·push·미비 작업 요청에 따라 v1.9.0 운영 적용을 진행했다. 신규 DB·함수·키·Cron을 준비하고 등록/관리자 현재 기기 테스트를 먼저 활성화한다. 일반 발송 개방에는 실기기 및 처리량 확인이 남아 있으며 자동화로 실제 사용자 발송은 실행하지 않았다. [운영 적용 기록](push-notifications-rollout.md)을 따른다.
 
 구현에서 확인할 항목은 원격 객체/권한·Auth 세션 유효성, provider 허용 목록·Deno 라이브러리, 초 단위 Cron·기동 방식, 부하/용량·quota 수치, 테스트 확인 유효기간이다. 제안 수치는 실측 후 문서와 함께 확정한다. 기록 자동 삭제는 보류가 아니라 **첫 버전 미사용으로 확정**했다.
 
 ## 14. 출처·검토 이력
 
-2026-10-07에 공식 Push RFC·MDN·WebKit·Supabase Auth/RLS/함수/스케줄 문서와 pg_cron 안내를 확인했다. 플랫폼 제한·버전은 구현 시 다시 확인한다. Supabase changelog 전체 index는 웹 도구 형식 제한·환경 DNS 실패로 미완료이며 현재 의존성 변경은 없다. [공식 변경 내역](https://supabase.com/changelog?types=breaking-change)
+2026-10-07에 공식 Push RFC·MDN·WebKit·Supabase Auth/RLS/함수/스케줄 문서와 pg_cron 안내를 확인했다. 플랫폼 제한·버전은 구현 시 다시 확인한다. 설계 당시 changelog/원격 조회의 DNS 실패는 구현 때 읽기 전용 확인으로 해결했다. 신규 Web Push는 고정 Deno/npm 의존성으로 로컬 검증했다. [공식 변경 내역](https://supabase.com/changelog?types=breaking-change)
 
 원 검토의 문제·근거는 [검토 보고서](push-notifications-review.md), 화면 제안은 [분리 미리보기](previews/push-notifications.html)에 보존한다.

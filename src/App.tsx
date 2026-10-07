@@ -8,7 +8,9 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { AdminPushPage } from './pages/AdminPushPage';
 import { HomePage } from './pages/HomePage';
+import { PushConsent } from './components/PushConsent';
 import { PastExamsPage } from './pages/PastExamsPage';
 import { ChatPage } from './pages/ChatPage';
 import { ResultPage } from './pages/ResultPage';
@@ -212,6 +214,7 @@ export function AppContent() {
   return (
     <>
       <div style={{ paddingBottom: location.pathname.startsWith('/admin') ? 0 : '96px' }}>
+        {!location.pathname.startsWith('/admin') && <PushConsent />}
         <Routes>
           {/* 인증 불필요 페이지 */}
           <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
@@ -221,6 +224,7 @@ export function AppContent() {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/admin" element={<PrivateRoute><AdminRoute><AdminPage /></AdminRoute></PrivateRoute>} />
+          <Route path="/admin/push" element={<PrivateRoute><AdminRoute><AdminPushPage key={currentUser?.id} /></AdminRoute></PrivateRoute>} />
           <Route path="/admin/user-data" element={<PrivateRoute><AdminRoute><AdminUserDataPage key={currentUser?.id} /></AdminRoute></PrivateRoute>} />
           <Route path="/admin/analytics" element={<PrivateRoute><AdminRoute><AdminAnalyticsPage /></AdminRoute></PrivateRoute>} />
           <Route path="/admin/dday" element={<AdminRoute><AdminDdayPage key={currentUser?.id} /></AdminRoute>} />
