@@ -120,7 +120,9 @@ KV 쓰기는 키 advisory lock, 관계형 승인/소유자 쓰기는 분야별 s
 
 Storage 객체를 SQL로 삭제하지 않는다. 게시글 변경과 cleanup outbox를 함께 등록한 뒤 Storage API로 삭제하며 대기 중 URL 재참조는 trigger로 막는다. 새 이미지 manifest 의도를 먼저 보관하고 실제 파일 hash 확인 뒤 URL을 적용한다. v1.7.0에서 신규 마이그레이션만 운영에 적용했으며 기존 정책·이력은 보존했다. 실제 스키마의 RLS·기존 FK/카운터 트리거는 합성 데이터 전체 롤백으로 확인했다. 외부 Auth/Storage 변경의 실연동 검증 한계와 적용 기록은 [운영 적용](admin-user-data-rollout.md), 세부 구조는 [구현·운영](admin-user-data-implementation.md) 참고.
 
-## 웹·PWA 푸시 migration (로컬 작성·미적용)
+## 웹·PWA 푸시 마이그레이션·운영 적용
+
+구독 통계의 `20261007144854_web_push_subscriber_statistics.sql`은 읽기 전용 SECURITY INVOKER RPC `public.push_subscriber_statistics(uuid,uuid)`를 추가한다. service_role만 EXECUTE할 수 있고 실제 관리자·세션을 재검증한다. 기존 private 구독과 Auth users의 SELECT로 집계하며 테이블·RLS·기존 데이터는 변경하지 않는다. 운영 스키마/정책/기존 grants/이력을 읽기 전용으로 확인한 뒤 사용자 배포 요청에 따라 2026-10-08 신규 RPC와 동일 버전 이력을 한 트랜잭션으로 적용했다. 실제 service_role 조회·무효 세션 거절·일반 역할 EXECUTE 차단을 확인했다. [통계 정의와 검증](push-subscriber-statistics.md)을 따른다.
 
 `20261007044858_web_push_notifications.sql`은 운영 push 객체 부재·Auth 열/세션 정책·기존 관리자 역할을 읽기 전용으로 확인한 뒤 작성했다. private push 설치/등록 요청/활성 구독·초안·preview/후보·캠페인/선택 회원/차례·delivery/attempt/이벤트·receipt/감사·worker slot/provider 제어를 준비한다. 전체 RLS, PUBLIC/anon/authenticated 직접 접근 및 RPC 실행 거절, service-only SECURITY INVOKER가 경계다. 시도/감사/receipt/테스트 확인 UPDATE와 모든 신규 행 DELETE는 service role에도 허용하지 않는다. 자동 삭제·Auth cascade·기존 데이터 변경은 없다.
 

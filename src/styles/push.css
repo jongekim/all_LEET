@@ -40,6 +40,28 @@ button.push-primary {
   font-weight: 600;
   margin-bottom: 16px;
 }
+.push-statistics-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.push-statistics-heading h2 { margin: 0; }
+.push-statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 12px;
+}
+.push-statistics-grid > div {
+  background: #f7f9fc;
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+.push-statistics-grid dt { color: #68768b; font-size: 13px; }
+.push-statistics-grid dd { color: #172033; font-size: 26px; font-weight: 600; margin: 8px 0 0; overflow-wrap: anywhere; }
 .push-panel label {
   display: block;
   margin: 16px 0;
@@ -178,6 +200,7 @@ button.push-primary {
   outline-offset: 3px;
 }
 @media (max-width:720px) {
+  .push-statistics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .push-grid {
     grid-template-columns: 1fr;
   }

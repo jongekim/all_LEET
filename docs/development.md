@@ -30,6 +30,7 @@
 Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 있다. 빌드 산출물은 `build/`다.
 저장소의 `.npmrc`는 기존 `@jsr` 의존성을 공식 `https://npm.jsr.io`에서 설치하도록 지정한다. 개인 npm 설정이 없는 CI에서도 같은 패키지를 설치하기 위해 필요하며, 의존성 버전을 변경하지 않는다.
 읽기 전용 화면 E2E는 개발 서버의 초기 렌더링이 병렬 부하로 지연되지 않도록 Playwright 워커 두 개로 실행한다.
+디데이 저장 후 비로그인 화면 반영 검사는 별도 브라우저 컨텍스트의 서비스워커를 차단한다. 첫 설치 controllerchange 새로고침과 연속 페이지 이동의 경합을 피하며, 푸시·서비스워커 동작은 해당 전용 테스트에서 검증한다.
 
 SEO 경로를 변경할 때는 `src/utils/pageSeo.ts`의 공유 메타데이터 정의와 `src/public/sitemap.xml`을 함께 확인한다. 사이트맵에는 검색에 노출할 공개 경로만 넣고, 확인할 수 없는 `lastmod`는 기록하지 않는다. 게시글 메타데이터는 기존 게시글 조회 결과를 사용하며 별도의 서버 요청을 추가하지 않는다.
 기출문제 메타데이터는 선택한 학년도·과목·문형을 기준으로 설정한다. 쿼리 매개변수의 순서나 불필요한 매개변수가 달라도 canonical은 `year`, `subject`, `type` 순서의 유효한 선택 URL이어야 한다. `npm run sitemap:generate`는 등록된 문제지마다 하나의 선택 URL을 생성하며, 2027학년도 단일 문형은 `type=odd` 하나만 사용한다.
@@ -191,6 +192,8 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 전체 `check`와 CI에 새 SQL·Edge 검사가 포함된다. DB migration, 기존 원자 이력 함수, 새 관리자/분석 함수, 웹의 순서로 조정해야 하며 실제 적용·배포·push는 명시적 요청 뒤 수행한다. 함수 CI는 Supabase CLI 2.119.0을 고정하고 기존 이력 함수를 먼저 배포하며 `admin-user-data`·`admission-history`도 포함한다. 새 DB migration은 main push 전에 별도 적용해야 한다. v1.7.0 실제 적용은 [운영 적용 기록](admin-user-data-rollout.md), 세부 목록과 검증 한계는 [사용자 데이터 구현·운영](admin-user-data-implementation.md)을 따른다.
 
 ## 웹·PWA 푸시 검증·운영 준비
+
+관리자 구독 통계는 기존 `test:push`에 실제 SQL의 회원 DISTINCT·유효 구독/계정·service-only/현재 세션/읽기 전용 검증을 추가하고, `test:e2e:push`에서 모바일/PC·실패/0 구분·입력 유지·권한 회수를 검사한다. 사용자 배포 요청으로 v1.10.0의 신규 RPC를 먼저 적용하고 admin-push와 웹을 순서대로 배포한다. 원격 이력 일괄 복구나 구독 데이터 변경 없이 [푸시 구독 통계](push-subscriber-statistics.md)의 검증·적용 기록을 따른다.
 
 서비스 접속 팝업의 7일 유예는 `PushConsent.test.tsx`와 푸시 E2E의 모의 시계로 검증한다. 상단 재진입 링크 없음·새로고침·Esc·기간 만료, 홈 밖 회원/비회원 자동 안내·권한 허용 후 등록 실패 재접속을 모바일/PC에서 확인하며 실제 알림 권한과 Supabase는 모킹한다. 분리 미리보기는 `docs/previews/push-consent-popup.html`이며 실제 등록하지 않는다. 로컬 안내 UI만 확인하려면 정확한 localhost origin을 지정해 `VITE_PUSH_ENABLED=true VITE_PUSH_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000 npm run dev -- --port 3000 --strictPort`로 실행할 수 있다. 실제 등록/저장 버튼 검증은 운영 연결 대신 모의 E2E에서 진행한다.
 

@@ -26,11 +26,27 @@ async function main() {
         "utf8",
       ),
     );
-    await db.exec(await readFile(new URL(
-      "../supabase/migrations/20261007141129_web_push_safe_updates.sql",
-      import.meta.url,
-    ), "utf8"));
-    await db.exec("update private.push_control set enabled=true,campaigns_enabled=true where singleton");
+    await db.exec(
+      await readFile(
+        new URL(
+          "../supabase/migrations/20261007141129_web_push_safe_updates.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    await db.exec(
+      await readFile(
+        new URL(
+          "../supabase/migrations/20261007144854_web_push_subscriber_statistics.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    await db.exec(
+      "update private.push_control set enabled=true,campaigns_enabled=true where singleton",
+    );
     const role = async (name = "service_role") => {
       await db.exec("reset role");
       await db.exec(`set role ${name}`);
@@ -56,6 +72,104 @@ async function main() {
       ]);
     const worker = (action: string, input: unknown = {}) =>
       call("push_worker_action", [action, JSON.stringify(input)]);
+    const statistics = (actor = admin, actorSession = session) =>
+      call("push_subscriber_statistics", [actor, actorSession]);
+    const counts = (result: Record<string, unknown>) => {
+      const { queriedAt, ...numbers } = result;
+      assert.ok(Number.isFinite(Date.parse(String(queriedAt))));
+      return numbers;
+    };
+    assert.deepEqual(counts(await statistics()), {
+      members: 0,
+      devices: 0,
+      memberDevices: 0,
+      anonymousDevices: 0,
+    });
+    await db.exec("begin");
+    await db.exec("reset role");
+    const rejectStatistics = async (
+      query: () => Promise<unknown>,
+      error: RegExp,
+    ) => {
+      await db.exec("savepoint statistics_error");
+      try {
+        await assert.rejects(query, error);
+      } finally {
+        await db.exec(
+          "rollback to savepoint statistics_error; release savepoint statistics_error",
+        );
+      }
+    };
+    const deleted = newId(), banned = newId(), missing = newId();
+    await db.query(
+      "insert into auth.users values($1,'deleted@example.invalid','{}',now(),null),($2,'banned@example.invalid','{}',null,now()+interval '1 day')",
+      [deleted, banned],
+    );
+    // An expired/missing member session does not remove an 'all subscribers' device.
+    const owners = [
+      admin,
+      member,
+      member,
+      null,
+      null,
+      deleted,
+      banned,
+      missing,
+      member,
+    ];
+    for (const [index, owner] of owners.entries()) {
+      const installation = newId();
+      await db.query(
+        "insert into private.push_installations(id,capability_hash) values($1,$2)",
+        [installation, "a".repeat(64)],
+      );
+      await db.query(
+        "insert into private.push_subscriptions(installation_id,endpoint_hash,fingerprint,encrypted_data,vapid_key_id,revision,status,linked_user_id,linked_session_id) values($1,$2,'test','{}','v1',1,$3,$4,$5)",
+        [
+          installation,
+          `statistics-${index}`,
+          index === 8 ? "disabled" : "active",
+          owner,
+          owner ? newId() : null,
+        ],
+      );
+    }
+    await role();
+    const auditBefore = (await db.query(
+      "select (select count(*) from private.push_audit) audit,(select count(*) from private.push_limits) limits,(select count(*) from private.push_receipts) receipts",
+    )).rows;
+    assert.deepEqual(counts(await statistics()), {
+      members: 2,
+      devices: 5,
+      memberDevices: 3,
+      anonymousDevices: 2,
+    });
+    assert.deepEqual(
+      (await db.query(
+        "select (select count(*) from private.push_audit) audit,(select count(*) from private.push_limits) limits,(select count(*) from private.push_receipts) receipts",
+      )).rows,
+      auditBefore,
+    );
+    await rejectStatistics(() => statistics(member), /ADMIN_REQUIRED/);
+    await rejectStatistics(() => statistics(admin, newId()), /AUTH_REQUIRED/);
+    for (const name of ["anon", "authenticated"]) {
+      await role(name);
+      await rejectStatistics(() => statistics(), /permission denied/);
+    }
+    await db.exec("reset role");
+    await db.exec(`delete from private.admin_roles where user_id='${admin}'`);
+    await role();
+    await rejectStatistics(() => statistics(), /ADMIN_REQUIRED/);
+    await db.exec("rollback");
+    await role();
+    await db.exec("begin read only");
+    assert.deepEqual(counts(await statistics()), {
+      members: 0,
+      devices: 0,
+      memberDevices: 0,
+      anonymousDevices: 0,
+    });
+    await db.exec("commit");
     const install = newId(),
       register = newId(),
       cap = "a".repeat(64),
@@ -478,7 +592,7 @@ async function main() {
       db.query("update private.push_attempt_events set reason=reason"),
     );
     console.log(
-      "푸시 SQL 검증 통과: 등록 선점·ACK 멱등, 연결 CAS, 초안 격리/충돌, 필수 테스트, 원자 접수, lease·늦은 결과·중단, private 권한",
+      "푸시 SQL 검증 통과: 구독 통계·중복/무효 계정 제외·읽기 전용/인가, 등록 선점·ACK 멱등, 연결 CAS, 초안 격리/충돌, 필수 테스트, 원자 접수, lease·늦은 결과·중단, private 권한",
     );
   } finally {
     await db.close();

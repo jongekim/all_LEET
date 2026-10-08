@@ -17,6 +17,8 @@ async function mock(page: Page, guest = false, unsubscribed = false) {
     [];
   const campaigns = new Map<string, Record<string, unknown>>();
   let lose = false, denied = false;
+  let statisticsMode: "normal" | "zero" | "failed" | "malformed" | "denied" =
+    "normal";
   let draft: Record<string, unknown> | undefined;
   await page.addInitScript(({ actor, session, guest, unsubscribed }) => {
     if (!guest) {
@@ -106,6 +108,33 @@ async function mock(page: Page, guest = false, unsubscribed = false) {
     }
     if (path.includes("/admin-push/")) {
       requests.push({ action, input });
+      if (action === "statistics") {
+        if (statisticsMode === "failed" || statisticsMode === "denied") {
+          await route.fulfill({
+            status: statisticsMode === "denied" ? 403 : 503,
+            json: {
+              code: statisticsMode === "denied"
+                ? "ADMIN_REQUIRED"
+                : "STORAGE_UNAVAILABLE",
+            },
+          });
+        } else {
+          await route.fulfill({
+            json: {
+              members: statisticsMode === "zero" ? 0 : 42,
+              devices: statisticsMode === "zero" ? 0 : 75,
+              memberDevices: statisticsMode === "zero" ? 0 : 60,
+              anonymousDevices: statisticsMode === "zero"
+                ? 0
+                : statisticsMode === "malformed"
+                ? 100
+                : 15,
+              queriedAt: "2026-10-07T14:00:00.000Z",
+            },
+          });
+        }
+        return;
+      }
       if (denied && action === "draft-list") {
         await route.fulfill({
           status: 403,
@@ -224,6 +253,9 @@ async function mock(page: Page, guest = false, unsubscribed = false) {
     await page.goto("/admin/push");
   }
   return {
+    setStatisticsMode: (mode: typeof statisticsMode) => {
+      statisticsMode = mode;
+    },
     requests,
     pushRequests,
     loseNext: () => {
@@ -246,6 +278,60 @@ async function confirm(page: Page) {
   ).toBeEnabled();
   await page.getByRole("button", { name: "기기에서 표시·이동 확인했습니다" })
     .click();
+}
+for (const width of [390, 1280]) {
+  test(
+    `푸시 구독 통계·새로고침·실패/0 구분·권한 회수 ${width}`,
+    async ({ page }, info) => {
+      await page.setViewportSize({ width, height: 900 });
+      const state = await mock(page);
+      const summary = page.getByRole("region", { name: "푸시 구독 현황" });
+      await expect(summary).toContainText("42명");
+      await expect(summary).toContainText("75개");
+      await expect(summary).toContainText("60개");
+      await expect(summary).toContainText("15개");
+      await expect(summary).toContainText("한국 시간");
+      expect(
+        await page.evaluate(() =>
+          document.documentElement.scrollWidth <= window.innerWidth
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: info.outputPath("push-statistics.png"),
+        fullPage: true,
+      });
+      await compose(page);
+      state.setStatisticsMode("failed");
+      await summary.getByRole("button", { name: "통계 새로고침" }).click();
+      await expect(summary.getByRole("alert")).toContainText(
+        "불러오지 못했습니다",
+      );
+      await expect(summary).not.toContainText("0명");
+      await expect(page.getByLabel("제목", { exact: true })).toHaveValue(
+        "운영 안내",
+      );
+      state.setStatisticsMode("malformed");
+      await summary.getByRole("button", { name: "통계 새로고침" }).click();
+      await expect(summary.getByRole("alert")).toContainText(
+        "불러오지 못했습니다",
+      );
+      state.setStatisticsMode("zero");
+      await summary.getByRole("button", { name: "통계 새로고침" }).click();
+      await expect(summary).toContainText("0명");
+      await expect(summary.getByRole("alert")).toHaveCount(0);
+      await page.getByRole("tab", { name: "초안", exact: true }).click();
+      await expect(summary).toBeVisible();
+      state.setStatisticsMode("denied");
+      await summary.getByRole("button", { name: "통계 새로고침" }).click();
+      await expect(page.getByRole("alert")).toContainText("관리자 권한이 변경");
+      await expect(summary).toHaveCount(0);
+      expect(
+        state.requests.every((item) =>
+          ["statistics", "draft-list"].includes(item.action)
+        ),
+      ).toBe(true);
+    },
+  );
 }
 for (const width of [390, 1280]) {
   test(
@@ -325,34 +411,53 @@ test("접수 응답 유실은 기존 요청을 대조하고 권한 회수 시 �
   await expect(page.getByRole("tab")).toHaveCount(0);
   await expect(page.getByLabel("제목", { exact: true })).toHaveCount(0);
 });
-test("비로그인 최초 허용 직후 닫고 링크 없이 서버 등록을 계속한다", async ({ page }, info) => {
-  const state = await mock(page, true);
-  let configSeen = false;
-  let releaseConfig!: () => void;
-  const gate = new Promise<void>((resolve) => { releaseConfig = resolve; });
-  await page.route("https://*.supabase.co/functions/v1/push-subscriptions/config", async (route) => {
-    configSeen = true;
-    await gate;
-    await route.fulfill({ json: {
-      enabled: true,
-      publicKey: btoa(String.fromCharCode(4, ...new Uint8Array(64))),
-    } });
-  });
-  try {
-    await page.getByRole("button", { name: "알림 받을게요", exact: true }).click();
-    await expect.poll(() => configSeen).toBe(true);
-    // 서버 설정 응답을 아직 받지 않았어도 브라우저의 허용 직후 닫혀야 한다.
+test(
+  "비로그인 최초 허용 직후 닫고 링크 없이 서버 등록을 계속한다",
+  async ({ page }, info) => {
+    const state = await mock(page, true);
+    let configSeen = false;
+    let releaseConfig!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      releaseConfig = resolve;
+    });
+    await page.route(
+      "https://*.supabase.co/functions/v1/push-subscriptions/config",
+      async (route) => {
+        configSeen = true;
+        await gate;
+        await route.fulfill({
+          json: {
+            enabled: true,
+            publicKey: btoa(String.fromCharCode(4, ...new Uint8Array(64))),
+          },
+        });
+      },
+    );
+    try {
+      await page.getByRole("button", { name: "알림 받을게요", exact: true })
+        .click();
+      await expect.poll(() => configSeen).toBe(true);
+      // 서버 설정 응답을 아직 받지 않았어도 브라우저의 허용 직후 닫혀야 한다.
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      expect(
+        await page.evaluate(() =>
+          localStorage.getItem("all-leet:push-prompt-snooze:v1")
+        ),
+      ).toBeNull();
+      await page.screenshot({
+        path: info.outputPath("push-permission-accepted.png"),
+      });
+    } finally {
+      releaseConfig();
+    }
+    await expect.poll(() => state.pushRequests.includes("register")).toBe(true);
+    await expect.poll(() => state.pushRequests.includes("state")).toBe(true);
+    await expect(
+      page.getByRole("button", { name: "서비스 알림 받기", exact: true }),
+    ).toHaveCount(0);
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    expect(await page.evaluate(() => localStorage.getItem("all-leet:push-prompt-snooze:v1"))).toBeNull();
-    await page.screenshot({ path: info.outputPath("push-permission-accepted.png") });
-  } finally {
-    releaseConfig();
-  }
-  await expect.poll(() => state.pushRequests.includes("register")).toBe(true);
-  await expect.poll(() => state.pushRequests.includes("state")).toBe(true);
-  await expect(page.getByRole("button", { name: "서비스 알림 받기", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-});
+  },
+);
 
 for (const guest of [true, false]) {
   test(`홈 밖 서비스 접속도 미동의 ${guest ? "비회원" : "회원"}에게 팝업을 자동 표시한다`, async ({ page }) => {
@@ -383,7 +488,11 @@ test("권한만 허용하고 서버 등록에 실패한 기기도 재접속 시 
   await page.getByRole("button", { name: "알림 받을게요", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem("all-leet:push-prompt-snooze:v1"))).toBeNull();
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("all-leet:push-prompt-snooze:v1")
+    ),
+  ).toBeNull();
   await page.reload();
   await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10000 });
   await expect(
@@ -404,9 +513,14 @@ for (const width of [390, 1280]) {
       await mock(page, true);
       await page.clock.install({ time: new Date("2026-10-07T00:00:00Z") });
       await expect(
-        page.getByRole("heading", { name: "리트 채점은 all LEET", exact: true }),
+        page.getByRole("heading", {
+          name: "리트 채점은 all LEET",
+          exact: true,
+        }),
       ).toBeVisible();
-      await expect(page.getByRole("button", { name: "서비스 알림 받기", exact: true })).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "서비스 알림 받기", exact: true }),
+      ).toHaveCount(0);
       await page.clock.runFor(3000);
       await expect(page.getByRole("dialog")).toBeVisible();
       expect(
@@ -434,14 +548,24 @@ for (const width of [390, 1280]) {
         return value;
       }, beforeClose);
       await page.reload();
-      await expect(page.getByRole("heading", { name: "리트 채점은 all LEET", exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("heading", {
+          name: "리트 채점은 all LEET",
+          exact: true,
+        }),
+      ).toBeVisible();
       await page.clock.runFor(3000);
       await expect(page.getByRole("dialog")).toHaveCount(0);
-      await expect(page.getByRole("button", { name: "서비스 알림 받기", exact: true })).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "서비스 알림 받기", exact: true }),
+      ).toHaveCount(0);
       await page.clock.setSystemTime(until + 1);
       await page.reload();
       await expect(
-        page.getByRole("heading", { name: "리트 채점은 all LEET", exact: true }),
+        page.getByRole("heading", {
+          name: "리트 채점은 all LEET",
+          exact: true,
+        }),
       ).toBeVisible();
       await page.clock.runFor(3000);
       await expect(page.getByRole("dialog")).toBeVisible();

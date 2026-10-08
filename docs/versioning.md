@@ -2,7 +2,7 @@
 
 ## 기준
 
-서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.9.0`이다.
+서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.10.0`이다.
 
 버전은 [Semantic Versioning 2.0.0](https://semver.org/lang/ko/)의 `MAJOR.MINOR.PATCH` 형식을 따른다. 한 번 실서비스에 배포된 버전 번호는 다시 사용하거나 낮추지 않는다.
 
@@ -44,6 +44,12 @@
 | `npm run release:major` | MAJOR 버전 증가 및 MINOR/PATCH 초기화 |
 
 `release:*` 명령은 작업 트리가 깨끗하지 않으면 npm이 중단할 수 있다. 다른 작업의 변경 사항을 보존하기 위한 안전장치이므로, 해당 변경을 먼저 정리하거나 별도 작업 트리에서 릴리스를 준비한다.
+
+## v1.10.0 변경 내역
+
+푸시 관리자 상단에 등록 완료 구독의 회원 수·전체 기기 수·회원 연결/비회원 기기 수와 조회 시각·새로고침을 추가한다. 회원은 중복을 제거하며 조회 실패와 실제 0을 구분하고, 관리자 역할·현재 세션을 서버와 DB에서 재검증한다. 작성 중인 알림·PWA 이름·기존 구독과 발송 스위치는 유지한다.
+
+사용자의 배포 요청에 따라 신규 읽기 전용 RPC 마이그레이션 → admin-push → 웹 순서로 v1.10.0을 적용한다. `npm run version:verify`와 `npm run check`를 거쳐 관련 변경만 커밋·main push한다. [집계 기준·검증·운영 적용](push-subscriber-statistics.md)을 따르며 실제 배포 커밋·Vercel 상태·CI 결과는 최종 작업 보고에 기록한다.
 
 ## v1.9.0 변경 내역
 

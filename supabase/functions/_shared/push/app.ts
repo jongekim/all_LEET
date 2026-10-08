@@ -36,6 +36,7 @@ export interface PushDependencies {
   log(code: string): void;
 }
 const adminActions = new Set([
+  "statistics",
   "draft-save",
   "draft-list",
   "draft-load",
@@ -126,6 +127,14 @@ export function createPushHandler(
         if (!identity) throw new PushError("AUTH_REQUIRED", 401);
         if (!await dep.isAdmin(token)) {
           throw new PushError("ADMIN_REQUIRED", 403);
+        }
+        if (action === "statistics") {
+          return response(
+            await dep.rpc("push_subscriber_statistics", {
+              p_actor: identity.userId,
+              p_session: identity.sessionId,
+            }),
+          );
         }
         const args = { ...input };
         delete args.userId;

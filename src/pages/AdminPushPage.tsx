@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/PageHeader";
+import { PushSubscriberStats } from "../components/PushSubscriberStats";
 import { usePushSubscription } from "../hooks/usePushSubscription";
 import {
   composition,
@@ -72,6 +73,7 @@ const audiences = {
 };
 export function AdminPushPage() {
   const [denied, setDenied] = useState(false);
+  const onDenied = useCallback(() => setDenied(true), []);
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader
@@ -86,7 +88,7 @@ export function AdminPushPage() {
                 관리자 권한이 변경되었습니다. 다시 로그인해 권한을 확인해주세요.
               </p>
             )
-            : <PushEditor onDenied={() => setDenied(true)} />}
+            : <PushEditor onDenied={onDenied} />}
         </div>
       </main>
     </div>
@@ -433,6 +435,7 @@ function PushEditor({ onDenied }: { onDenied: () => void }) {
   const locked = busy || !enabled || !!uncertain;
   return (
     <>
+      <PushSubscriberStats key={actorId} actorId={actorId} enabled={enabled} onDenied={onDenied} />
       <div className="push-tabs" role="tablist" aria-label="푸시 관리">
         {(["compose", "drafts", "history"] as const).map((name) => (
           <button

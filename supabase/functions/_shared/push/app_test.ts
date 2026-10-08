@@ -92,6 +92,52 @@ Deno.test("클라이언트의 사용자·세션 위조 대신 검증한 신원�
     session,
   );
 });
+Deno.test("구독 통계는 관리자·검증 세션만 사용하며 발송 비활성에서도 읽기 전용 조회한다", async () => {
+  const { dep, calls } = setup();
+  dep.enabled = false;
+  const data = {
+    members: 2,
+    devices: 5,
+    memberDevices: 3,
+    anonymousDevices: 2,
+    queriedAt: new Date().toISOString(),
+  };
+  let kicks = 0;
+  dep.kick = async () => {
+    kicks++;
+  };
+  dep.rpc = async (name, args) => {
+    calls.push({ name, args });
+    return data;
+  };
+  const handler = createPushHandler("admin", dep);
+  assertEquals((await handler(request("statistics", {}))).status, 401);
+  dep.isAdmin = async () => false;
+  assertEquals(
+    (await handler(
+      request("statistics", {}, { authorization: "Bearer token" }),
+    )).status,
+    403,
+  );
+  assertEquals(calls.length, 0);
+  dep.isAdmin = async () => true;
+  const response = await handler(
+    request("statistics", {
+      p_actor: id,
+      p_session: id,
+      userId: id,
+      sessionId: id,
+    }, { authorization: "Bearer token" }),
+  );
+  assertEquals(response.status, 200);
+  assertEquals(response.headers.get("cache-control"), "no-store");
+  assertEquals(await response.json(), data);
+  assertEquals(calls, [{
+    name: "push_subscriber_statistics",
+    args: { p_actor: actor, p_session: session },
+  }]);
+  assertEquals(kicks, 0);
+});
 Deno.test("private 초안·권한 회수·서버 비활성은 명시적으로 차단한다", async () => {
   const { dep, calls } = setup();
   dep.isAdmin = async () => false;

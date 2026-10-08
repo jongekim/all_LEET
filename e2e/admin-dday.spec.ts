@@ -132,7 +132,8 @@ test('관리자 저장 후 홈과 비로그인 로그인·가입 화면에 같�
   await page.getByRole('button',{name:'돌아가기',exact:true}).click();
   await expect(page).toHaveURL('/');
   await expect(page.locator('[data-dday-display]')).toContainText('설정한 시험 2027.07.18 D-');
-  const context=await browser.newContext();const anonymous=await context.newPage();
+  // This checks schedule rendering; first-install SW reloads must not interrupt navigation.
+  const context=await browser.newContext({serviceWorkers:'block'});const anonymous=await context.newPage();
   const publicState=await mock(anonymous,false,false);publicState.row={...state.row};
   for(const path of ['/login','/signup']){
     await anonymous.goto(new URL(path,page.url()).href);await expect(anonymous.locator('[data-dday-display]')).toContainText('설정한 시험 2027.07.18 D-');

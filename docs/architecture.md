@@ -121,6 +121,8 @@ DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 �
 
 ## 웹·PWA 수동 푸시
 
+푸시 관리자 상단의 구독 통계는 `PushSubscriberStats`에서 기존 admin-push의 `/statistics`를 조회한다. 서비스 전용 읽기 RPC `push_subscriber_statistics`가 활성 구독의 회원 DISTINCT·전체/회원/비회원 기기를 한 번에 집계한다. 실패와 0을 구분하며 계정·권한 경계를 유지한다. [집계·조회·적용 순서](push-subscriber-statistics.md)를 따른다.
+
 앱 공통 `PushConsent`는 사용자 요청에 따라 Radix Dialog 팝업으로 변경했다. `HomePage`에서 `AppContent`로 옮겨 회원·비회원이 일반 서비스 화면으로 직접 진입해도 자동 안내하며 관리자 작업 화면은 제외한다. `usePushSubscription`이 상태 조회 완료와 권한을 제공하고, 서비스 진입 후 3초 지연 안내한다. 미동의는 서버 확인 결과와 관계없이 안내하고 권한만 허용한 기기는 등록 확인 후 미등록일 때 안내한다. localStorage의 버전 있는 유예 키에 7일 뒤 시각만 기록하며 계정/등록 상태의 원본으로 사용하지 않는다. 새로고침·탭 간 storage 이벤트와 화면 복귀 시 재확인한다. 완료/등록 대기/유예 중에는 자동 표시하지 않으며 차단·미지원·설치 필요·서버 오류에는 해당 안내를 제공한다. 상단 재진입 링크를 제거하고 팝업 안의 명시적 권한·등록 처리만 제공한다. 브라우저에서 허용을 선택하거나 이미 허용한 기기에서 등록을 시작하면 팝업을 즉시 닫고 서버 등록은 계속한다. 허용 후에는 같은 서비스 방문 중 자동으로 다시 열지 않고, 7일 나중에 유예를 기록하지 않는다. 실패한 미등록 기기는 다음 접속에서 팝업으로 다시 안내한다.
 
 사용자가 [분리 미리보기](previews/push-notifications.html) 범위의 UI를 승인했다. `/admin/push`와 앱 공통 `PushConsent`, 인증 연결, 기존 SW의 수신/클릭/등록 ACK를 연결했다. private 관계형 outbox·세대 고정 preview·append-only 시도/감사·worker slot을 Supabase Edge 세 함수에서 처리한다. 기본 기능 스위치는 꺼져 있으며 v1.9.0 운영에서는 등록·관리자 현재 기기 테스트를 먼저 활성화한다. 공지/앱 기능 연결·예약은 추가하지 않았다. [구현·운영 준비](push-notifications-implementation.md)에 실제 소스·권한·설정·기동/검증 경계를 기록한다. 운영 DB·Edge·키·Cron 적용과 일반 발송 개방 조건은 [v1.9.0 운영 기록](push-notifications-rollout.md)을 따른다.
