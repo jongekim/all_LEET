@@ -3,6 +3,9 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useUserHistory } from './useUserHistory';
 import type { GradingResult } from '../App';
+import { HistoryApiError } from '../utils/historyApi';
+import { gradeAnswers } from '../utils/grading';
+import { editedResult } from '../../supabase/functions/_shared/user-data-rules/answerEdit';
 
 vi.mock('../contexts/AuthContext', () => ({ supabase: { auth: {} } }));
 const record = (timestamp: number) => ({ timestamp }) as GradingResult;
@@ -35,6 +38,93 @@ async function waitFor(assert: () => void) {
 }
 
 describe('history account lifecycle', () => {
+  it('updates one existing record and returns the persisted timestamp and round from append', async () => {
+    const original = { ...gradeAnswers('2026','verbal',{1:3},30,'odd'), timestamp:123, groupTimestamp:100, round:3 };
+    const saved = editedResult(original, {1:4});
+    const request = vi.fn((_owner, kind, options) => Promise.resolve(options?.method === 'PUT' ? saved : options?.method === 'POST' ? original : kind === 'history' ? [original,record(124)] : []));
+    const { result } = renderHook(() => useUserHistory('a', request as Request));
+    await waitFor(() => expect(result.current.loading.history).toBe(false));
+    await act(async () => expect(await result.current.updateOfficial(original,{1:4})).toEqual(saved));
+    expect(result.current.history).toEqual([saved,record(124)]);
+    expect(request).toHaveBeenCalledWith('a','history',expect.objectContaining({ method:'PUT',recordId:123,body:{expected:original,userAnswers:{1:4}} }));
+    await act(async () => expect(await result.current.addOfficial(original)).toEqual(original));
+  });
+
+  it('reconciles a committed PUT with a lost response using GET without resending', async () => {
+    const original = { ...gradeAnswers('2026','verbal',{1:3},30,'odd'), timestamp:123, round:3 };
+    const saved = editedResult(original,{1:4});
+    let committed = false;
+    const request = vi.fn((_owner,kind,options) => {
+      if (options?.method === 'PUT') { committed=true;return Promise.reject(new HistoryApiError('응답 미확인','RESULT_UNKNOWN')); }
+      return Promise.resolve(kind === 'history' ? [committed ? saved : original] : []);
+    });
+    const { result } = renderHook(() => useUserHistory('a',request as Request));
+    await waitFor(() => expect(result.current.loading.history).toBe(false));
+    await act(async () => expect(await result.current.updateOfficial(original,{1:4})).toEqual(saved));
+    expect(result.current.history).toEqual([saved]);
+    expect(request.mock.calls.filter(call=>call[2]?.method === 'PUT')).toHaveLength(1);
+  });
+
+  it('ignores an old account edit response after switching accounts', async () => {
+    const original = { ...gradeAnswers('2026','verbal',{1:3},30,'odd'), timestamp:123, round:3 };
+    const pending = deferred<GradingResult>();
+    const request = vi.fn((_owner,kind,options) => options?.method === 'PUT' ? pending.promise : Promise.resolve(kind === 'history' ? [original] : []));
+    const { result,rerender } = renderHook(({owner})=>useUserHistory(owner,request as Request),{initialProps:{owner:'a'}});
+    await waitFor(() => expect(result.current.loading.history).toBe(false));
+    const outcome = result.current.updateOfficial(original,{1:4}).catch(error=>error);
+    rerender({owner:'b'});
+    await act(async () => pending.resolve(editedResult(original,{1:4})));
+    expect(await outcome).toMatchObject({code:'ACCOUNT_CHANGED'});
+    expect(result.current.history.some(item=>item.correct === 1)).toBe(false);
+  });
+
+  it('keeps the original error when a lost write cannot be reconciled with a valid list', async () => {
+    const original = { ...gradeAnswers('2026','verbal',{1:3},30,'odd'), timestamp:123, round:3 };
+    const lost = new HistoryApiError('응답 미확인','RESULT_UNKNOWN');
+    let committed = false;
+    const request = vi.fn((_owner,kind,options) => {
+      if (options?.method === 'PUT') { committed=true;return Promise.reject(lost); }
+      return Promise.resolve(kind === 'history' ? (committed ? {} : [original]) : []);
+    });
+    const { result } = renderHook(() => useUserHistory('a',request as Request));
+    await waitFor(() => expect(result.current.loading.history).toBe(false));
+    await act(async () => { await expect(result.current.updateOfficial(original,{1:4})).rejects.toBe(lost); });
+    expect(result.current.history).toEqual([original]);
+    expect(request.mock.calls.filter(call=>call[2]?.method === 'PUT')).toHaveLength(1);
+  });
+
+  it('refreshes history after a conflict so reopening does not reuse the stale snapshot', async () => {
+    const original = { ...gradeAnswers('2026','verbal',{1:3},30,'odd'), timestamp:123, round:3 };
+    const latest = editedResult(original,{1:0});
+    const conflict = new HistoryApiError('다른 곳에서 변경','HISTORY_CONFLICT');
+    let changed = false;
+    const request = vi.fn((_owner,kind,options) => {
+      if (options?.method === 'PUT') { changed=true;return Promise.reject(conflict); }
+      return Promise.resolve(kind === 'history' ? [changed ? latest : original] : []);
+    });
+    const { result } = renderHook(() => useUserHistory('a',request as Request));
+    await waitFor(() => expect(result.current.loading.history).toBe(false));
+    await act(async () => { await expect(result.current.updateOfficial(original,{1:4})).rejects.toBe(conflict); });
+    expect(result.current.history).toEqual([latest]);
+    expect(request.mock.calls.filter(call=>call[2]?.method === 'PUT')).toHaveLength(1);
+  });
+
+  it('finishes loading after a reconciliation read finds a deleted target and ignores an older read', async () => {
+    const original = { ...gradeAnswers('2026','verbal',{1:3},30,'odd'), timestamp:123, round:3 };
+    const oldRead = deferred<GradingResult[]>();
+    const lost = new HistoryApiError('응답 미확인','RESULT_UNKNOWN');
+    let reads = 0;
+    const request = vi.fn((_owner,kind,options) => {
+      if (options?.method === 'PUT') return Promise.reject(lost);
+      return kind === 'history' && ++reads === 1 ? oldRead.promise : Promise.resolve([]);
+    });
+    const { result } = renderHook(() => useUserHistory('a',request as Request));
+    await act(async () => { await expect(result.current.updateOfficial(original,{1:4})).rejects.toBe(lost); });
+    expect(result.current.loading.history).toBe(false);
+    await act(async () => oldRead.resolve([original]));
+    expect(result.current.history).toEqual([]);
+  });
+
   it('discards a previous account read after switching accounts', async () => {
     const pending = deferred<GradingResult[]>();
     const request = vi.fn((owner: string, kind: string) => owner === 'a' && kind === 'history' ? pending.promise : Promise.resolve([]));

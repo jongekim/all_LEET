@@ -47,6 +47,8 @@ Supabase 클라이언트는 `src/contexts/AuthContext.tsx`에서 생성된다. �
 
 ## 이력 KV 데이터
 
+채점 후 답안 수정의 migration `20261008143156_official_answer_updates.sql`은 service-only `user_history_update_answers`만 추가한다. 기존 KV·메모·RLS·append/delete 계약은 유지하고 기존 사용자 키 잠금 안에서 전체 기록을 비교하여 배열 한 항목을 갱신한다. 시각·회독·묶음·메모는 보존한다. 2026-10-09 사용자의 배포 요청에 따라 운영 DB에 해당 함수와 적용 이력을 같은 트랜잭션으로 반영했고 원본 SQL·권한·기존 RLS 보존을 확인했다. [DB/API 설계](answer-edit.md)와 [운영 적용 기록](answer-edit-rollout.md)을 따른다.
+
 Edge Function의 키 규칙은 다음과 같다.
 
 - `history:<userId>`: `GradingResult[]`

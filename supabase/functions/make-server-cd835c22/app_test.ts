@@ -1,5 +1,6 @@
 import { createHistoryApp } from "./app.ts";
 import type { UserVerifier } from "./auth.ts";
+import { gradeAnswers } from "../_shared/user-data-rules/grading.ts";
 
 function equal(actual: unknown, expected: unknown) {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -13,6 +14,7 @@ const prefix = "/make-server-cd835c22";
 const routes = [
   ["GET", "history", ""],
   ["POST", "history", ""],
+  ["PUT", "history", "/123"],
   ["DELETE", "history", ""],
   ["DELETE", "history", "/123"],
   ["GET", "mock-history", ""],
@@ -28,6 +30,7 @@ function fixture(
 ) {
   const values = new Map<string, any>([
     ["history:owner-a", [{
+      ...structuredClone(gradeAnswers("2026", "verbal", { 1: 3 }, 30, "odd")),
       year: "2026",
       subject: "verbal",
       round: 2,
@@ -59,6 +62,15 @@ function fixture(
         await this.set(key, [...history, result]);
       } else await this.set(key, action === "clear" ? [] : history.filter((h: any) => kind === "history" ? h.timestamp !== input.timestamp : h.id !== input.id));
       return result || {};
+    },
+    async updateAnswers(owner: string, timestamp: number, expected: unknown, patch: any) {
+      const key = `history:${owner}`;
+      const records = values.get(key) || [];
+      const found = records.find((r: any) => r.timestamp === timestamp);
+      if (JSON.stringify(found) !== JSON.stringify(expected)) throw new Error("HISTORY_CONFLICT");
+      const saved = { ...found, ...patch };
+      await this.set(key, records.map((r: any) => r.timestamp === timestamp ? saved : r));
+      return saved;
     },
     set(key: string, value: any) {
       calls.push(`set:${key}`);
@@ -134,6 +146,7 @@ for (const [method, kind, suffix] of routes) {
           Authorization: "bearer owner-token",
           "Content-Type": "application/json",
         },
+        ...(method === "PUT" ? { body: JSON.stringify({ expected: values.get('history:owner-a')[0], userAnswers: { 1: 4 } }) } : {}),
         ...(method === "POST"
           ? {
             body: JSON.stringify({
@@ -241,7 +254,7 @@ Deno.test("public health and browser OPTIONS do not require Auth or touch KV", a
 Deno.test("request logs use route templates without user IDs or bearer values", async () => {
   const events: unknown[] = [];
   const app = createHistoryApp({
-    kv: { get: async () => [], mutate: async () => ({}) },
+    kv: { get: async () => [], mutate: async () => ({}), updateAnswers: async () => ({} as any) },
     verifyUser: async () => ({ userId: "owner-a" }),
     log: (event) => events.push(event),
   });
@@ -257,7 +270,7 @@ Deno.test("request logs use route templates without user IDs or bearer values", 
 Deno.test("each legitimate collection or record request verifies Auth exactly once", async () => {
   for (const [method, kind, suffix] of routes) {
     let verifications = 0;
-    const { app } = fixture(async () => {
+    const { app, values } = fixture(async () => {
       verifications++;
       return { userId: "owner-a" };
     });
@@ -267,6 +280,7 @@ Deno.test("each legitimate collection or record request verifies Auth exactly on
         Authorization: "Bearer owner-token",
         "Content-Type": "application/json",
       },
+      ...(method === "PUT" ? { body: JSON.stringify({ expected: values.get('history:owner-a')[0], userAnswers: { 1: 4 } }) } : {}),
       ...(method === "POST"
         ? {
           body: JSON.stringify({
@@ -279,5 +293,67 @@ Deno.test("each legitimate collection or record request verifies Auth exactly on
     });
     equal(response.status, 200);
     equal(verifications, 1);
+  }
+});
+
+Deno.test("answer edit recalculates on server and preserves record identity and other records", async () => {
+  const { app, values } = fixture();
+  const expected = Object.fromEntries(Object.entries(structuredClone(values.get('history:owner-a')[0])).reverse());
+  values.get('history:owner-a').push({ ...expected, subject: 'reasoning', timestamp: 124 });
+  const other = structuredClone(values.get('history:owner-a')[1]);
+  const response = await app.request(`${prefix}/history/owner-a/123`, {
+    method: 'PUT', headers: { Authorization: 'Bearer owner-token', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ expected, userAnswers: { 1: 4 } }),
+  });
+  equal(response.status, 200);
+  const saved = (await response.json()).data;
+  equal(saved.correct, 1);
+  equal([saved.timestamp, saved.groupTimestamp, saved.round], [123, 99, 2]);
+  equal(saved.standardScore, gradeAnswers('2026', 'verbal', { 1: 4 }, 30, 'odd').standardScore);
+  equal(values.get('history:owner-a').length, 2);
+  equal(values.get('history:owner-a')[1], other);
+});
+
+for (const answers of [{ 0: 2 }, { 31: 2 }, { '01': 2 }, { 1: 6 }, { 1: '2' }, { 1: 1.5 }, [], null]) {
+  Deno.test(`answer edit rejects invalid answers ${JSON.stringify(answers)}`, async () => {
+    const { app, values, calls } = fixture();
+    const expected = structuredClone(values.get('history:owner-a')[0]);
+    const response = await app.request(`${prefix}/history/owner-a/123`, {
+      method: 'PUT', headers: { Authorization: 'Bearer owner-token' },
+      body: JSON.stringify({ expected, userAnswers: answers }),
+    });
+    equal(response.status, 400);
+    equal(calls.some(c => c.startsWith('set:')), false);
+  });
+}
+
+Deno.test('answer edit rejects oversized input before accessing history', async () => {
+  const { app, values, calls } = fixture();
+  const expected = structuredClone(values.get('history:owner-a')[0]);
+  const response = await app.request(`${prefix}/history/owner-a/123`, {
+    method: 'PUT', headers: { Authorization: 'Bearer owner-token' },
+    body: JSON.stringify({ expected, userAnswers: { ['1'.repeat(65536)]: 4 } }),
+  });
+  equal(response.status, 413);
+  equal(calls.length, 0);
+});
+
+Deno.test('answer edit rejects stale, missing, ambiguous records and injected score fields', async () => {
+  for (const scenario of ['conflict', 'missing', 'duplicate', 'injection', 'answer-version']) {
+    const { app, values, calls } = fixture();
+    const expected = structuredClone(values.get('history:owner-a')[0]);
+    if (scenario === 'conflict') values.get('history:owner-a')[0].round++;
+    if (scenario === 'missing') values.set('history:owner-a', []);
+    if (scenario === 'duplicate') values.get('history:owner-a').push(expected);
+    if (scenario === 'answer-version') {
+      values.get('history:owner-a')[0].correctAnswers[1] = 1;
+      expected.correctAnswers[1] = 1;
+    }
+    const response = await app.request(`${prefix}/history/owner-a/123`, {
+      method: 'PUT', headers: { Authorization: 'Bearer owner-token' },
+      body: JSON.stringify({ expected, userAnswers: { 1: 4 }, ...(scenario === 'injection' ? { standardScore: 300 } : {}) }),
+    });
+    equal(response.status, scenario === 'missing' ? 404 : scenario === 'injection' ? 400 : scenario === 'answer-version' ? 422 : 409);
+    equal(calls.some(c => c.startsWith('set:')), false);
   }
 });

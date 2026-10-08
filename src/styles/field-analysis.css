@@ -1,0 +1,42 @@
+.field-analysis-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.field-analysis-heading h3 { margin:0; color:#111827; font-size:18px; font-weight:700; }
+.field-analysis-fold { display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:44px; padding:0 4px 0 8px; color:#64748b; font-size:12px; border:0; background:transparent; cursor:pointer; }
+.field-analysis-fold svg { width:16px; height:16px; }
+.field-analysis-intro { margin:0 0 8px; color:#6b7280; font-size:12px; line-height:1.5; }
+.field-analysis-empty { font-size:13px; color:#6b7280; padding:8px 0; }
+.field-analysis-item + .field-analysis-item { border-top:1px solid #e5e7eb; }
+.field-analysis-row { display:grid; align-items:center; grid-template-columns:minmax(88px,112px) minmax(40px,1fr) 64px 48px 18px; gap:16px; width:100%; min-height:50px; padding:10px 4px; border:0; background:white; text-align:left; cursor:pointer; }
+.field-analysis-row:hover { background:#f8fafc; }
+.field-analysis-row[aria-expanded=true] { background:#f8fafc; }
+.field-analysis-name { color:#1f2937; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+.field-analysis-count { text-align:right; color:#374151; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.field-analysis-count span { color:#6b7280; font-weight:400; }
+.field-analysis-rate { text-align:right; font-size:13px; font-weight:600; color:#1d4ed8; font-variant-numeric:tabular-nums; }
+.field-analysis-track { display:block; height:6px; background:#e5e7eb; border-radius:999px; overflow:hidden; }
+.field-analysis-track > span { display:block; height:100%; background:#2563eb; border-radius:999px; }
+.field-analysis-chevron { width:16px; height:16px; color:#94a3b8; transition:transform 150ms; }
+.field-analysis-chevron-open { transform:rotate(180deg); color:#2563eb; }
+.field-analysis-detail { margin:0 0 12px; padding:12px 14px 14px; border-radius:8px; background:#f8fafc; }
+.field-analysis-detail[hidden], .compact-field-analysis [hidden] { display:none; }
+.field-analysis-detail-heading { display:flex; align-items:center; justify-content:space-between; gap:6px 12px; flex-wrap:wrap; color:#334155; font-size:13px; font-weight:600; }
+.field-analysis-breakdown { font-size:12px; font-weight:400; color:#64748b; }
+.field-analysis-detail-help { margin:4px 0 10px; color:#64748b; font-size:12px; line-height:1.5; }
+.field-analysis-questions { display:grid; grid-template-columns:repeat(auto-fill,minmax(54px,1fr)); gap:8px; }
+.field-analysis-question { display:flex; align-items:center; justify-content:center; gap:5px; min-height:44px; padding:8px 4px; border:1px solid #d1d5db; border-radius:6px; background:white; font-size:13px; font-weight:600; cursor:pointer; }
+.field-analysis-question svg { width:13px; height:13px; }
+.field-analysis-question-correct { color:#166534; border-color:#bbf7d0; background:#f0fdf4; }
+.field-analysis-question-incorrect { color:#b91c1c; border-color:#fecaca; background:#fef2f2; }
+.field-analysis-question-blank,.field-analysis-question-unknown { color:#475569; border-color:#cbd5e1; background:#f1f5f9; }
+.field-analysis-fold:focus-visible,.field-analysis-row:focus-visible,.field-analysis-question:focus-visible { outline:2px solid #2563eb; outline-offset:2px; border-radius:6px; }
+.answer-sheet-question-target { outline:3px solid #2563eb; outline-offset:5px; border-radius:8px; }
+.field-analysis-live { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+@media(max-width:639px) {
+  .field-analysis-row { grid-template-columns:minmax(0,1fr) 56px 48px 18px; gap:8px 10px; min-height:60px; padding:10px 0; }
+  .field-analysis-name { grid-column:1; grid-row:1; }
+  .field-analysis-count { grid-column:2; grid-row:1; }
+  .field-analysis-rate { grid-column:3; grid-row:1; }
+  .field-analysis-chevron { grid-column:4; grid-row:1; }
+  .field-analysis-track { grid-column:1/-1; grid-row:2; height:5px; }
+  .field-analysis-detail { padding:12px; }
+}
+@media(prefers-reduced-motion:reduce) { .field-analysis-chevron { transition:none; } }

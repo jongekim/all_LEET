@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QuestionStatistics, QuestionRate } from './QuestionStatistics';
 import { AnswerSheetResult } from './AnswerSheetResult';
+import { ResultRateVisibilityProvider } from './ResultRateVisibilityProvider';
 import { answerKeyVersion } from '../utils/questionStatisticsModel';
 import { AGGREGATION_VERSION, type StatisticsState } from '../types/questionStatistics';
 
@@ -10,7 +11,11 @@ const mock = vi.hoisted(() => ({ state: { status:'loading' } as StatisticsState,
 vi.mock('../hooks/useQuestionStatistics', () => ({ useQuestionStatistics: () => mock }));
 const selection = {year:'2026',subject:'verbal',examType:'odd'} as const;
 let root:Root, container:HTMLDivElement;
-beforeEach(()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);container=document.createElement('div');document.body.append(container);root=createRoot(container);});
+beforeEach(()=>{
+  const values = new Map<string,string>();
+  vi.stubGlobal('localStorage',{getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>values.set(key,value)});
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);container=document.createElement('div');document.body.append(container);root=createRoot(container);
+});
 afterEach(()=>{act(()=>root.unmount());container.remove();vi.useRealTimers();vi.unstubAllGlobals();});
 const render=(node:ReactNode)=>act(()=>root.render(node));
 const click=(selector:string)=>act(()=>{const button=document.querySelector<HTMLButtonElement>(selector);expect(button).not.toBeNull();button!.click();});
@@ -20,6 +25,38 @@ function ready(n:number, examType:'odd'|'even'='odd') {
     items:Array.from({length:30},(_,i)=>({question_no:i+1,choice_counts:[0,0,0,n,0],unanswered_count:0}))}};
 }
 describe('공개 문항 통계 UI',()=>{
+  it('채점 화면에서만 기본 숨김이며 두 과목 선택을 동기화하고 재진입 때 복구한다',()=>{
+    ready(254);
+    const content = <ResultRateVisibilityProvider>
+      <QuestionStatistics selection={selection}><p>기존 답안</p><QuestionRate question={1}/></QuestionStatistics>
+      <QuestionStatistics selection={{...selection,subject:'reasoning'}}><QuestionRate question={1}/></QuestionStatistics>
+    </ResultRateVisibilityProvider>;
+    render(content);
+    expect(container.querySelectorAll('.question-rate')).toHaveLength(0);
+    expect(container.textContent).toContain('기존 답안');
+    click('[role="switch"]');
+    expect(container.querySelectorAll('[aria-checked="true"]')).toHaveLength(2);
+    expect(container.querySelectorAll('.question-rate')).toHaveLength(2);
+    render(null);render(content);
+    expect(container.querySelectorAll('.question-rate')).toHaveLength(2);
+    act(()=>window.dispatchEvent(new StorageEvent('storage',{key:'allleet:result:question-rate-visible:v1',newValue:'false'})));
+    expect(container.querySelectorAll('.question-rate')).toHaveLength(0);
+    // The past-exam answer key has no result provider and keeps its original visibility.
+    render(<QuestionStatistics selection={selection}><QuestionRate question={1} variant="answer-key"/></QuestionStatistics>);
+    expect(container.querySelector('[role="switch"]')).toBeNull();
+    expect(container.querySelector('.question-rate--answer-key')).not.toBeNull();
+  });
+  it('브라우저 저장소가 차단되어도 현재 화면의 표시 설정은 작동한다',()=>{
+    ready(254);
+    const read=vi.spyOn(localStorage,'getItem').mockImplementation(()=>{throw new Error('blocked');});
+    const write=vi.spyOn(localStorage,'setItem').mockImplementation(()=>{throw new Error('blocked');});
+    try {
+      render(<ResultRateVisibilityProvider><QuestionStatistics selection={selection}><QuestionRate question={1}/></QuestionStatistics></ResultRateVisibilityProvider>);
+      expect(container.querySelector('.question-rate')).toBeNull();
+      click('[role="switch"]');expect(container.querySelector('.question-rate')).not.toBeNull();
+      click('[role="switch"]');expect(container.querySelector('.question-rate')).toBeNull();
+    } finally {read.mockRestore();write.mockRestore();}
+  });
   it.each(['odd','even'] as const)('%s 유형 안내와 모달에 집계 날짜를 표시하지 않는다',examType=>{
     ready(30,examType);render(<QuestionStatistics selection={{...selection,examType}}><QuestionRate question={1}/></QuestionStatistics>);
     const notice=container.querySelector('.question-statistics-notice')!;

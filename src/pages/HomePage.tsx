@@ -16,7 +16,7 @@ import { usageAnalytics } from '../utils/usageAnalytics';
 interface HomePageProps {
   user: User;
   onLogout: () => void;
-  onAddToHistory: (result: GradingResult) => Promise<void>;
+  onAddToHistory: (result: GradingResult) => Promise<GradingResult | void>;
 }
 
 export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
@@ -97,11 +97,16 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
 
     setIsGrading(true);
     const saveErrors: string[] = [];
+    const savedTimestamps: number[] = [];
     try {
       for (const result of results) {
         const saveAttemptId = analyticsId();
         try {
-          await onAddToHistory(result);
+          const saved = await onAddToHistory(result);
+          if (saved) {
+            Object.assign(result, saved);
+            savedTimestamps.push(saved.timestamp);
+          }
           if (currentUser) tracking.trackGrading('history_save_outcome', telemetry, { subjects: result.subject, save_attempt_id: saveAttemptId, outcome: 'success' }, `${saveAttemptId}:${result.subject}`);
         } catch (error) {
           if (currentUser) tracking.trackGrading('history_save_outcome', telemetry, { subjects: result.subject, save_attempt_id: saveAttemptId, outcome: error instanceof Error && 'code' in error && error.code === 'RESULT_UNKNOWN' ? 'unknown' : 'failed' }, `${saveAttemptId}:${result.subject}`);
@@ -115,7 +120,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     }
 
     // 결과 페이지로 이동
-    navigate('/result', { state: { results, saveErrors, telemetry, entry_source: 'new_grading' } });
+    navigate('/result', { state: { results, saveErrors, telemetry, entry_source: 'new_grading', ownerId: currentUser?.id ?? null, savedTimestamps } });
   };
 
   const handleReset = () => {

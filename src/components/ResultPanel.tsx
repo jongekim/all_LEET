@@ -1,11 +1,12 @@
 import { GradingResult } from '../App';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { FieldAnalysis } from './FieldAnalysis';
 
 interface ResultPanelProps {
   result: GradingResult;
+  onQuestionSelect: (question: number) => void;
 }
 
-export function ResultPanel({ result }: ResultPanelProps) {
+export function ResultPanel({ result, onQuestionSelect }: ResultPanelProps) {
   const subjectName = result.subject === 'verbal' ? '언어이해' : '추리논증';
   const correctRate = ((result.correct / result.total) * 100).toFixed(1);
   
@@ -53,35 +54,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
       </div>
 
       {result.year === '2027' && <p className="text-xs text-gray-500">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다.</p>}
-      <div>
-        <h3 className="text-lg font-bold text-gray-900 mb-3">분야별 분석</h3>
-        {result.fieldAnalysis.length === 0 && <p className="text-sm text-gray-500">분야별 분류 자료가 아직 준비되지 않았습니다.</p>}
-        <div className="space-y-3">
-          {result.fieldAnalysis.map((field, index) => {
-            const fieldRate = ((field.correct / field.total) * 100).toFixed(0);
-            return (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-gray-900">{field.field}</span>
-                  <span className="text-sm text-gray-600">
-                    {field.correct} / {field.total}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full transition-all"
-                    style={{ width: `${fieldRate}%` }}
-                  ></div>
-                </div>
-                <div className="text-right text-sm text-gray-600 mt-1">{fieldRate}%</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  문제: {field.questions ? field.questions.join(', ') : '정보 없음'}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <FieldAnalysis result={result} onQuestionSelect={onQuestionSelect} />
     </div>
   );
 }

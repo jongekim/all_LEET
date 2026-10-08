@@ -7,6 +7,7 @@ import { getCorrectAnswers } from '../utils/answerData';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
 import '../styles/question-statistics.css';
 import { usageAnalytics } from '../utils/usageAnalytics';
+import { ResultRateVisibilityContext } from '../contexts/ResultRateVisibilityContext';
 
 const StatisticsContext = createContext<StatisticsSnapshot | undefined>(undefined);
 const warning = '채점 기록이 30건 이하로 데이터가 충분하지 않아 정답률의 정확도가 떨어질 수 있습니다.';
@@ -15,12 +16,12 @@ const evenFormNotice = '짝수형은 다회독 데이터가 많아 실제 정답
 export function QuestionStatistics({ selection, compatible = true, children }: {
   selection: ExamStatisticsSelection; compatible?: boolean; children: ReactNode;
 }) {
-  const { state, retry } = useQuestionStatistics(selection, compatible);
-  const snapshot = compatible && state.status === 'ready' ? state.data : undefined;
-  return <StatisticsContext.Provider value={snapshot}>
-    <div className="question-statistics-notice" role="status">
-      {snapshot ? <>
-        <p>문항별 정답률</p>
+  const visibility = useContext(ResultRateVisibilityContext);
+  const visible = visibility?.visible ?? true;
+  const { state, retry } = useQuestionStatistics(selection, compatible && visible);
+  const snapshot = visible && compatible && state.status === 'ready' ? state.data : undefined;
+  const notice = snapshot ? <>
+        {!visibility && <p>문항별 정답률</p>}
         <p>정답률을 누르면 선지별 선택률과 미응답률을 볼 수 있습니다. 미응답은 오답으로 포함합니다.</p>
         {snapshot.exam_type === 'even' && !isSingleFormYear(snapshot.year) && <p>{evenFormNotice}</p>}
         {snapshot.sample_count <= 30 && <p className="question-statistics-warning">{warning}</p>}
@@ -28,7 +29,21 @@ export function QuestionStatistics({ selection, compatible = true, children }: {
       </> : !compatible || state.status === 'mismatch' ? <p>정답 버전이 달라 문항 통계를 표시하지 않습니다. 기존 답안과 메모는 그대로 사용할 수 있습니다.</p>
         : state.status === 'loading' ? <p>문항 통계를 불러오는 중입니다.</p>
           : state.status === 'error' ? <p>문항 통계를 불러오지 못했습니다. <button type="button" onClick={retry}>다시 시도</button></p>
-            : <p>이 시험의 문항 통계가 아직 준비되지 않았습니다.</p>}
+            : <p>이 시험의 문항 통계가 아직 준비되지 않았습니다.</p>;
+  return <StatisticsContext.Provider value={snapshot}>
+    <div className="question-statistics-notice" role={visibility ? undefined : 'status'}>
+      {visibility ? <>
+        <div className="rate-visibility-heading">
+          <strong>문항별 정답률</strong>
+          <button type="button" className="rate-visibility-switch" role="switch" aria-checked={visible}
+            aria-label={`${selection.subject === 'verbal' ? '언어이해' : '추리논증'} 문항별 정답률 표시`} onClick={visibility.toggle}>
+            <span>{visible ? '표시' : '숨김'}</span>
+            <span className="rate-visibility-track" aria-hidden="true"><span className="rate-visibility-thumb" /></span>
+          </button>
+        </div>
+        <p className="rate-visibility-memory">두 과목에 함께 적용되며, 다음 채점에도 유지됩니다.</p>
+        {visible && <div className="rate-visibility-content" role="status">{notice}</div>}
+      </> : notice}
     </div>
     {children}
   </StatisticsContext.Provider>;

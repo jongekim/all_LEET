@@ -4,6 +4,8 @@ import { projectId } from '../utils/supabase/info';
 import { createHistoryApi, type HistoryKind } from '../utils/historyApi';
 import type { GradingResult } from '../App';
 import type { MockExamRecord } from '../types/mockExam';
+import { HistoryApiError } from '../utils/historyApi';
+import { sameAnswers } from '../../supabase/functions/_shared/user-data-rules/answerEdit';
 
 const historyApi = createHistoryApi(supabase.auth, `https://${projectId}.supabase.co/functions/v1/make-server-cd835c22`);
 type Records = { history: GradingResult[]; 'mock-history': MockExamRecord[] };
@@ -77,6 +79,60 @@ export function useUserHistory(ownerId: string | null, request = historyApi) {
     setState(prev => identity.current === started ? ({ ...prev, records: { ...prev.records, [kind]: [...prev.records[kind], saved] } }) : prev);
     // If the initial read was still running, reconcile instead of losing older records.
     if (state.loading[kind]) void load(kind);
+    return saved;
+  };
+
+  const updateOfficial = async (expected: GradingResult, userAnswers: Record<number, number>) => {
+    if (!ownerId || identity.current.ownerId !== ownerId) throw new HistoryApiError('로그인 계정이 변경되었습니다.', 'ACCOUNT_CHANGED');
+    const started = identity.current;
+    const matchesExpected = (record: GradingResult | undefined) => !!record &&
+      record.timestamp === expected.timestamp && record.year === expected.year && record.subject === expected.subject &&
+      record.examType === expected.examType && record.total === expected.total && record.round === expected.round &&
+      record.groupTimestamp === expected.groupTimestamp && sameAnswers(record.userAnswers, userAnswers, expected.total);
+    let saved: GradingResult;
+    try {
+      saved = await request<GradingResult>(ownerId, 'history', {
+        method: 'PUT', recordId: expected.timestamp, body: { expected, userAnswers },
+      });
+    } catch (error) {
+      console.error('성적 이력 답안 수정 실패', error);
+      if (identity.current !== started) throw new HistoryApiError('로그인 계정이 변경되었습니다.', 'ACCOUNT_CHANGED');
+      // Never resend a write after a lost response. Reconcile using a fresh read.
+      if (error instanceof HistoryApiError && ['RESULT_UNKNOWN', 'STORAGE_UNAVAILABLE'].includes(error.code)) {
+        const response = await request<GradingResult[]>(ownerId, 'history').catch(() => null);
+        if (identity.current !== started) throw new HistoryApiError('로그인 계정이 변경되었습니다.', 'ACCOUNT_CHANGED');
+        const records = Array.isArray(response) ? response : null;
+        const matches = records?.filter(record => record?.timestamp === expected.timestamp) ?? [];
+        const found = matches.length === 1 ? matches[0] : undefined;
+        if (!matchesExpected(found)) {
+          if (records) {
+            started.versions.history++;
+            setState(prev => identity.current === started ? ({
+              ...prev, records: { ...prev.records, history: records },
+              errors: { ...prev.errors, history: null }, loading: { ...prev.loading, history: false },
+            }) : prev);
+          }
+          throw error;
+        }
+        saved = found!;
+      } else {
+        if (error instanceof HistoryApiError && ['HISTORY_CONFLICT', 'AMBIGUOUS_RECORD', 'RECORD_NOT_FOUND'].includes(error.code)) {
+          // Preserve the editor draft, but make reopening the history use a fresh
+          // snapshot instead of repeatedly sending the same stale expected value.
+          await load('history');
+          if (identity.current !== started) throw new HistoryApiError('로그인 계정이 변경되었습니다.', 'ACCOUNT_CHANGED');
+        }
+        throw error;
+      }
+    }
+    if (identity.current !== started) throw new HistoryApiError('로그인 계정이 변경되었습니다.', 'ACCOUNT_CHANGED');
+    if (!matchesExpected(saved)) {
+      throw new HistoryApiError('수정 응답을 확인하지 못했습니다. 성적 분석에서 이력을 확인해주세요.', 'RESULT_UNKNOWN');
+    }
+    started.versions.history++;
+    setState(prev => identity.current === started ? ({ ...prev, records: { ...prev.records, history: prev.records.history.map(record => record.timestamp === saved.timestamp ? saved : record) } }) : prev);
+    if (state.loading.history) void load('history');
+    return saved;
   };
 
   const remove = async (kind: HistoryKind, recordIds?: Array<string | number>) => {
@@ -118,7 +174,8 @@ export function useUserHistory(ownerId: string | null, request = historyApi) {
     loading: visible.loading,
     reload: load,
     addOfficial: (result: GradingResult) => ownerId ? add('history', result) : Promise.resolve(),
-    addMock: (record: Omit<MockExamRecord, 'id' | 'createdAt'>) => add('mock-history', record),
+    updateOfficial,
+    addMock: async (record: Omit<MockExamRecord, 'id' | 'createdAt'>) => { await add('mock-history', record); },
     clearOfficial: () => remove('history'),
     clearMock: () => remove('mock-history'),
     deleteOfficial: (ids: number[]) => ids.length ? remove('history', ids) : Promise.resolve(),

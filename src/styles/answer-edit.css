@@ -1,0 +1,31 @@
+.answer-edit-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.answer-edit-heading h3 { min-width:0; }
+.answer-edit-start { flex-shrink:0; }
+.answer-edit-mode { font-size:12px; color:#2563eb; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:5px 9px; white-space:nowrap; }
+.answer-edit-picker { grid-column:1/-1; margin:2px 0; padding:16px; background:#eff6ff; border:1px solid #93c5fd; border-radius:8px; }
+.answer-edit-picker-heading { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; font-size:14px; font-weight:600; color:#111827; margin-bottom:12px; }
+.answer-edit-original { font-size:12px; font-weight:400; color:#6b7280; }
+.answer-edit-options { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)) 1.4fr; gap:8px; }
+.answer-edit-option { min-height:44px; border:1px solid #d1d5db; border-radius:6px; color:#111827; background:#fff; font-size:20px; cursor:pointer; }
+.answer-edit-option:last-child { font-size:14px; }
+.answer-edit-option[aria-pressed=true] { background:#2563eb; color:#fff; border-color:#2563eb; }
+.answer-edit-option:focus-visible { outline:2px solid #2563eb; outline-offset:3px; }
+.answer-edit-footer { margin-top:16px; padding-top:16px; border-top:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.answer-edit-count { font-size:14px; font-weight:600; color:#2563eb; }
+.answer-edit-diff { font-size:12px; color:#1d4ed8; margin-top:5px; overflow-wrap:anywhere; }
+.answer-edit-caption { font-size:12px; color:#6b7280; margin-top:5px; }
+.answer-edit-actions { display:flex; gap:8px; flex-shrink:0; }
+.answer-edit-badge { position:absolute; bottom:-5px; right:4px; padding:0 4px; border-radius:3px; background:#2563eb; color:#fff; font-size:10px; font-weight:400; pointer-events:none; }
+@media(max-width:639px) {
+  .answer-edit-heading { align-items:flex-start; }
+  .answer-edit-heading h3 { max-width:65%; }
+  .answer-edit-picker { padding:12px; }
+  .answer-edit-options { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  .answer-edit-option:last-child { grid-column:1/-1; }
+  .answer-edit-footer { flex-direction:column; align-items:stretch; gap:12px; }
+  .answer-edit-actions { justify-content:flex-end; }
+}
+
+.answer-edit-option:disabled { opacity:.5; cursor:wait; }
+.answer-edit-error { margin-top:12px; font-size:14px; color:#b91c1c; overflow-wrap:anywhere; }
+.answer-edit-dirty-cell { background:#eff6ff !important; border-color:#3b82f6 !important; color:#1e3a8a !important; }

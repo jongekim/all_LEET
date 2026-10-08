@@ -1,5 +1,9 @@
 # 개발 가이드
 
+채점 후 답안 수정은 [구현·검증·운영 적용 순서](answer-edit.md)를 따른다. `test:user-data`의 격리 SQL 검사와 Edge/단위/E2E가 인증·충돌·응답 유실·같은 회독 보존을 검증한다. 명시적 배포 요청 범위에서 신규 migration → 이력 Edge → 웹 순서로 적용한다. v1.11.0은 [운영 적용 기록](answer-edit-rollout.md)을 참고한다.
+
+결과 화면의 분야 요약·문항 이동·정답률 표시 설정은 [결과 분석 UI](result-analysis.md)를 따른다. `FieldAnalysis.test.tsx`와 `QuestionStatistics.test.tsx`의 단위 검사, `e2e/field-analysis.spec.ts`의 1280/390/320px 화면 검사는 운영 요청을 모킹하여 펼침·포커스·초안 보존·반영 후 재계산·브라우저 설정 기억과 기출 정답표의 기존 동작을 확인한다.
+
 ## 명령어
 
 | 목적 | 명령 |

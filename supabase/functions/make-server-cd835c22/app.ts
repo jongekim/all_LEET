@@ -1,13 +1,25 @@
 import { Hono, type MiddlewareHandler } from "npm:hono@4.13.9";
 import { cors } from "npm:hono@4.13.9/cors";
+import { bodyLimit } from "npm:hono@4.13.9/body-limit";
 import type { UserVerifier } from "./auth.ts";
+import { answerEditPatch } from "../_shared/user-data-rules/answerEdit.ts";
+import type { GradingResult } from "../_shared/user-data-rules/types.ts";
 
 interface HistoryStore {
   get(key: string): Promise<any>;
   mutate(owner: string, kind: "history" | "mock_history", action: "append" | "clear" | "delete", input?: any): Promise<any>;
+  updateAnswers(owner: string, timestamp: number, expected: unknown, patch: unknown): Promise<GradingResult>;
 }
 
 type HistoryEnv = { Variables: { historyOwner: string } };
+
+// JSONB ignores object key order. Compare the client snapshot to the exact record
+// used for calculation, then compare that server snapshot again inside the lock.
+const recordSnapshot = (record: unknown) => JSON.stringify(record, (_key, value) =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+    : value
+);
 
 // Dependencies are explicit so route tests cannot reach production Auth or KV.
 export function createHistoryApp({ kv, verifyUser, log }: {
@@ -139,6 +151,41 @@ export function createHistoryApp({ kv, verifyUser, log }: {
       }, 500);
     }
   });
+
+  // Update one existing attempt. Scores and answer keys never come from the client.
+  app.put("/make-server-cd835c22/history/:userId/:timestamp",
+    bodyLimit({ maxSize: 64 * 1024, onError: c => c.json({ success: false, code: "INVALID_INPUT" }, 413) }),
+    async (c) => {
+      try {
+        const rawTimestamp = c.req.param("timestamp");
+        const timestamp = Number(rawTimestamp);
+        if (!/^[1-9]\d*$/.test(rawTimestamp) || !Number.isSafeInteger(timestamp)) throw new Error("INVALID_INPUT");
+        const input = await c.req.json().catch(() => { throw new Error("INVALID_INPUT"); });
+        if (!input || typeof input !== "object" || Array.isArray(input) ||
+          Object.keys(input).some(key => !["expected", "userAnswers"].includes(key)) ||
+          !input.expected || typeof input.expected !== "object" || Array.isArray(input.expected) || input.expected.timestamp !== timestamp) {
+          throw new Error("INVALID_INPUT");
+        }
+        const owner = c.get("historyOwner");
+        const history = await kv.get(`history:${owner}`);
+        if (history != null && !Array.isArray(history)) throw new Error("STORAGE_UNAVAILABLE");
+        const matches = (history || []).filter((record: GradingResult) => record.timestamp === timestamp);
+        if (!matches.length) throw new Error("RECORD_NOT_FOUND");
+        if (matches.length !== 1) throw new Error("AMBIGUOUS_RECORD");
+        if (recordSnapshot(matches[0]) !== recordSnapshot(input.expected)) throw new Error("HISTORY_CONFLICT");
+        const patch = answerEditPatch(matches[0], input.userAnswers);
+        const saved = await kv.updateAnswers(owner, timestamp, matches[0], patch);
+        return c.json({ success: true, data: saved });
+      } catch (error) {
+        const code = error instanceof Error ? error.message : "STORAGE_UNAVAILABLE";
+        if (["HISTORY_CONFLICT", "AMBIGUOUS_RECORD"].includes(code)) return c.json({ success: false, code }, 409);
+        if (code === "RECORD_NOT_FOUND") return c.json({ success: false, code }, 404);
+        if (code === "INVALID_INPUT") return c.json({ success: false, code }, 400);
+        if (code === "CALCULATION_UNAVAILABLE") return c.json({ success: false, code }, 422);
+        console.error("답안 수정 저장 실패", code);
+        return c.json({ success: false, code: "STORAGE_UNAVAILABLE" }, 503);
+      }
+    });
 
   // Clear user's history
   app.delete("/make-server-cd835c22/history/:userId", async (c) => {

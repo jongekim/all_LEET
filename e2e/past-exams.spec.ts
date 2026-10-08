@@ -304,16 +304,15 @@ for (const subject of ['verbal', 'reasoning'] as const) {
     }, result);
     await page.goto('/result');
     await expect(page.getByText('2027학년도 - 단일 문형', { exact: true })).toBeVisible();
-    const analysis = page.locator('div').filter({ has: page.getByRole('heading', { name: '분야별 분석', exact: true }) })
-      .filter({ hasNot: page.getByRole('heading', { name: '채점 결과', exact: true }) }).last();
+    const analysis = page.getByRole('region', { name: `${subject === 'verbal' ? '언어이해' : '추리논증'} 분야별 분석`, exact: true });
     const expected = subject === 'verbal'
       ? [['규범', '3 / 6'], ['사회', '1 / 6'], ['인문', '0 / 9'], ['과학기술', '0 / 6'], ['문예', '0 / 3']]
       : [['법규범', '4 / 12'], ['인문', '0 / 12'], ['사회', '0 / 6'], ['논리학수학', '0 / 4'], ['과학기술', '0 / 6']];
-    const rows = analysis.locator('.border.rounded-lg');
+    const rows = analysis.locator('.field-analysis-row');
     await expect(rows).toHaveCount(5);
     for (const [field, count] of expected) {
       const row = rows.filter({ has: page.getByText(field, { exact: true }) });
-      await expect(row.getByText(count, { exact: true })).toBeVisible();
+      await expect(row.locator('.field-analysis-count')).toHaveText(count);
     }
     await expect(page.getByText('분야별 분류 자료가 아직 준비되지 않았습니다.')).toHaveCount(0);
     await analysis.screenshot({ path: testInfo.outputPath('field-analysis-2027.png') });

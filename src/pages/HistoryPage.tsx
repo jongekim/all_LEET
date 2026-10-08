@@ -1,6 +1,7 @@
 import { getExamTypeLabel } from '../utils/examType';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { GradingResult } from '../App';
+import { useAuth } from '../contexts/AuthContext';
 import { TrendChart } from '../components/TrendChart';
 import { MockTrendChart } from '../components/MockTrendChart';
 import { ArrowLeft, Trash2 } from 'lucide-react';
@@ -40,6 +41,7 @@ export function HistoryPage({
   admin,
 }: HistoryPageProps) {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -420,7 +422,7 @@ export function HistoryPage({
                           </button>
                           <button
                             onClick={() =>
-                              admin ? admin.onOpen(group) : navigate('/result', { state: isCombined ? { results: group, entry_source: showOfficialExample ? 'example' : 'history' } : { result: firstRecord, entry_source: showOfficialExample ? 'example' : 'history' } })
+                              admin ? admin.onOpen(group) : navigate('/result', { state: { ...(isCombined ? { results: group } : { result: firstRecord }), entry_source: showOfficialExample ? 'example' : 'history', ownerId: showOfficialExample ? null : currentUser?.id ?? null } })
                             }
                             className="text-sm text-blue-600 hover:text-blue-700 font-semibold whitespace-nowrap"
                           >

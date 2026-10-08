@@ -250,7 +250,7 @@ export function AppContent() {
           <Route path="/chat" element={<ChatPage />} />
           <Route
             path="/result"
-            element={<ResultPage />}
+            element={<ResultPage onUpdateAnswers={userHistory.updateOfficial} />}
           />
 
           {/* 인증 필요 페이지 (PrivateRoute) */}

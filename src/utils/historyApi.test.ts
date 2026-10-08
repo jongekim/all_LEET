@@ -19,6 +19,14 @@ function fixture() {
 afterEach(() => vi.useRealTimers());
 
 describe('성적 이력 세션 호출', () => {
+  it('PUT preserves the expected snapshot and does not retry a conflict', async () => {
+    const {api,fetcher} = fixture();
+    const body = {expected:{timestamp:123,round:3},userAnswers:{1:2}};
+    fetcher.mockResolvedValue(Response.json({success:false,code:'HISTORY_CONFLICT'},{status:409}));
+    await expect(api('owner-a','history',{method:'PUT',recordId:123,body})).rejects.toMatchObject({code:'HISTORY_CONFLICT'});
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledWith(`${base}/history/owner-a/123`,expect.objectContaining({method:'PUT',body:JSON.stringify(body)}));
+  });
   it.each(['history', 'mock-history'] as const)('최신 세션으로 %s의 기존 URL·헤더·본문 계약을 유지한다', async kind => {
     const { api, fetcher, setSession } = fixture();
     setSession(session('latest-token'));

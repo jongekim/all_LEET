@@ -7,7 +7,7 @@ interface HistoryAuth {
 
 export type HistoryKind = 'history' | 'mock-history';
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   recordId?: string | number;
   body?: unknown;
   signal?: AbortSignal;
@@ -90,13 +90,21 @@ export function createHistoryApi(auth: HistoryAuth, baseUrl: string, fetcher: ty
       }
       if (!response.ok || payload?.success === false || !payload) {
         const code = payload?.code || 'REQUEST_FAILED';
-        const message = response.status === 401
+        const editMessages: Record<string, string> = {
+          HISTORY_CONFLICT: '다른 곳에서 이 기록이 변경되었습니다. 입력은 유지됩니다. 수정을 취소하고 성적 분석에서 최신 기록을 다시 열어주세요.',
+          AMBIGUOUS_RECORD: '같은 식별자의 기록이 여러 개 있어 수정할 수 없습니다. 관리자에게 문의해주세요.',
+          RECORD_NOT_FOUND: '이 기록이 삭제되었거나 저장되지 않았습니다. 성적 분석에서 이력을 확인해주세요.',
+          CALCULATION_UNAVAILABLE: '이 기록의 정답·환산 자료를 확인하지 못해 수정할 수 없습니다.',
+          INVALID_INPUT: '수정한 답안을 확인해주세요. 선지는 1~5 또는 미응답이어야 합니다.',
+          STORAGE_UNAVAILABLE: '수정 저장 결과를 확인하지 못했습니다. 성적 분석에서 이력을 확인해주세요.',
+        };
+        const message = editMessages[code] ?? (response.status === 401
           ? '로그인 상태를 다시 확인해주세요. 입력한 내용은 유지됩니다.'
           : response.status === 403
             ? '현재 로그인 계정의 이력만 사용할 수 있습니다.'
             : response.status === 503
               ? '인증 확인이 지연되고 있습니다. 잠시 후 다시 시도해주세요.'
-              : '이력 요청에 실패했습니다. 이력을 확인한 뒤 다시 시도해주세요.';
+              : '이력 요청에 실패했습니다. 이력을 확인한 뒤 다시 시도해주세요.');
         throw new HistoryApiError(message, code);
       }
       // Do not return an earlier account's response after a session transition.

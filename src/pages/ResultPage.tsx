@@ -1,13 +1,13 @@
 import { getExamTypeLabel, isSingleFormYear } from '../utils/examType';
 import { PageHeader } from '../components/PageHeader';
 import { PageBackButton } from '../components/PageBackButton';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { GradingResult, Subject } from '../App';
 import { ResultPanel } from '../components/ResultPanel';
-import { AnswerSheetResult } from '../components/AnswerSheetResult';
-import { QuestionStatistics } from '../components/QuestionStatistics';
-import { hasMatchingAnswers } from '../utils/questionStatisticsModel';
+import { ResultRateVisibilityProvider } from '../components/ResultRateVisibilityProvider';
+import { EditableAnswers } from '../components/EditableAnswers';
+import { editedResult } from '../../supabase/functions/_shared/user-data-rules/answerEdit';
 import { Home, X } from 'lucide-react';
 import { useAuth, supabase } from '../contexts/AuthContext';
 import { Textarea } from '../components/ui/textarea';
@@ -105,7 +105,26 @@ export interface AdminResultView {
   changeNote: (subject: Subject, question: number, content: string | null) => Promise<void>;
   onBack: () => void;
 }
-export function ResultPage({ admin }: { admin?: AdminResultView } = {}) {
+type UpdateAnswers = (expected: GradingResult, answers: Record<number, number>) => Promise<GradingResult>;
+export function ResultPage({ admin, onUpdateAnswers }: { admin?: AdminResultView; onUpdateAnswers?: UpdateAnswers } = {}) {
+  const location = useLocation();
+  const { currentUser } = useAuth();
+  const results = admin?.results ?? location.state?.results ?? (location.state?.result ? [location.state.result] : undefined);
+  const wrongOwner = !admin && location.state?.ownerId && location.state.ownerId !== currentUser?.id;
+  if (!results?.length || wrongOwner) return <div className="min-h-screen bg-gray-50">
+    <PageHeader title="채점 결과" />
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
+      <h2 className="text-2xl font-bold text-gray-900">결과를 찾을 수 없습니다</h2>
+    </main>
+  </div>;
+  return <ResultRateVisibilityProvider>
+    <ResultPageContent key={`${currentUser?.id ?? 'guest'}:${results.map((r: GradingResult) => `${r.subject}:${r.timestamp}`).join(',')}`}
+      initialResults={results} admin={admin} onUpdateAnswers={onUpdateAnswers} />
+  </ResultRateVisibilityProvider>;
+}
+function ResultPageContent({ admin, onUpdateAnswers, initialResults }: {
+  admin?: AdminResultView; onUpdateAnswers?: UpdateAnswers; initialResults: GradingResult[];
+}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -114,7 +133,50 @@ export function ResultPage({ admin }: { admin?: AdminResultView } = {}) {
   const saveErrors = location.state?.saveErrors as string[] | undefined;
 
   // 이전 버전과의 호환성을 위해 단일 결과도 처리
-  const finalResults = results || (singleResult ? [singleResult] : undefined);
+  const [localResults, setLocalResults] = useState(initialResults);
+  const finalResults = admin?.results ?? localResults;
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const savingAnswers = useRef(false);
+  const answerCards = useRef<Partial<Record<Subject, HTMLDivElement | null>>>({});
+  const questionTarget = useRef<HTMLElement | null>(null);
+  const questionTargetTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [questionAnnouncement, setQuestionAnnouncement] = useState('');
+  useEffect(() => () => {
+    clearTimeout(questionTargetTimer.current);
+    questionTarget.current?.classList.remove('answer-sheet-question-target');
+  }, []);
+  const focusQuestion = (subject: Subject, question: number) => {
+    const target = answerCards.current[subject]?.querySelector<HTMLElement>(`[data-question-number="${question}"]`);
+    if (!target) return;
+    clearTimeout(questionTargetTimer.current);
+    questionTarget.current?.classList.remove('answer-sheet-question-target');
+    questionTarget.current = target;
+    target.classList.add('answer-sheet-question-target');
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    setQuestionAnnouncement(`${subject === 'verbal' ? '언어이해' : '추리논증'} ${question}번 답안표로 이동했습니다.`);
+    questionTargetTimer.current = setTimeout(() => target.classList.remove('answer-sheet-question-target'), 3500);
+  };
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const persisted = !!currentUser && location.state?.ownerId === currentUser.id;
+  const leave = (action: () => void) => {
+    if (savingAnswers.current) return;
+    if (!dirty || window.confirm('저장하지 않은 변경사항을 버리고 이동할까요?')) action();
+  };
+  const updateAnswers: UpdateAnswers = async (expected, answers) => {
+    savingAnswers.current = true;
+    try {
+      const saved = persisted && onUpdateAnswers ? await onUpdateAnswers(expected, answers) : editedResult(expected, answers);
+      if (alive.current) {
+        const next = finalResults.map(result => result.subject === saved.subject && result.timestamp === saved.timestamp ? saved : result);
+        setLocalResults(next);
+        navigate('/result', { replace: true, state: { ...location.state, results: next, result: undefined } });
+      }
+      return saved;
+    } finally { savingAnswers.current = false; }
+  };
 
   useEffect(() => {
     const viewedResults = results || (singleResult ? [singleResult] : undefined);
@@ -128,17 +190,6 @@ export function ResultPage({ admin }: { admin?: AdminResultView } = {}) {
       tracking.track('past_result_viewed', 'history', { entry_source: location.state.entry_source, year: first.year, exam_type: isSingleFormYear(first.year) ? 'single' : first.examType, subjects: viewedResults.length > 1 ? 'both' : first.subject }, location.key);
     }
   }, [location.key, location.state, results, singleResult, admin]);
-
-  if (!finalResults || finalResults.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <PageHeader title="채점 결과" />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
-          <h2 className="text-2xl font-bold text-gray-900">결과를 찾을 수 없습니다</h2>
-        </main>
-      </div>
-    );
-  }
 
   // 종합 점수 계산
   const hasMultipleSubjects = finalResults.length > 1;
@@ -388,9 +439,9 @@ export function ResultPage({ admin }: { admin?: AdminResultView } = {}) {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <PageBackButton onClick={admin?.onBack} />
+              <PageBackButton onClick={() => leave(() => admin ? admin.onBack() : navigate('/'))} />
                 <Button
-                  onClick={() => admin ? admin.onBack() : navigate('/history')}
+                  onClick={() => leave(() => admin ? admin.onBack() : navigate('/history'))}
                   className="gap-2 whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 shadow-md"
                 >
                   <Home className="w-4 h-4" />
@@ -432,28 +483,22 @@ export function ResultPage({ admin }: { admin?: AdminResultView } = {}) {
         {/* 각 과목별 결과 */}
         {finalResults.map((result, index) => (
           <div key={index}>
-            <ResultPanel result={result} />
+            <ResultPanel result={result} onQuestionSelect={question => focusQuestion(result.subject, question)} />
 
-            <div className="mt-6 bg-white rounded-lg shadow p-4 sm:p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                {result.subject === 'verbal' ? '언어이해' : '추리논증'} - 입력한 답안
-              </h3>
-              <QuestionStatistics
-                key={`${result.year}:${result.subject}:${result.examType}`}
-                selection={{ year: result.year, subject: result.subject, examType: result.examType }}
-                compatible={hasMatchingAnswers({ year: result.year, subject: result.subject, examType: result.examType }, result.correctAnswers)}
-              >
-              <AnswerSheetResult
-                total={result.total}
-                userAnswers={result.userAnswers ?? {}}
-                correctAnswers={result.correctAnswers}
-                notes={notesBySubject[result.subject]}
+            <div className="mt-6 bg-white rounded-lg shadow p-4 sm:p-6" data-result-answers={result.subject}
+              ref={element => { answerCards.current[result.subject] = element; }}>
+              <EditableAnswers result={result} notes={notesBySubject[result.subject]}
                 onOpenNote={(q) => openNoteModal(result.subject, q)}
-              />
-              </QuestionStatistics>
+                editing={editingSubject === result.subject} anotherEditing={editingSubject !== null && editingSubject !== result.subject}
+                canEdit={!admin && !!result.userAnswers && location.state?.entry_source !== 'example' &&
+                  (!location.state?.ownerId || (persisted && !!onUpdateAnswers &&
+                    (location.state?.entry_source === 'history' || location.state?.savedTimestamps?.includes(result.timestamp))))}
+                persisted={persisted} onStart={() => setEditingSubject(result.subject)}
+                onFinish={() => setEditingSubject(null)} onApply={updateAnswers} onDirtyChange={setDirty} />
             </div>
           </div>
         ))}
+        <div className="field-analysis-live" role="status">{questionAnnouncement}</div>
 
         {/* 메모 한번에 보기 */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -468,13 +513,13 @@ export function ResultPage({ admin }: { admin?: AdminResultView } = {}) {
         {/* 액션 버튼 */}
         <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={() => admin ? admin.onBack() : navigate('/')}
+            onClick={() => leave(() => admin ? admin.onBack() : navigate('/'))}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
             새로운 시험 채점하기
           </button>
           <button
-            onClick={() => admin ? admin.onBack() : navigate('/history')}
+            onClick={() => leave(() => admin ? admin.onBack() : navigate('/history'))}
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
           >
             전체 히스토리 보기

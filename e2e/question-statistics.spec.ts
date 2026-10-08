@@ -88,6 +88,7 @@ test('채점 결과의 통계·2초 정답 보기·메모 버튼을 분리한다
   await page.getByRole('spinbutton').first().fill('1');
   await page.getByRole('main').getByRole('button',{name:'채점하기',exact:true}).click();
   await expect(page).toHaveURL('/result');
+  await page.getByRole('switch',{name:'언어이해 문항별 정답률 표시'}).click();
   expect(await page.locator('.answer-sheet-result-grid').evaluate(element=>getComputedStyle(element).rowGap)).toBe('16px');
   await page.getByRole('button',{name:/1번 정답률 78.3%/}).click();
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -103,6 +104,7 @@ for(const width of [320,390]) test(`${width}px 결과 화면의 문항 행을 �
   await page.getByLabel('시험 학년도').selectOption('2026');
   await page.getByRole('spinbutton').first().fill('1');
   await page.getByRole('main').getByRole('button',{name:'채점하기',exact:true}).click();
+  await page.getByRole('switch',{name:'언어이해 문항별 정답률 표시'}).click();
   await expect(page.getByRole('button',{name:/^1번 정답률 78.3%/})).toBeVisible();
   const grid=page.locator('.answer-sheet-result-grid');
   const first=await grid.locator(':scope > div').nth(0).boundingBox(),next=await grid.locator(':scope > div').nth(5).boundingBox();

@@ -26,6 +26,8 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - 앱 조립과 라우팅: `src/App.tsx`
 - 계정별 이력 상태와 CRUD: `src/hooks/useUserHistory.ts`
 - 세션 토큰·응답·제한된 인증 재시도: `src/utils/historyApi.ts`
+- 답안 수정: `EditableAnswers` → `useUserHistory.updateOfficial` → 기존 이력 Edge PUT → service-only `user_history_update_answers`. 공유 재계산·기존 쓰기 잠금·전체 기록 비교를 사용한다. [설계](answer-edit.md) 참고.
+- 결과 분석 UI: `ResultPanel`의 `FieldAnalysis`가 기존 `GradingResult.fieldAnalysis`를 요약하고 한 분야의 문항만 펼친다. 문항 선택 콜백은 `ResultPage`가 보관한 과목별 답안표 ref로 포커스·스크롤·일시 강조를 처리한다. `ResultRateVisibilityProvider`는 결과 화면에만 적용하여 두 과목의 공개 정답률 선택을 공유하고 브라우저 저장소에 기억한다. 기존 통계 hook의 enabled 인자를 사용하며 DB/API 계약은 바꾸지 않는다. [구현·검증](result-analysis.md) 참고.
 - 인증 provider와 Supabase 클라이언트: `src/contexts/AuthContext.tsx`
 - 화면: `src/pages/`
 - 도메인 UI: `src/components/`

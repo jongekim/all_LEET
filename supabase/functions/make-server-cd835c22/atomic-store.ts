@@ -34,5 +34,15 @@ export function atomicHistoryStore() {
       if (error) throw new Error("STORAGE_UNAVAILABLE");
       return data;
     },
+    async updateAnswers(owner: string, timestamp: number, expected: unknown, patch: unknown) {
+      const { data, error } = await client.rpc("user_history_update_answers", {
+        p_owner: owner, p_timestamp: timestamp, p_expected: expected, p_patch: patch,
+      });
+      if (error) {
+        const allowed = ["HISTORY_CONFLICT", "RECORD_NOT_FOUND", "AMBIGUOUS_RECORD", "INVALID_INPUT"];
+        throw new Error(allowed.includes(error.message) ? error.message : "STORAGE_UNAVAILABLE");
+      }
+      return data;
+    },
   };
 }
