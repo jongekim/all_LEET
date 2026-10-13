@@ -1,6 +1,6 @@
 # 공통 문항 통계 v2 구현·운영 절차
 
-2026-10-12 로컬 구현. 운영 migration 적용·카탈로그 등록·통계 발행·Edge/웹 배포·push는 실행하지 않았다. 기존 v1 테이블·발행본은 그대로 유지한다. 정책과 검수 근거는 [확정 설계](past-exam-form-implementation-plan.md)를 따른다.
+2026-10-13 v1.12.0 운영 전환: 신규 migration·승인 카탈로그·통계 1세대를 적용하고 공유 채점 Edge를 배포했다. 운영 공개 통계로 웹/HTML을 빌드해 같은 릴리스에서 main push한다. 적용·검증·복구 근거는 [운영 적용 기록](question-statistics-v2-rollout.md)을 따른다. 기존 v1 테이블·발행본은 동결 보존한다. 정책과 검수 근거는 [확정 설계](past-exam-form-implementation-plan.md)를 따른다.
 
 ## 기준과 화면
 
@@ -25,11 +25,11 @@
 
 ## DB와 권한
 
-로컬 migration: `20261012122322_canonical_question_statistics_v2.sql`. 신규 private 카탈로그·발행 감사와 public 스냅샷·포인터를 추가한다. 기존 v1/KV를 수정하지 않는다. 모두 RLS를 활성화하고 공개 역할에는 현재 포인터와 현재 세대 SELECT만 허용한다. private 데이터·과거 세대·쓰기·발행/롤백 실행 권한은 없다. 별도 service role·Edge Function·Cron·저장 트리거는 추가하지 않는다.
+운영 적용 migration: `20261012122322_canonical_question_statistics_v2.sql`. 신규 private 카탈로그·발행 감사와 public 스냅샷·포인터를 추가한다. 기존 v1/KV를 수정하지 않는다. 모두 RLS를 활성화하고 공개 역할에는 현재 포인터와 현재 세대 SELECT만 허용한다. private 데이터·과거 세대·쓰기·발행/롤백 실행 권한은 없다. 별도 service role·Edge Function·Cron·저장 트리거는 추가하지 않는다.
 
 개발자 전용 private SECURITY INVOKER 함수는 승인된 불변 카탈로그, 안전 정수·정확한 전체 조합/문항/정답·분포 합계·건수 분할·정렬 JSON SHA-256을 검사한다. 카탈로그 등록/발행/롤백은 같은 transaction advisory lock을 사용한다. 38개 행·감사·포인터를 한 트랜잭션으로 저장하고 예상 현재 세대가 달라지면 중단한다. 재실행은 같은 현재 파일만 idempotent하며 과거 파일은 명시적 rollback이 필요하다. 카탈로그 payload는 변경/삭제 불가다. 오류로 revoked_at이 설정된 카탈로그는 발행·롤백을 거절한다. 과거 카탈로그와 정답을 보존한다.
 
-## 최초 운영 전환 (별도 명시적 요청 필요)
+## 최초 운영 전환 절차
 
 로컬·원격 이력 불일치가 있으므로 전체 `db push`를 하지 않는다. 신규 파일·대상 객체·권한·migration 이력을 재대조한 뒤 이 migration만 적용하고 해당 이력을 같은 트랜잭션으로 기록한다. 이후 다음 순서를 따른다. 관리 토큰은 CLI 환경에서만 사용하며 브라우저/빌드에는 넣지 않는다.
 
@@ -46,7 +46,7 @@ npm run statistics:v2 -- prepare --out /private/tmp/leet-statistics-v2-review.js
 npm run statistics:v2 -- publish --file /private/tmp/leet-statistics-v2-review.json --confirm-project jkxxtyaanyhmjbdtybkp --expected-current none --operator '수행자' --reason '최초 공통 정답률 발행'
 ```
 
-첫 발행만 none을 사용하고 이후에는 status의 실제 ID를 지정한다. 응답 유실 시 status를 먼저 확인한다. 공개 anon/auth 조회·현재 세대·대표 홀짝 문항/선지·제외 건수·v1 조회 유지를 검증한 뒤 새 웹/HTML을 빌드·배포한다. 공유 채점 함수가 바뀌므로 관리자 재계산과 이력 답안 수정에 사용하는 Edge들도 같은 코드로 배포해야 한다(`make-server-cd835c22`, `admin-user-data`). 이 작업에서 운영 배포는 실행하지 않았다.
+첫 발행만 none을 사용하고 이후에는 status의 실제 ID를 지정한다. 응답 유실 시 status를 먼저 확인한다. 공개 anon/auth 조회·현재 세대·대표 홀짝 문항/선지·제외 건수·v1 조회 유지를 검증한 뒤 새 웹/HTML을 빌드·배포한다. 공유 채점 함수가 바뀌므로 관리자 재계산과 이력 답안 수정에 사용하는 Edge들도 같은 코드로 배포해야 한다(`make-server-cd835c22`, `admin-user-data`). 2026-10-13 사용자의 명시적 배포 요청으로 두 함수를 운영에 배포했다. 적용 기록의 실제 버전과 검증 결과를 확인한다.
 
 정상 이전 v2가 있으면 검증된 ID로 rollback한다. 폐기 카탈로그·불완전/손상 세대는 거절한다. 최초 v2가 실패하면 웹 전환을 진행하지 않고 기존 앱/v1을 유지한다.
 
@@ -65,7 +65,7 @@ v1은 구버전 탭/PWA를 위해 동결 보존한다. 갱신된 앱은 v2만 �
 2026-10-12 실제 새 source SQL의 읽기 전용 확인: 5,717개 기록 모두 포함, 정상 제외/invalid/손상 이력 0건, 38묶음/1,350ID 검증. [집계 검증 근거](../output/analysis/past-exam-forms/evidence/v2-implementation-read-only-2026-10-12.json). 개인 답안·ID를 보관하지 않았고 승인 카탈로그 등록·발행은 하지 않았다.
 
 
-## 2026-10-12 완료 검증 기록
+## 2026-10-12 로컬 완료 검증 기록
 
 - `npm run check` 전체 통과: lint 오류 0건(기존 경고 52건), typecheck, Vitest 33파일/290개, Edge 122개·사용자 데이터 21개·analytics 10개·push 12개 및 관련 격리 SQL, push 화면 13개, 일반 화면 95개, fixture HTML 화면 10개. 생성 레지스트리와 v2 SQL/RLS 검사도 품질 게이트에 포함됐다.
 - 이후 최종 검토 보강: 분야 버전을 독립 해시로 생성, v1 범위 명시 동결, 공개 items의 추가 항목 차단, 카탈로그 숫자 형식 검증, 비자기역순열 source SQL, CLI 파일 검증 및 폐기 카탈로그 재승인 거절을 확인했다. 관련 단위 6파일/47개와 v2 SQL·typecheck·lint를 재검증했다.

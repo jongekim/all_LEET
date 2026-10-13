@@ -127,7 +127,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 ## 위험도가 높은 변경
 
-현재 v2의 신규 DB/카탈로그/발행·Edge/웹 전환은 [v2 가이드](question-statistics-v2.md)를 따른다. 운영에는 아직 적용하지 않았다. v1은 동결 보존한다. 다음은 이전 운영 기록이다. 문항 통계는 [수동 갱신 가이드](question-statistics.md)의 status → prepare(읽기 전용 집계·파일 검증) → 개발자 검토 → publish(검증 파일 전체 발행) → status/공개 조회 순서로 갱신한다. 문제 시 명시적 rollback을 사용한다. 프로젝트 확인·예상 현재 세대·수행자·사유가 필요하며 원본 KV를 수정하지 않는다. 자동/예약 갱신은 없다. 운영 DB 최초 구조/발행은 적용했고 화면 기능은 v1.2.0에 포함한다. 웹 배포 시 DB 재적용이나 Edge Function 배포는 하지 않는다. 격리 SQL/RLS 검증과 모의 API 화면 테스트 방법도 해당 가이드에 명시한다.
+현재 v2의 신규 DB/카탈로그/발행·Edge/웹 전환은 [v2 가이드](question-statistics-v2.md)를 따른다. 2026-10-13 사용자의 배포 요청으로 최초 v2 구조/카탈로그/통계와 공유 채점 Edge를 적용했다. 같은 릴리스 웹 빌드에는 운영 공개 38묶음을 포함한다. [적용·검증·복구 기록](question-statistics-v2-rollout.md)을 확인한다. v1은 동결 보존한다. 다음은 이전 운영 기록이다. 문항 통계는 [수동 갱신 가이드](question-statistics.md)의 status → prepare(읽기 전용 집계·파일 검증) → 개발자 검토 → publish(검증 파일 전체 발행) → status/공개 조회 순서로 갱신한다. 문제 시 명시적 rollback을 사용한다. 프로젝트 확인·예상 현재 세대·수행자·사유가 필요하며 원본 KV를 수정하지 않는다. 자동/예약 갱신은 없다. 운영 DB 최초 구조/발행은 적용했고 화면 기능은 v1.2.0에 포함한다. 웹 배포 시 DB 재적용이나 Edge Function 배포는 하지 않는다. 격리 SQL/RLS 검증과 모의 API 화면 테스트 방법도 해당 가이드에 명시한다.
 
 - `supabase/config.toml`의 Edge Function JWT 설정 및 Edge Function의 사용자 식별
 - `verify_jwt = false`인 성적 이력 Edge Function의 내부 토큰·소유자 검증과 클라이언트 먼저 적용하는 [운영 절차](history-security-rollout.md)

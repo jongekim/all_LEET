@@ -66,7 +66,7 @@ POST와 DELETE는 배열 전체를 읽어 수정한 뒤 같은 키에 다시 저
 
 ## 마이그레이션 상태
 
-2026-10-12 신규 `20261012122322_canonical_question_statistics_v2.sql`은 **로컬 구현·격리 검증 상태이며 운영 미적용**이다. private.question_statistics_catalogs_v2/runs_v2와 public.question_statistics_snapshots_v2/publication_v2 및 승인/발행/롤백 함수를 추가한다. 38묶음·1,350ID·승인 카탈로그·정렬 JSON SHA256·안전 정수·건수 분할을 검사하고 모든 테이블에 RLS를 적용한다. anon/authenticated에는 현재 세대 SELECT만 허용한다. SECURITY INVOKER·동일 advisory lock·CAS·원자 발행·과거 카탈로그 보존을 사용한다. v1/KV는 유지한다. [v2 DB/운영 절차](question-statistics-v2.md)를 따른다.
+2026-10-13 신규 `20261012122322_canonical_question_statistics_v2.sql`을 운영에 적용하고 승인 카탈로그와 통계 1세대(38묶음·5,717개 풀이)를 발행했다. SQL 원문과 이력은 같은 트랜잭션으로 저장했다. private.question_statistics_catalogs_v2/runs_v2와 public.question_statistics_snapshots_v2/publication_v2 및 승인/발행/롤백 함수를 추가한다. 38묶음·1,350ID·승인 카탈로그·정렬 JSON SHA256·안전 정수·건수 분할을 검사하고 모든 테이블에 RLS를 적용한다. anon/authenticated에는 현재 세대 SELECT만 허용한다. SECURITY INVOKER·동일 advisory lock·CAS·원자 발행·과거 카탈로그 보존을 사용한다. v1/KV는 유지한다. [v2 DB/운영 절차](question-statistics-v2.md)와 [운영 적용 기록](question-statistics-v2-rollout.md)을 따른다.
 
 문항 통계 마이그레이션 `20260917075220_question_statistics`는 2026-09-17 운영에 적용했다. `private.exam_answer_key_versions`, `private.exam_question_answer_keys`, `private.question_statistics_runs`에 정답 버전과 발행 감사 정보를 저장하고 공개 두 테이블에 스냅샷과 현재 포인터를 저장한다. 모든 신규 테이블에 RLS를 적용하며 anon/authenticated는 현재 공개 집계의 SELECT만 가능하다. 공개 쓰기·발행 RPC·개인 기록 접근은 허용하지 않는다. 최초 발행 ID `1`: 76조합, 5,716건, 원본 조회 2026-09-17 16:56:30 KST.
 
