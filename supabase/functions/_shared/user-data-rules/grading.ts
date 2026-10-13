@@ -25,9 +25,9 @@ function generateCorrectAnswers(year: Year, subject: Subject, count: number, exa
   return getCorrectAnswers(year, subject, examType);
 }
 
-// 분야별 문제 범위 (실제 데이터 사용, 없으면 모의 데이터)
-function getFieldRanges(year: Year, subject: Subject, total: number) {
-  const fieldMapping = getFieldMapping(year, subject);
+// 실제 문형의 분야별 문항 범위
+function getFieldRanges(year: Year, subject: Subject, total: number, examType: ExamType) {
+  const fieldMapping = getFieldMapping(year, subject, examType);
   
   // fieldMapping이 있으면 실제 데이터 사용
   if (Object.keys(fieldMapping).length > 0) {
@@ -69,23 +69,7 @@ function getFieldRanges(year: Year, subject: Subject, total: number) {
   // 단일 문형 시험의 분야 자료가 없으면 임의 분류를 제공하지 않습니다.
   if (isSingleFormYear(year)) return [];
 
-  // fieldMapping이 없으면 모의 데이터 사용
-  if (subject === 'verbal') {
-    const perField = Math.floor(total / 3);
-    return [
-      { field: '인문', start: 1, end: perField, questions: Array.from({length: perField}, (_, i) => i + 1) },
-      { field: '사회', start: perField + 1, end: perField * 2, questions: Array.from({length: perField}, (_, i) => i + perField + 1) },
-      { field: '과학/기술', start: perField * 2 + 1, end: total, questions: Array.from({length: total - perField * 2}, (_, i) => i + perField * 2 + 1) },
-    ];
-  } else {
-    const perField = Math.floor(total / 4);
-    return [
-      { field: '논리', start: 1, end: perField, questions: Array.from({length: perField}, (_, i) => i + 1) },
-      { field: '논증', start: perField + 1, end: perField * 2, questions: Array.from({length: perField}, (_, i) => i + perField + 1) },
-      { field: '법학', start: perField * 2 + 1, end: perField * 3, questions: Array.from({length: perField}, (_, i) => i + perField * 2 + 1) },
-      { field: '수리', start: perField * 3 + 1, end: total, questions: Array.from({length: total - perField * 3}, (_, i) => i + perField * 3 + 1) },
-    ];
-  }
+  return [];
 }
 
 // 채점 실행
@@ -97,7 +81,6 @@ export function gradeAnswers(
   examType: ExamType
 ): GradingResult {
   const correctAnswers = generateCorrectAnswers(year, subject, total, examType);
-  const fieldRanges = getFieldRanges(year, subject, total);
   
   // 전체 정답 개수 계산
   let correct = 0;
@@ -107,21 +90,7 @@ export function gradeAnswers(
     }
   }
   
-  // 분야별 정답 개수 계산
-  const fieldAnalysis = fieldRanges.map(range => {
-    let fieldCorrect = 0;
-    for (const question of range.questions) {
-      if (userAnswers[question] === correctAnswers[question]) {
-        fieldCorrect++;
-      }
-    }
-    return {
-      field: range.field,
-      correct: fieldCorrect,
-      total: range.questions.length,
-      questions: range.questions,
-    };
-  });
+  const fieldAnalysis = calculateFieldAnalysis(year, subject, examType, total, userAnswers, correctAnswers);
   
   // 실제 점수 데이터에서 표준점수와 백분위 가져오기
   const scoreConversion = getScoreConversion(year, subject, correct);
@@ -155,4 +124,11 @@ export function gradeAnswers(
     examType,
     adjustedScore,
   };
+}
+
+export function calculateFieldAnalysis(year:Year,subject:Subject,examType:ExamType,total:number,userAnswers:Record<number,number>,correctAnswers:Record<number,number>):GradingResult['fieldAnalysis'] {
+  return getFieldRanges(year,subject,total,examType).map(range=>({
+    field:range.field,correct:range.questions.filter(q=>userAnswers[q]===correctAnswers[q]).length,
+    total:range.questions.length,questions:range.questions,
+  }));
 }

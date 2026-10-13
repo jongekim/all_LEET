@@ -27,7 +27,7 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 - 계정별 이력 상태와 CRUD: `src/hooks/useUserHistory.ts`
 - 세션 토큰·응답·제한된 인증 재시도: `src/utils/historyApi.ts`
 - 답안 수정: `EditableAnswers` → `useUserHistory.updateOfficial` → 기존 이력 Edge PUT → service-only `user_history_update_answers`. 공유 재계산·기존 쓰기 잠금·전체 기록 비교를 사용한다. [설계](answer-edit.md) 참고.
-- 결과 분석 UI: `ResultPanel`의 `FieldAnalysis`가 기존 `GradingResult.fieldAnalysis`를 요약하고 한 분야의 문항만 펼친다. 문항 선택 콜백은 `ResultPage`가 보관한 과목별 답안표 ref로 포커스·스크롤·일시 강조를 처리한다. `ResultRateVisibilityProvider`는 결과 화면에만 적용하여 두 과목의 공개 정답률 선택을 공유하고 브라우저 저장소에 기억한다. 기존 통계 hook의 enabled 인자를 사용하며 DB/API 계약은 바꾸지 않는다. [구현·검증](result-analysis.md) 참고.
+- 결과 분석 UI: `ResultPanel`의 `FieldAnalysis`가 `projectHistoricalFields`가 원본 답안·저장 정답을 검증하여 만든 별도 표시 분석을 요약하고 한 분야의 문항만 펼친다. 문항 선택 콜백은 `ResultPage`가 보관한 과목별 답안표 ref로 포커스·스크롤·일시 강조를 처리한다. `ResultRateVisibilityProvider`는 결과 화면에만 적용하여 두 과목의 공개 정답률 선택을 공유하고 브라우저 저장소에 기억한다. 기존 통계 hook의 enabled 인자를 사용하며 개인 이력/메모 API 계약은 유지한다. `useUserHistory`·답안 편집·관리자 snapshot은 저장 원본을 사용하고 화면 보정을 원본 JSON에 덧붙이지 않는다. [구현·검증](result-analysis.md) 참고.
 - 인증 provider와 Supabase 클라이언트: `src/contexts/AuthContext.tsx`
 - 화면: `src/pages/`
 - 도메인 UI: `src/components/`
@@ -50,15 +50,15 @@ Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
 
 ### 문항 통계 조회·수동 발행
 
-`QuestionStatistics`/`QuestionRate`와 `useQuestionStatistics`를 결과 답안 및 기출 정답표가 공유한다. 동일 학년도·유형의 두 과목은 한 공개 SELECT로 읽고 5분간 공유 캐시한다. RLS가 현재 발행 세대만 허용한다. 통계 오류·정답 버전 불일치가 개인 결과·메모·정답표를 막지 않는다.
+`QuestionStatistics`/`QuestionRate`와 `useQuestionStatistics`를 결과 답안 및 기출 정답표가 공유한다. 동일 학년도의 두 과목은 `question_statistics_snapshots_v2`의 공통 분포를 한 공개 SELECT로 읽고 양 문형이 5분간 공유 캐시한다. RLS가 현재 발행 세대만 허용한다. 통계 오류·정답 버전 불일치가 개인 결과·메모·정답표를 막지 않는다.
 
-개발자 전용 `scripts/question-statistics.ts`는 브라우저와 분리된 Supabase Management API로 읽기 전용 집계 파일 생성, 검증 파일의 원자적 전체 발행, 상태 확인, 롤백을 수행한다. 주기 작업·Edge Function·원본 이력 API 변경은 없다. 구조와 운영 절차는 [문항 통계 설계](question-statistics-design.md) 및 [수동 갱신](question-statistics.md)을 따른다.
+v2 개발자 전용 `scripts/question-statistics-v2.ts`는 브라우저와 분리된 Supabase Management API로 읽기 전용 집계 파일 생성, 검증 파일의 원자적 전체 발행, 상태 확인, 롤백을 수행한다. 주기 작업·Edge Function·원본 이력 API 변경은 없다. v1 도구/DB는 구버전 호환을 위해 동결 보존한다. 생성 레지스트리·표시 투영·원본 보존·v2 DB/운영 순서는 [v2 구현](question-statistics-v2.md)을 따른다. 구조와 운영 절차는 [문항 통계 설계](question-statistics-design.md) 및 [수동 갱신](question-statistics.md)을 따른다.
 
 공개 라우트는 홈(`/`), 결과, 로그인/회원가입/비밀번호 재설정, 약관, 커뮤니티, 채팅이다. `PrivateRoute`가 적용된 라우트는 지원 분석(`/admission`, `/admission-result`)과 사설 모의고사 입력(`/mock-input`)이다. `/history`와 `/mock-history`는 라우트 가드 없이 렌더링되며, 이력 로딩 자체는 현재 사용자 유무에 따라 동작한다.
 
 공개 페이지의 사이트맵은 `scripts/generate-sitemap.ts`가 `src/public/sitemap.xml`에 생성한다. 기출문제 URL은 등록된 문제지 78개와 일대일로 대응한다. 검색 제목·설명·canonical은 `src/utils/pageSeo.ts`를 빌드와 브라우저가 공유한다. 홈의 검색 제목·설명은 LEET 채점, 문항별 정답률·선지별 응답 분포, 기출문제 PDF·정답표·환산표를 강조하며 기존 화면의 본문·레이아웃은 유지한다.
 
-`npm run build`는 Vite 빌드 후 `scripts/prerender.ts`가 기존 React 화면을 Vite SSR/React 서버 렌더러로 HTML에 기록한다. 대상은 홈, 성적 이력 예시 두 경로, 정책 두 경로, 기출문제 선택 URL 78개로 총 83개다. `scripts/prerenderStatistics.ts`가 기존 anon 키와 SELECT/RLS로 현재 공개 발행 통계 전체를 GET 한 번으로 읽고, 응답 건수·문항 합계·시험 조합 중복·발행본 일치를 검증한다. 요청은 15초 제한·redirect 금지·캐시 미사용이다. 조회 실패·부분 응답·잘못된 통계에는 빌드를 실패시키며 오래된 파일로 대체하지 않는다.
+`npm run build`는 Vite 빌드 후 `scripts/prerender.ts`가 기존 React 화면을 Vite SSR/React 서버 렌더러로 HTML에 기록한다. 대상은 홈, 성적 이력 예시 두 경로, 정책 두 경로, 기출문제 선택 URL 78개로 총 83개다. `scripts/prerenderStatistics.ts`가 기존 anon 키와 SELECT/RLS로 현재 공개 발행 통계 전체를 GET 한 번으로 읽고, 응답 건수·문항 합계·시험 조합 중복·발행본 일치를 검증한다. 요청은 15초 제한·redirect 금지·캐시 미사용이다. v2 테이블 미설치(PGRST205/42P01)·미발행은 미가용으로 표시하며, 네트워크/일반 조회 실패·부분 응답·잘못된 통계에는 빌드를 실패시키며 오래된 파일로 대체하지 않는다.
 
 `src/entry-prerender.tsx`는 `StaticRouter`, 세션 없는 인증 Context, 빌드 전용 `PrerenderStatisticsContext`로 `AppContent`를 렌더링한다. AuthProvider·React effect는 실행하지 않는다. 공개 통계 조회를 마친 뒤 실제 React 렌더링에서는 외부 fetch를 금지하며 공지·개인 이력·인증·쓰기 요청은 실행하지 않는다. 원본 통계 JSON·집계 건수·조회 일자는 HTML에 직렬화하지 않고 기존 문항별 정답률과 경고만 렌더링한다. 미발행 시험과 정답 버전 불일치는 기존 상태를 유지한다.
 

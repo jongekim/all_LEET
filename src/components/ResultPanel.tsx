@@ -1,12 +1,15 @@
 import { GradingResult } from '../App';
+import { projectHistoricalFields } from '../../supabase/functions/_shared/user-data-rules/fieldProjection';
 import { FieldAnalysis } from './FieldAnalysis';
 
 interface ResultPanelProps {
   result: GradingResult;
+  example?: boolean;
   onQuestionSelect: (question: number) => void;
 }
 
-export function ResultPanel({ result, onQuestionSelect }: ResultPanelProps) {
+export function ResultPanel({ result, onQuestionSelect, example = false }: ResultPanelProps) {
+  const projection = projectHistoricalFields(result, example);
   const subjectName = result.subject === 'verbal' ? '언어이해' : '추리논증';
   const correctRate = ((result.correct / result.total) * 100).toFixed(1);
   
@@ -54,7 +57,7 @@ export function ResultPanel({ result, onQuestionSelect }: ResultPanelProps) {
       </div>
 
       {result.year === '2027' && <p className="text-xs text-gray-500">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다.</p>}
-      <FieldAnalysis result={result} onQuestionSelect={onQuestionSelect} />
+      {(projection.status === 'ready' || projection.status === 'example') && <FieldAnalysis result={result} analysis={projection.analysis} onQuestionSelect={onQuestionSelect} />}
     </div>
   );
 }

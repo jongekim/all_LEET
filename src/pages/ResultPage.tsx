@@ -483,7 +483,7 @@ function ResultPageContent({ admin, onUpdateAnswers, initialResults }: {
         {/* 각 과목별 결과 */}
         {finalResults.map((result, index) => (
           <div key={index}>
-            <ResultPanel result={result} onQuestionSelect={question => focusQuestion(result.subject, question)} />
+            <ResultPanel result={result} example={location.state?.entry_source === 'example'} onQuestionSelect={question => focusQuestion(result.subject, question)} />
 
             <div className="mt-6 bg-white rounded-lg shadow p-4 sm:p-6" data-result-answers={result.subject}
               ref={element => { answerCards.current[result.subject] = element; }}>

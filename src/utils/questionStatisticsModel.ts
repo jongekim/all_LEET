@@ -1,6 +1,9 @@
-import { ANSWER_DATA, getCorrectAnswers } from './answerData';
+import { getCorrectAnswers } from './answerData';
 import { getQuestionCount } from './grading';
 import { AGGREGATION_VERSION, type ExamStatisticsSelection, type StatisticsCohort, type StatisticsSnapshot, type StatisticsState } from '../types/questionStatistics';
+
+// Frozen V1 scope: grading support must not automatically extend the legacy publication.
+const LEGACY_STATISTICS_YEARS = ['09예비',...Array.from({length:18},(_,i)=>String(2009+i))];
 
 export const PUBLIC_STATISTICS_SELECT = 'year,subject,exam_type,snapshot_id::text,answer_key_version,aggregation_version,question_count,sample_count::text,items,source_snapshot_at,published_at';
 
@@ -19,7 +22,7 @@ export function answerKeyVersion(selection: ExamStatisticsSelection): string {
 }
 
 export function statisticsCatalog() {
-  return Object.keys(ANSWER_DATA).sort().flatMap(year =>
+  return [...LEGACY_STATISTICS_YEARS].sort().flatMap(year =>
     (['verbal', 'reasoning'] as const).flatMap(subject =>
       (['odd', 'even'] as const).map(examType => {
         const selection = { year, subject, examType };
@@ -48,7 +51,7 @@ export function countValue(value: unknown): number {
 
 export function validateCohort(value: unknown): StatisticsCohort {
   const row = objectValue(value);
-  if (typeof row.year !== 'string' || !Object.prototype.hasOwnProperty.call(ANSWER_DATA, row.year)
+  if (typeof row.year !== 'string' || !LEGACY_STATISTICS_YEARS.includes(row.year)
       || (row.subject !== 'verbal' && row.subject !== 'reasoning')
       || (row.exam_type !== 'odd' && row.exam_type !== 'even')) throw new Error('지원하지 않는 집계 조합입니다.');
   const selection: ExamStatisticsSelection = { year: row.year, subject: row.subject, examType: row.exam_type };

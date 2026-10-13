@@ -12,8 +12,9 @@ function questionStatus(result: GradingResult, question: number) {
 }
 const labels = {correct:'정답',incorrect:'오답',blank:'미응답',unknown:'결과 없음'};
 
-export function FieldAnalysis({ result, onQuestionSelect }: {
+export function FieldAnalysis({ result, analysis = result.fieldAnalysis, onQuestionSelect }: {
   result: GradingResult;
+  analysis?: GradingResult['fieldAnalysis'];
   onQuestionSelect: (question: number) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
@@ -31,9 +32,9 @@ export function FieldAnalysis({ result, onQuestionSelect }: {
     </div>
     <div id={id} hidden={!expanded}>
       <p className="field-analysis-intro">내 답안 기준 · 분야를 누르면 문항별 결과를 볼 수 있습니다.</p>
-      {!result.fieldAnalysis.length && <p className="field-analysis-empty">분야별 분류 자료가 아직 준비되지 않았습니다.</p>}
+      {!analysis.length && <p className="field-analysis-empty">분야별 분류 자료가 아직 준비되지 않았습니다.</p>}
       <div className="field-analysis-rows">
-        {result.fieldAnalysis.map((field,index)=>{
+        {analysis.map((field,index)=>{
           const rate = field.total ? Math.round(field.correct / field.total * 100) : null;
           const open = selected === field.field;
           const questions = field.questions ?? [];

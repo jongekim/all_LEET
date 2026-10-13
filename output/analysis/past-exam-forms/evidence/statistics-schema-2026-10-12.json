@@ -1,0 +1,42 @@
+{
+  "tables": [
+    {
+      "rls": true,
+      "name": "exam_answer_key_versions",
+      "schema": "private"
+    },
+    {
+      "rls": true,
+      "name": "exam_question_answer_keys",
+      "schema": "private"
+    },
+    {
+      "rls": true,
+      "name": "question_statistics_runs",
+      "schema": "private"
+    },
+    {
+      "rls": true,
+      "name": "question_statistics_publication",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "question_statistics_snapshots",
+      "schema": "public"
+    }
+  ],
+  "functions": [
+    {
+      "name": "publish_question_statistics",
+      "schema": "private",
+      "security_definer": false
+    },
+    {
+      "name": "rollback_question_statistics",
+      "schema": "private",
+      "security_definer": false
+    }
+  ],
+  "audited_at": "2026-10-12T10:20:03.776569+00:00"
+}

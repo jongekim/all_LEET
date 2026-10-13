@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import fixture from '../../e2e/fixtures/question-statistics-2026.json';
+import fixture from '../../e2e/fixtures/question-statistics-v2.json';
 import { PrerenderStatisticsContext } from '../contexts/PrerenderStatisticsContext';
 import { getCorrectAnswers } from '../utils/answerData';
 import { validatePublicStatistics } from '../../scripts/prerenderStatistics';
@@ -29,7 +29,7 @@ describe('접힌 정답표의 사전 HTML', () => {
     const html = render();
     expect(html).toContain('aria-expanded="false"');
     expect(html).toMatch(/hidden=""[^>]*class="past-exam-review-content/);
-    expect(html).toContain('1번 정답률 78.3%, 응답 분포 보기');
+    expect(html).toContain('1번 정답률 79.5%, 응답 분포 보기');
     expect(html.match(/class="answer-key-cell"/g)).toHaveLength(30);
     expect(html.match(/class="question-rate question-rate--answer-key"/g)).toHaveLength(30);
     expect(html).not.toContain('문항 통계를 불러오는 중');

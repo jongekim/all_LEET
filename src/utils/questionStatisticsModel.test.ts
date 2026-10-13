@@ -34,6 +34,11 @@ describe('문항별 통계 모델', () => {
     expect(hasMatchingAnswers(selection,getCorrectAnswers('2026','verbal','even'))).toBe(false);
     expect(hasMatchingAnswers(selection,undefined)).toBe(false);
   });
+  it('v1 범위는 채점 지원 목록과 독립된 76조합으로 동결한다',()=>{
+    expect(statisticsCatalog()).toHaveLength(76);
+    expect(statisticsCatalog().some(c=>c.year==='2027')).toBe(false);
+    expect(()=>validateCohort({...cohort(),year:'2027'})).toThrow();
+  });
   it('등록된 조합의 발행 파일 검증·변조 방지·격리 시 중단', () => {
     const cohorts=statisticsCatalog().map(c => ({...c,sample_count:0,items:Array.from({length:c.question_count},(_,i)=>({question_no:i+1,choice_counts:[0,0,0,0,0],unanswered_count:0}))}));
     const source={source_snapshot_at:'2026-09-17T07:00:00Z',source_count:0,included_count:0,quarantined_count:0,malformed_histories:0,cohorts};

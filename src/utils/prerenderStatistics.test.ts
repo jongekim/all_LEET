@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
-import fixture from '../../e2e/fixtures/question-statistics-2026.json';
+import fixture from '../../e2e/fixtures/question-statistics-v2.json';
 import { loadPublicStatistics, validatePublicStatistics } from '../../scripts/prerenderStatistics';
-import { statisticsStateForSelection } from './questionStatisticsModel';
+import { canonicalStateForSelection as statisticsStateForSelection } from './canonicalStatisticsModel';
 
-const response = (data: unknown, range = `0-3/4`) => new Response(JSON.stringify(data), {
+const response = (data: unknown, range = `0-37/38`) => new Response(JSON.stringify(data), {
   headers: { 'Content-Type': 'application/json', 'Content-Range': range },
 });
 
@@ -14,19 +14,24 @@ describe('사전 HTML 공개 통계 조회', () => {
     const rows = await loadPublicStatistics(fetcher);
     expect(fetcher).toHaveBeenCalledTimes(1);
     const [url, options] = fetcher.mock.calls[0];
-    expect(String(url)).toContain('/rest/v1/question_statistics_snapshots?');
+    expect(String(url)).toContain('/rest/v1/question_statistics_snapshots_v2?');
     expect(options).toMatchObject({ method: 'GET', redirect: 'error', cache: 'no-store', headers: { Prefer: 'count=exact', Range: '0-999' } });
     const headers = options!.headers as Record<string, string>;
     const payload = JSON.parse(Buffer.from(headers.apikey.split('.')[1], 'base64url').toString());
     expect(payload.role).toBe('anon');
     expect(JSON.stringify(rows)).not.toContain('must-not-export');
-    expect(rows).toHaveLength(4);
-    expect(rows[0].sample_count).toBe(31);
+    expect(rows).toHaveLength(38);
+    expect(rows.find(r=>r.year==='2026'&&r.subject==='verbal')!.sample_count).toBe(292);
   });
 
   it('HTTP 오류를 빈 통계나 과거 파일로 대체하지 않는다', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response('unavailable', { status: 503 }));
     await expect(loadPublicStatistics(fetcher)).rejects.toThrow('HTTP 503');
+  });
+
+  it('v2 테이블 미설치만 명시적 미가용으로 처리한다',async()=>{
+    expect(await loadPublicStatistics(vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({code:'PGRST205'}),{status:404})))).toEqual([]);
+    await expect(loadPublicStatistics(vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({code:'other'}),{status:404})))).rejects.toThrow('HTTP 404');
   });
 
   it('시간 초과/네트워크 오류를 빌드 호출자에게 전달한다', async () => {
@@ -62,7 +67,7 @@ describe('사전 HTML 공개 통계 조회', () => {
     const state = statisticsStateForSelection(rows, selection);
     expect(state.status).toBe('ready');
     if (state.status !== 'ready') throw new Error('fixture missing');
-    expect(statisticsStateForSelection([{ ...state.data, answer_key_version: 'old-version' }], selection)).toEqual({ status: 'mismatch' });
+    expect(statisticsStateForSelection([{ ...rows.find(r=>r.year==='2026'&&r.subject==='verbal')!, answer_key_version: 'old-version' }], selection)).toEqual({ status: 'mismatch' });
     expect(statisticsStateForSelection(rows, { ...selection, year: '2027' })).toEqual({ status: 'unavailable' });
   });
 });

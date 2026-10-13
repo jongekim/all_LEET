@@ -23,7 +23,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run lint
       - run: npm run typecheck
+      - run: npm run registry:check
       - run: npm run test
+      - run: npm run test:statistics
       - run: npm run test:edge
       - run: npm run test:user-data
       - run: npm run test:analytics
@@ -31,7 +33,7 @@ jobs:
       - run: npm run test:push
       - run: npm run test:e2e:push
       - run: npm run test:e2e
-      # 운영 DB에 접근하지 않는 고정 공개 집계 파일로 HTML 생성/화면을 검증한다.
+      # 운영 DB에 접근하지 않는 검수 대응표로 변환한 오프라인 비교 fixture로 HTML 생성/화면을 검증한다.
       # 실제 Vercel 빌드는 npm run build로 현재 발행본을 조회한다.
       - run: npm run build:test
       - run: npm run test:prerender

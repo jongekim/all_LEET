@@ -4,10 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QuestionStatistics, QuestionRate } from './QuestionStatistics';
 import { AnswerSheetResult } from './AnswerSheetResult';
 import { ResultRateVisibilityProvider } from './ResultRateVisibilityProvider';
-import { answerKeyVersion } from '../utils/questionStatisticsModel';
-import { AGGREGATION_VERSION, type StatisticsState } from '../types/questionStatistics';
+import type { CanonicalStatisticsState } from '../types/canonicalStatistics';
+import fixture from '../../e2e/fixtures/question-statistics-v2.json';
+import { validateCanonicalSnapshot, projectFormStatistics } from '../utils/canonicalStatisticsModel';
 
-const mock = vi.hoisted(() => ({ state: { status:'loading' } as StatisticsState, retry:vi.fn() }));
+const mock = vi.hoisted(() => ({ state: { status:'loading' } as CanonicalStatisticsState, retry:vi.fn() }));
 vi.mock('../hooks/useQuestionStatistics', () => ({ useQuestionStatistics: () => mock }));
 const selection = {year:'2026',subject:'verbal',examType:'odd'} as const;
 let root:Root, container:HTMLDivElement;
@@ -20,9 +21,9 @@ afterEach(()=>{act(()=>root.unmount());container.remove();vi.useRealTimers();vi.
 const render=(node:ReactNode)=>act(()=>root.render(node));
 const click=(selector:string)=>act(()=>{const button=document.querySelector<HTMLButtonElement>(selector);expect(button).not.toBeNull();button!.click();});
 function ready(n:number, examType:'odd'|'even'='odd') {
-  mock.state={status:'ready',data:{year:'2026',subject:'verbal',exam_type:examType,answer_key_version:answerKeyVersion({...selection,examType}),question_count:30,
-    sample_count:n,snapshot_id:'1',aggregation_version:AGGREGATION_VERSION,source_snapshot_at:'2026-09-17T07:00:00Z',published_at:'2026-09-17T08:00:00Z',
-    items:Array.from({length:30},(_,i)=>({question_no:i+1,choice_counts:[0,0,0,n,0],unanswered_count:0}))}};
+  const canonical = validateCanonicalSnapshot(fixture.find(r=>r.year==='2026'&&r.subject==='verbal'));
+  const view = projectFormStatistics(canonical,{...selection,examType});
+  mock.state={status:'ready',data:{...view,sample_count:n,items:view.items.map(item=>({...item,choice_counts:[0,0,0,n,0],unanswered_count:0}))}};
 }
 describe('공개 문항 통계 UI',()=>{
   it('채점 화면에서만 기본 숨김이며 두 과목 선택을 동기화하고 재진입 때 복구한다',()=>{
@@ -61,12 +62,12 @@ describe('공개 문항 통계 UI',()=>{
     ready(30,examType);render(<QuestionStatistics selection={{...selection,examType}}><QuestionRate question={1}/></QuestionStatistics>);
     const notice=container.querySelector('.question-statistics-notice')!;
     expect(notice.textContent).not.toMatch(/집계|2026/);
-    expect(notice.textContent?.includes('짝수형은 다회독 데이터가 많아 실제 정답률보다 높게 나타나는 경향이 있습니다.')).toBe(examType==='even');
+    expect(notice.textContent?.includes('짝수형은 다회독 데이터가 많아 실제 정답률보다 높게 나타나는 경향이 있습니다.')).toBe(false);
     expect(notice.querySelector('.question-statistics-warning')).not.toBeNull();
     click('.question-rate');
     const dialog=document.querySelector('[role="dialog"]')!;
     expect(dialog.textContent).not.toMatch(/집계|2026-09-17|2026\. 9\. 17/);
-    expect(dialog.textContent?.includes('짝수형은 다회독 데이터가 많아 실제 정답률보다 높게 나타나는 경향이 있습니다.')).toBe(examType==='even');
+    expect(dialog.textContent?.includes('짝수형은 다회독 데이터가 많아 실제 정답률보다 높게 나타나는 경향이 있습니다.')).toBe(false);
     expect(dialog.querySelector('.question-statistics-warning')).not.toBeNull();
   });
   it.each([0,1,30,31])('%i건 표시와 30건 이하 경고',n=>{
@@ -83,7 +84,7 @@ describe('공개 문항 통계 UI',()=>{
   });
   it('6개 분포와 정답 보기/메모를 분리한다',()=>{
     ready(254);
-    if(mock.state.status==='ready') mock.state.data.items[0]={question_no:1,choice_counts:[4,19,6,199,12],unanswered_count:14};
+    if(mock.state.status==='ready') mock.state.data.items[0]={...mock.state.data.items[0],question_no:1,choice_counts:[4,19,6,199,12],unanswered_count:14};
     const note=vi.fn();
     render(<QuestionStatistics selection={selection}><AnswerSheetResult total={1} userAnswers={{1:1}} correctAnswers={{1:4}} onOpenNote={note}/></QuestionStatistics>);
     click('.question-rate');
@@ -101,6 +102,19 @@ describe('공개 문항 통계 UI',()=>{
     expect(container.textContent).toContain('정답4');
     act(()=>vi.advanceTimersByTime(2000));
     expect(container.textContent).not.toContain('정답4');
+  });
+  it('통계 기준 불일치를 개인 정답표 오류처럼 안내하지 않는다',()=>{
+    mock.state={status:'mismatch'};
+    render(<QuestionStatistics selection={selection}><p>기존 답안</p><QuestionRate question={1}/></QuestionStatistics>);
+    expect(container.textContent).toContain('문항 통계의 기준이 달라');expect(container.textContent).not.toContain('정답 버전');
+    render(<QuestionStatistics selection={selection} compatible={false}><p>기존 답안</p></QuestionStatistics>);
+    expect(container.textContent).toContain('정답 버전이 달라');
+  });
+  it('문형 변경 시 열린 분포 모달의 연결을 초기화한다',()=>{
+    ready(31);render(<QuestionStatistics selection={selection}><QuestionRate question={1}/></QuestionStatistics>);
+    click('.question-rate');expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+    ready(31,'even');render(<QuestionStatistics selection={{...selection,examType:'even'}}><QuestionRate question={1}/></QuestionStatistics>);
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
   });
   it.each(['error','unavailable','mismatch','loading'] as const)('통계 %s 상태에도 기존 답안 유지',status=>{
     mock.state={status};render(<QuestionStatistics selection={selection}><p>기존 답안</p><QuestionRate question={1}/></QuestionStatistics>);

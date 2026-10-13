@@ -1,0 +1,15 @@
+{
+  "verified_at": "2026-10-12T12:36:32.458Z",
+  "mode": "read_only_aggregate_validation_no_publication",
+  "source_snapshot_at": "2026-10-12 12:36:25.089968+00",
+  "source_count": 5717,
+  "included_count": 5717,
+  "excluded_missing_answers_count": 0,
+  "excluded_out_of_scope_count": 0,
+  "invalid_count": 0,
+  "malformed_histories": 0,
+  "cohorts": 38,
+  "question_count": 1350,
+  "catalog_sha256": "0c7132983fda641f61a90ca796394fc7a00c8d355e7bfa52b7d32ab8de1515f1",
+  "artifact_checksum": "dc2903ccd657272a0ce6573878c1ed6ade35eded36d3f00daed264f3064a1172"
+}

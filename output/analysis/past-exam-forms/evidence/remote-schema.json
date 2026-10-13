@@ -1,0 +1,747 @@
+{
+  "tables": [
+    {
+      "rls": true,
+      "table": "grading_notes",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "table": "exam_schedule",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "table": "exam_answer_key_versions",
+      "schema": "private"
+    },
+    {
+      "rls": true,
+      "table": "exam_question_answer_keys",
+      "schema": "private"
+    },
+    {
+      "rls": true,
+      "table": "question_statistics_runs",
+      "schema": "private"
+    },
+    {
+      "rls": true,
+      "table": "question_statistics_snapshots",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "table": "question_statistics_publication",
+      "schema": "public"
+    }
+  ],
+  "cohorts": [
+    {
+      "form": "even",
+      "year": "09예비",
+      "subject": "reasoning",
+      "sample_count": 2,
+      "answer_key_version": "v1:2235134233314222354552111515354441433411"
+    },
+    {
+      "form": "odd",
+      "year": "09예비",
+      "subject": "reasoning",
+      "sample_count": 48,
+      "answer_key_version": "v1:2235134233312542354554511155354441433211"
+    },
+    {
+      "form": "even",
+      "year": "09예비",
+      "subject": "verbal",
+      "sample_count": 3,
+      "answer_key_version": "v1:2543225131435514542141233522443445213152"
+    },
+    {
+      "form": "odd",
+      "year": "09예비",
+      "subject": "verbal",
+      "sample_count": 43,
+      "answer_key_version": "v1:2543221135435514542121233522423445213152"
+    },
+    {
+      "form": "even",
+      "year": "2009",
+      "subject": "reasoning",
+      "sample_count": 4,
+      "answer_key_version": "v1:1415523132451123522243413523334433455244"
+    },
+    {
+      "form": "odd",
+      "year": "2009",
+      "subject": "reasoning",
+      "sample_count": 52,
+      "answer_key_version": "v1:5451523132411523142243413523334433255244"
+    },
+    {
+      "form": "even",
+      "year": "2009",
+      "subject": "verbal",
+      "sample_count": 5,
+      "answer_key_version": "v1:3521312314543232232443414545513231445131"
+    },
+    {
+      "form": "odd",
+      "year": "2009",
+      "subject": "verbal",
+      "sample_count": 62,
+      "answer_key_version": "v1:3521312352543234234423454145113231445531"
+    },
+    {
+      "form": "even",
+      "year": "2010",
+      "subject": "reasoning",
+      "sample_count": 5,
+      "answer_key_version": "v1:22523313453541143515523251431442322"
+    },
+    {
+      "form": "odd",
+      "year": "2010",
+      "subject": "reasoning",
+      "sample_count": 59,
+      "answer_key_version": "v1:22523353453541543515543251431422322"
+    },
+    {
+      "form": "even",
+      "year": "2010",
+      "subject": "verbal",
+      "sample_count": 6,
+      "answer_key_version": "v1:54551244135413223253332324524251141"
+    },
+    {
+      "form": "odd",
+      "year": "2010",
+      "subject": "verbal",
+      "sample_count": 61,
+      "answer_key_version": "v1:54155242135413223453334322522451141"
+    },
+    {
+      "form": "even",
+      "year": "2011",
+      "subject": "reasoning",
+      "sample_count": 5,
+      "answer_key_version": "v1:42141421554454345223111353353544355"
+    },
+    {
+      "form": "odd",
+      "year": "2011",
+      "subject": "reasoning",
+      "sample_count": 59,
+      "answer_key_version": "v1:42141425554454341223151353353544315"
+    },
+    {
+      "form": "even",
+      "year": "2011",
+      "subject": "verbal",
+      "sample_count": 7,
+      "answer_key_version": "v1:24134215324445141352525133453453352"
+    },
+    {
+      "form": "odd",
+      "year": "2011",
+      "subject": "verbal",
+      "sample_count": 60,
+      "answer_key_version": "v1:24134215324445541312525533213453352"
+    },
+    {
+      "form": "even",
+      "year": "2012",
+      "subject": "reasoning",
+      "sample_count": 7,
+      "answer_key_version": "v1:45352553225144232453113353221445551"
+    },
+    {
+      "form": "odd",
+      "year": "2012",
+      "subject": "reasoning",
+      "sample_count": 69,
+      "answer_key_version": "v1:45354553225144432253113353221245551"
+    },
+    {
+      "form": "even",
+      "year": "2012",
+      "subject": "verbal",
+      "sample_count": 7,
+      "answer_key_version": "v1:15524434235545121453422243521133213"
+    },
+    {
+      "form": "odd",
+      "year": "2012",
+      "subject": "verbal",
+      "sample_count": 63,
+      "answer_key_version": "v1:15522434235145121453424243521133253"
+    },
+    {
+      "form": "even",
+      "year": "2013",
+      "subject": "reasoning",
+      "sample_count": 8,
+      "answer_key_version": "v1:11353245445433133313455232254452121"
+    },
+    {
+      "form": "odd",
+      "year": "2013",
+      "subject": "reasoning",
+      "sample_count": 85,
+      "answer_key_version": "v1:11353245445433133313455232252414521"
+    },
+    {
+      "form": "even",
+      "year": "2013",
+      "subject": "verbal",
+      "sample_count": 7,
+      "answer_key_version": "v1:34311315214442212524355545433155112"
+    },
+    {
+      "form": "odd",
+      "year": "2013",
+      "subject": "verbal",
+      "sample_count": 82,
+      "answer_key_version": "v1:34315315214442412524355145233155112"
+    },
+    {
+      "form": "even",
+      "year": "2014",
+      "subject": "reasoning",
+      "sample_count": 7,
+      "answer_key_version": "v1:13123245225412214234554345552431334"
+    },
+    {
+      "form": "odd",
+      "year": "2014",
+      "subject": "reasoning",
+      "sample_count": 92,
+      "answer_key_version": "v1:13123245225414214234554345154431334"
+    },
+    {
+      "form": "even",
+      "year": "2014",
+      "subject": "verbal",
+      "sample_count": 7,
+      "answer_key_version": "v1:55143422522133554331414511214245323"
+    },
+    {
+      "form": "odd",
+      "year": "2014",
+      "subject": "verbal",
+      "sample_count": 88,
+      "answer_key_version": "v1:51143422524133552335414511214245323"
+    },
+    {
+      "form": "even",
+      "year": "2015",
+      "subject": "reasoning",
+      "sample_count": 9,
+      "answer_key_version": "v1:34235253314441541234332112144523531"
+    },
+    {
+      "form": "odd",
+      "year": "2015",
+      "subject": "reasoning",
+      "sample_count": 88,
+      "answer_key_version": "v1:34235253312441541234334112544523531"
+    },
+    {
+      "form": "even",
+      "year": "2015",
+      "subject": "verbal",
+      "sample_count": 8,
+      "answer_key_version": "v1:15312233354525422314152122344211445"
+    },
+    {
+      "form": "odd",
+      "year": "2015",
+      "subject": "verbal",
+      "sample_count": 89,
+      "answer_key_version": "v1:15352233354525222314114142344211425"
+    },
+    {
+      "form": "even",
+      "year": "2016",
+      "subject": "reasoning",
+      "sample_count": 13,
+      "answer_key_version": "v1:25435355134534324133452123335233133"
+    },
+    {
+      "form": "odd",
+      "year": "2016",
+      "subject": "reasoning",
+      "sample_count": 113,
+      "answer_key_version": "v1:25435355134532344133454123335233133"
+    },
+    {
+      "form": "even",
+      "year": "2016",
+      "subject": "verbal",
+      "sample_count": 14,
+      "answer_key_version": "v1:34213215144545153254342543132112133"
+    },
+    {
+      "form": "odd",
+      "year": "2016",
+      "subject": "verbal",
+      "sample_count": 112,
+      "answer_key_version": "v1:34413415144545153212342523532112133"
+    },
+    {
+      "form": "even",
+      "year": "2017",
+      "subject": "reasoning",
+      "sample_count": 11,
+      "answer_key_version": "v1:44243414445331534331521513331214221"
+    },
+    {
+      "form": "odd",
+      "year": "2017",
+      "subject": "reasoning",
+      "sample_count": 126,
+      "answer_key_version": "v1:42243414445331534335521513331254221"
+    },
+    {
+      "form": "even",
+      "year": "2017",
+      "subject": "verbal",
+      "sample_count": 10,
+      "answer_key_version": "v1:54345533115315152223232544434422112"
+    },
+    {
+      "form": "odd",
+      "year": "2017",
+      "subject": "verbal",
+      "sample_count": 121,
+      "answer_key_version": "v1:14325533115315552223234544234442112"
+    },
+    {
+      "form": "even",
+      "year": "2018",
+      "subject": "reasoning",
+      "sample_count": 15,
+      "answer_key_version": "v1:52511454221531343524154425352433323"
+    },
+    {
+      "form": "odd",
+      "year": "2018",
+      "subject": "reasoning",
+      "sample_count": 130,
+      "answer_key_version": "v1:52511414421531343524154425352233323"
+    },
+    {
+      "form": "even",
+      "year": "2018",
+      "subject": "verbal",
+      "sample_count": 18,
+      "answer_key_version": "v1:53532354335224215241413224342115441"
+    },
+    {
+      "form": "odd",
+      "year": "2018",
+      "subject": "verbal",
+      "sample_count": 131,
+      "answer_key_version": "v1:13532354331224211241453224342555441"
+    },
+    {
+      "form": "even",
+      "year": "2019",
+      "subject": "reasoning",
+      "sample_count": 14,
+      "answer_key_version": "v1:2114533423331541114223415414355323524345"
+    },
+    {
+      "form": "odd",
+      "year": "2019",
+      "subject": "reasoning",
+      "sample_count": 172,
+      "answer_key_version": "v1:2114533243331541114423455414355323524345"
+    },
+    {
+      "form": "even",
+      "year": "2019",
+      "subject": "verbal",
+      "sample_count": 17,
+      "answer_key_version": "v1:113451124224225532322432545413"
+    },
+    {
+      "form": "odd",
+      "year": "2019",
+      "subject": "verbal",
+      "sample_count": 164,
+      "answer_key_version": "v1:113451524224221532324432545213"
+    },
+    {
+      "form": "even",
+      "year": "2020",
+      "subject": "reasoning",
+      "sample_count": 24,
+      "answer_key_version": "v1:3243335221355222351151134354244341121512"
+    },
+    {
+      "form": "odd",
+      "year": "2020",
+      "subject": "reasoning",
+      "sample_count": 180,
+      "answer_key_version": "v1:3243335241355222351551134354244341521512"
+    },
+    {
+      "form": "even",
+      "year": "2020",
+      "subject": "verbal",
+      "sample_count": 27,
+      "answer_key_version": "v1:442251543525552315334112234133"
+    },
+    {
+      "form": "odd",
+      "year": "2020",
+      "subject": "verbal",
+      "sample_count": 178,
+      "answer_key_version": "v1:442255523125154315334512234133"
+    },
+    {
+      "form": "even",
+      "year": "2021",
+      "subject": "reasoning",
+      "sample_count": 17,
+      "answer_key_version": "v1:3233452411453142322113525134432555322112"
+    },
+    {
+      "form": "odd",
+      "year": "2021",
+      "subject": "reasoning",
+      "sample_count": 194,
+      "answer_key_version": "v1:3233452415453142322113525134434555322112"
+    },
+    {
+      "form": "even",
+      "year": "2021",
+      "subject": "verbal",
+      "sample_count": 18,
+      "answer_key_version": "v1:145513214125324555211322453243"
+    },
+    {
+      "form": "odd",
+      "year": "2021",
+      "subject": "verbal",
+      "sample_count": 190,
+      "answer_key_version": "v1:145553414125324551411322453223"
+    },
+    {
+      "form": "even",
+      "year": "2022",
+      "subject": "reasoning",
+      "sample_count": 31,
+      "answer_key_version": "v1:1224112415235344512534413223322243515313"
+    },
+    {
+      "form": "odd",
+      "year": "2022",
+      "subject": "reasoning",
+      "sample_count": 191,
+      "answer_key_version": "v1:1224114215233544515234413232322243515313"
+    },
+    {
+      "form": "even",
+      "year": "2022",
+      "subject": "verbal",
+      "sample_count": 30,
+      "answer_key_version": "v1:351412143345112444415533221534"
+    },
+    {
+      "form": "odd",
+      "year": "2022",
+      "subject": "verbal",
+      "sample_count": 196,
+      "answer_key_version": "v1:355412143345112442415533225532"
+    },
+    {
+      "form": "even",
+      "year": "2023",
+      "subject": "reasoning",
+      "sample_count": 21,
+      "answer_key_version": "v1:1542254224313141233332541112155522442413"
+    },
+    {
+      "form": "odd",
+      "year": "2023",
+      "subject": "reasoning",
+      "sample_count": 215,
+      "answer_key_version": "v1:1542252424313141323323541121155522442413"
+    },
+    {
+      "form": "even",
+      "year": "2023",
+      "subject": "verbal",
+      "sample_count": 21,
+      "answer_key_version": "v1:315443513412254515131222353553"
+    },
+    {
+      "form": "odd",
+      "year": "2023",
+      "subject": "verbal",
+      "sample_count": 219,
+      "answer_key_version": "v1:315243553412254115131224353553"
+    },
+    {
+      "form": "even",
+      "year": "2024",
+      "subject": "reasoning",
+      "sample_count": 26,
+      "answer_key_version": "v1:4332333544321153255122114432515154124353"
+    },
+    {
+      "form": "odd",
+      "year": "2024",
+      "subject": "reasoning",
+      "sample_count": 218,
+      "answer_key_version": "v1:4323335344321153255122114423511554124353"
+    },
+    {
+      "form": "even",
+      "year": "2024",
+      "subject": "verbal",
+      "sample_count": 27,
+      "answer_key_version": "v1:343253125413123325541422541424"
+    },
+    {
+      "form": "odd",
+      "year": "2024",
+      "subject": "verbal",
+      "sample_count": 222,
+      "answer_key_version": "v1:343253525413143321541422541224"
+    },
+    {
+      "form": "even",
+      "year": "2025",
+      "subject": "reasoning",
+      "sample_count": 32,
+      "answer_key_version": "v1:1135152533344222444522521143114514423331"
+    },
+    {
+      "form": "odd",
+      "year": "2025",
+      "subject": "reasoning",
+      "sample_count": 225,
+      "answer_key_version": "v1:1153152533434222445422521143114514423331"
+    },
+    {
+      "form": "even",
+      "year": "2025",
+      "subject": "verbal",
+      "sample_count": 31,
+      "answer_key_version": "v1:225423232332154114452545114343"
+    },
+    {
+      "form": "odd",
+      "year": "2025",
+      "subject": "verbal",
+      "sample_count": 219,
+      "answer_key_version": "v1:225443232332154112412545154343"
+    },
+    {
+      "form": "even",
+      "year": "2026",
+      "subject": "reasoning",
+      "sample_count": 31,
+      "answer_key_version": "v1:2325231452311513513211524433221443255354"
+    },
+    {
+      "form": "odd",
+      "year": "2026",
+      "subject": "reasoning",
+      "sample_count": 263,
+      "answer_key_version": "v1:2325321452131513512311524433221443255354"
+    },
+    {
+      "form": "even",
+      "year": "2026",
+      "subject": "verbal",
+      "sample_count": 38,
+      "answer_key_version": "v1:423254234131233254325215143412"
+    },
+    {
+      "form": "odd",
+      "year": "2026",
+      "subject": "verbal",
+      "sample_count": 254,
+      "answer_key_version": "v1:423214234131233454325215523412"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "grading_notes",
+      "permissive": "PERMISSIVE",
+      "policyname": "grading_notes_select_own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "grading_notes",
+      "permissive": "PERMISSIVE",
+      "policyname": "grading_notes_insert_own",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "grading_notes",
+      "permissive": "PERMISSIVE",
+      "policyname": "grading_notes_update_own",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "grading_notes",
+      "permissive": "PERMISSIVE",
+      "policyname": "grading_notes_delete_own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "tablename": "question_statistics_publication",
+      "permissive": "PERMISSIVE",
+      "policyname": "question_statistics_current_pointer",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(snapshot_id = ( SELECT p.snapshot_id\n   FROM question_statistics_publication p\n  WHERE (p.key = 'current'::text)))",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "tablename": "question_statistics_snapshots",
+      "permissive": "PERMISSIVE",
+      "policyname": "question_statistics_current_snapshot",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT private.user_data_active_actor() AS user_data_active_actor)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "grading_notes",
+      "permissive": "RESTRICTIVE",
+      "policyname": "user_data_active_account",
+      "schemaname": "public",
+      "with_check": "( SELECT private.user_data_active_actor() AS user_data_active_actor)"
+    }
+  ],
+  "checked_at": "2026-10-11T10:19:15.101297+00:00",
+  "migrations": [
+    {
+      "name": "create_kv_table_cd835c22",
+      "version": "20260111121108"
+    },
+    {
+      "name": "community_board_schema",
+      "version": "20260210144435"
+    },
+    {
+      "name": "community_insert_cooldown",
+      "version": "20260210145507"
+    },
+    {
+      "name": "community_tag_update",
+      "version": "20260210150128"
+    },
+    {
+      "name": "community_tag_remove_study",
+      "version": "20260210151022"
+    },
+    {
+      "name": "community_post_images",
+      "version": "20260405140039"
+    },
+    {
+      "name": "home_announcement_popup",
+      "version": "20260715092552"
+    },
+    {
+      "name": "admin_announcements",
+      "version": "20260916054746"
+    },
+    {
+      "name": "admin_roles_rls_policy",
+      "version": "20260916060102"
+    },
+    {
+      "name": "question_statistics",
+      "version": "20260917075220"
+    },
+    {
+      "name": "product_usage_analytics",
+      "version": "20261003141220"
+    },
+    {
+      "name": "admin_dashboard_and_member_options",
+      "version": "20261004050638"
+    },
+    {
+      "name": "exam_schedule",
+      "version": "20261004082512"
+    },
+    {
+      "name": "admin_user_data",
+      "version": "20261005052901"
+    },
+    {
+      "name": "user_data_recent_activity",
+      "version": "20261006104150"
+    },
+    {
+      "name": "web_push_notifications",
+      "version": "20261007044858"
+    },
+    {
+      "name": "web_push_safe_updates",
+      "version": "20261007141129"
+    },
+    {
+      "name": "web_push_subscriber_statistics",
+      "version": "20261007144854"
+    },
+    {
+      "name": "official_answer_updates",
+      "version": "20261008143156"
+    }
+  ],
+  "publication": [
+    {
+      "key": "current",
+      "released_at": "2026-09-17T08:01:41.568172+00:00",
+      "snapshot_id": 1
+    }
+  ]
+}

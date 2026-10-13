@@ -1,16 +1,18 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { GradingResult, Subject } from '../src/App';
-import { gradeAnswers, getQuestionCount } from '../src/utils/grading';
+import { gradeAnswers, getQuestionCount, calculateFieldAnalysis } from '../src/utils/grading';
 import { getCorrectAnswers } from '../src/utils/answerData';
 import { editedResult } from '../supabase/functions/_shared/user-data-rules/answerEdit';
-import statistics from './fixtures/question-statistics-2026.json';
+import statistics from './fixtures/question-statistics-v2.json';
 
 async function isolate(page: Page) {
   const records: GradingResult[] = (['verbal', 'reasoning'] as Subject[]).map((subject, index) => {
     const answers = { ...getCorrectAnswers('2026', subject, 'odd') };
     const wrong = subject === 'verbal' ? [3, 7, 12, 18, 23, 28] : [2, 5, 9, 13, 18, 23, 27, 31, 35, 39];
     for (const q of wrong) answers[q] = q === 28 ? 0 : answers[q] % 5 + 1;
-    return { ...gradeAnswers('2026', subject, answers, getQuestionCount('2026', subject), 'odd'), timestamp: 123 + index, groupTimestamp: 100, round: 3 };
+    const graded=gradeAnswers('2026',subject,answers,getQuestionCount('2026',subject),'odd');
+    graded.fieldAnalysis=calculateFieldAnalysis('2026',subject,'even',graded.total,answers,graded.correctAnswers!); // Historical field mapping before the fix.
+    return { ...graded, timestamp: 123 + index, groupTimestamp: 100, round: 3 };
   });
   const writes: string[] = [], errors: string[] = [], unexpected: string[] = [];
   let statisticsReads = 0;
@@ -32,18 +34,19 @@ async function isolate(page: Page) {
     if (path.includes('/functions/v1/make-server-cd835c22/')) {
       expect(req.headers().authorization).toBe('Bearer field-analysis-test-token');
       if (req.method() === 'PUT') {
-        expect(path).toMatch(/\/history\/field-analysis-user\/123$/);
+        const index=records.findIndex(record=>path.endsWith(`/history/field-analysis-user/${record.timestamp}`));
+        expect(index).toBeGreaterThanOrEqual(0);
         const body = req.postDataJSON();
-        expect(body.expected).toEqual(records[0]);
-        records[0] = editedResult(records[0], body.userAnswers);
-        return route.fulfill({ json: { success: true, data: records[0] } });
+        expect(body.expected).toEqual(records[index]);
+        records[index] = editedResult(records[index], body.userAnswers);
+        return route.fulfill({ json: { success: true, data: records[index] } });
       }
       return route.fulfill({ json: { success: true, data: path.includes('/mock-history/') ? [] : records } });
     }
     if (path.includes('/rpc/current_user_is_admin')) return route.fulfill({ json: false });
     if (path.includes('/question_statistics_snapshots')) {
       statisticsReads++;
-      return route.fulfill({ json: statistics.filter(row => row.exam_type === 'odd') });
+      return route.fulfill({ json: statistics.filter(row => row.year === '2026') });
     }
     if (path.includes('/grading_notes')) return route.fulfill({ json: [{ subject: 'verbal', question_no: 4, content: '유지할 메모' }] });
     return route.fulfill({ json: [] });
@@ -150,3 +153,24 @@ for (const width of [1280, 390, 320]) {
     expect(state.errors).toEqual([]); expect(state.unexpected).toEqual([]);
   });
 }
+
+
+test('과거 홀수형 분야를 표시만 보정하고 답안 수정에는 원본 전체 기록을 전달한다',async({page})=>{
+  const state=await isolate(page),before=JSON.stringify(state.records[1]);
+  expect(state.records[1].fieldAnalysis.find(f=>f.field==='논리학수학')!.questions).toContain(12);
+  await page.goto('/history');await page.getByRole('button',{name:'자세히 보기',exact:true}).first().click();
+  const fields=page.getByRole('region',{name:'추리논증 분야별 분석',exact:true});
+  await fields.getByRole('button',{name:/추리논증 논리학수학 .*문항/}).click();
+  await expect(fields.getByRole('button',{name:'추리논증 11번 정답, 답안표로 이동',exact:true})).toBeVisible();
+  await expect(fields.getByRole('button',{name:/추리논증 12번/})).toHaveCount(0);
+  expect(JSON.stringify(state.records[1])).toBe(before);expect(state.writes).toEqual([]);
+  await page.getByRole('button',{name:'답안 수정',exact:true}).nth(1).click();
+  const correct=state.records[1].correctAnswers![11];
+  await page.getByRole('button',{name:`11번 입력 답안 ${correct}, 답안 수정`,exact:true}).click();
+  await page.getByRole('button',{name:'11번 미응답 선택',exact:true}).click();
+  await page.getByRole('button',{name:'수정 반영',exact:true}).click();
+  await expect(fields.getByRole('button',{name:'추리논증 11번 미응답, 답안표로 이동',exact:true})).toBeVisible();
+  expect(state.records[1].fieldAnalysis.find(f=>f.field==='논리학수학')!.questions).toContain(11);
+  expect(state.records[1]).toMatchObject({timestamp:124,round:3,groupTimestamp:100});
+  expect(state.writes).toHaveLength(1);expect(state.errors).toEqual([]);
+});

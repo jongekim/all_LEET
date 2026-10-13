@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { gradeAnswers } from '../src/utils/grading';
 import { editedResult } from '../supabase/functions/_shared/user-data-rules/answerEdit';
 import type { GradingResult } from '../src/App';
-import statistics from './fixtures/question-statistics-2026.json';
+import statistics from './fixtures/question-statistics-v2.json';
 
 const initial = () => JSON.parse(JSON.stringify([
   {...gradeAnswers('2026','verbal',{1:3},30,'odd'),timestamp:123,groupTimestamp:100,round:3},
@@ -45,7 +45,7 @@ async function isolate(page: Page, failure?: 'conflict' | 'unknown' | 'pending',
       return route.fulfill({json:{success:true,data:path.includes('/mock-history/') ? [] : records}});
     }
     if (path.includes('/rpc/current_user_is_admin')) return route.fulfill({json:false});
-    if (path.includes('/question_statistics_snapshots')) return route.fulfill({json:statistics.filter(row=>row.exam_type === 'odd')});
+    if (path.includes('/question_statistics_snapshots')) return route.fulfill({json:statistics.filter(row=>row.year === '2026')});
     if (path.includes('/grading_notes')) return route.fulfill({json:[{subject:'verbal',question_no:1,content:'유지할 메모'}]});
     return route.fulfill({json:[]});
   });

@@ -5,7 +5,7 @@ import { AuthContext } from './contexts/AuthContext';
 import { AppContent } from './App';
 import { ExamScheduleProvider } from './contexts/ExamScheduleContext';
 import { PrerenderStatisticsContext } from './contexts/PrerenderStatisticsContext';
-import type { StatisticsSnapshot } from './types/questionStatistics';
+import type { CanonicalStatistics } from './types/canonicalStatistics';
 
 const unavailable = async (): Promise<never> => { throw new Error('사전 렌더링에서는 인증·데이터 변경을 실행할 수 없습니다.'); };
 const publicAuth = {
@@ -13,7 +13,7 @@ const publicAuth = {
   signup: unavailable, login: unavailable, logout: unavailable,
 };
 
-export function renderPublicPage(url: string, statistics: readonly StatisticsSnapshot[]) {
+export function renderPublicPage(url: string, statistics: readonly CanonicalStatistics[]) {
   return renderToString(
     <StaticRouter location={url}>
       <AuthContext.Provider value={publicAuth}>

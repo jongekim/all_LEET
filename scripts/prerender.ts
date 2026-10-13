@@ -5,15 +5,15 @@ import { pathToFileURL } from 'node:url';
 import { getPageSeo, WEBSITE_SCHEMA } from '../src/utils/pageSeo';
 import { getPrerenderPages, getPrerenderRewrites } from './prerenderRoutes';
 import { loadPublicStatistics, validatePublicStatistics } from './prerenderStatistics';
-import type { StatisticsSnapshot } from '../src/types/questionStatistics';
+import type { CanonicalStatistics } from '../src/types/canonicalStatistics';
 
 async function prerender() {
   const args = process.argv.slice(2);
-  const fixtureArgument = '--statistics-fixture=e2e/fixtures/question-statistics-2026.json';
+  const fixtureArgument = '--statistics-fixture=e2e/fixtures/question-statistics-v2.json';
   if (args.some(arg => arg !== fixtureArgument) || args.length > 1) throw new Error('지원하지 않는 사전 렌더링 옵션입니다.');
   if (args.length && process.env.VERCEL) throw new Error('Vercel 배포에서는 테스트 통계 파일을 사용할 수 없습니다.');
   const statistics = args.length
-    ? validatePublicStatistics(JSON.parse(readFileSync('e2e/fixtures/question-statistics-2026.json', 'utf8')))
+    ? validatePublicStatistics(JSON.parse(readFileSync('e2e/fixtures/question-statistics-v2.json', 'utf8')))
     : await loadPublicStatistics();
   const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
   const actual = config.rewrites.filter((rule: { destination: string }) => rule.destination.startsWith('/prerender/'));
@@ -37,7 +37,7 @@ async function prerender() {
       },
     });
     const { renderPublicPage } = await import(pathToFileURL(resolve(serverOutput, 'entry.mjs')).href) as {
-      renderPublicPage: (url: string, statistics: readonly StatisticsSnapshot[]) => string;
+      renderPublicPage: (url: string, statistics: readonly CanonicalStatistics[]) => string;
     };
     const pages = getPrerenderPages();
     for (const page of pages) {

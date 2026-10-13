@@ -1,3 +1,4 @@
+import { questionIdentity } from './questionIdentity.ts';
 import type { Year, Subject, ExamType } from './types.ts';
 
 // 실제 LEET 정답 데이터
@@ -1269,7 +1270,13 @@ export function getCorrectAnswers(
 // 분야 매핑 데이터 가져오기 함수
 export function getFieldMapping(
   year: Year,
-  subject: Subject
+  subject: Subject,
+  examType: ExamType = 'even'
 ): Record<number, number> {
-  return ANSWER_DATA[year][subject].fieldMapping;
+  const fields = ANSWER_DATA[year][subject].fieldMapping;
+  if (year === '2027') return fields;
+  return Object.fromEntries(Object.keys(fields).map(key => {
+    const question = Number(key);
+    return [question, fields[questionIdentity(year, subject, examType, question).canonical_question_no]];
+  }));
 }

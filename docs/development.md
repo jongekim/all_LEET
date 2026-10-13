@@ -29,7 +29,9 @@
 | PATCH / MINOR / MAJOR 릴리스 준비 | `npm run release:patch` / `npm run release:minor` / `npm run release:major` |
 | 예시 이력 생성 | `npm run gen:example-history` |
 | 예시 이력 시드 | `npm run seed:example-history` |
-| 문항 통계 생성/발행/확인/롤백 | `npm run statistics -- prepare/publish/status/rollback ...` |
+| 공통 문항 통계 v2 | `npm run statistics:v2 -- register-catalog/prepare/publish/status/rollback ...` |
+| 검수 대응표 생성/대조 | `npm run registry:generate` / `npm run registry:check` |
+| 공통 통계 격리 SQL/RLS | `npm run test:statistics` |
 
 Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 있다. 빌드 산출물은 `build/`다.
 저장소의 `.npmrc`는 기존 `@jsr` 의존성을 공식 `https://npm.jsr.io`에서 설치하도록 지정한다. 개인 npm 설정이 없는 CI에서도 같은 패키지를 설치하기 위해 필요하며, 의존성 버전을 변경하지 않는다.
@@ -125,7 +127,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 ## 위험도가 높은 변경
 
-문항 통계는 [수동 갱신 가이드](question-statistics.md)의 status → prepare(읽기 전용 집계·파일 검증) → 개발자 검토 → publish(검증 파일 전체 발행) → status/공개 조회 순서로 갱신한다. 문제 시 명시적 rollback을 사용한다. 프로젝트 확인·예상 현재 세대·수행자·사유가 필요하며 원본 KV를 수정하지 않는다. 자동/예약 갱신은 없다. 운영 DB 최초 구조/발행은 적용했고 화면 기능은 v1.2.0에 포함한다. 웹 배포 시 DB 재적용이나 Edge Function 배포는 하지 않는다. 격리 SQL/RLS 검증과 모의 API 화면 테스트 방법도 해당 가이드에 명시한다.
+현재 v2의 신규 DB/카탈로그/발행·Edge/웹 전환은 [v2 가이드](question-statistics-v2.md)를 따른다. 운영에는 아직 적용하지 않았다. v1은 동결 보존한다. 다음은 이전 운영 기록이다. 문항 통계는 [수동 갱신 가이드](question-statistics.md)의 status → prepare(읽기 전용 집계·파일 검증) → 개발자 검토 → publish(검증 파일 전체 발행) → status/공개 조회 순서로 갱신한다. 문제 시 명시적 rollback을 사용한다. 프로젝트 확인·예상 현재 세대·수행자·사유가 필요하며 원본 KV를 수정하지 않는다. 자동/예약 갱신은 없다. 운영 DB 최초 구조/발행은 적용했고 화면 기능은 v1.2.0에 포함한다. 웹 배포 시 DB 재적용이나 Edge Function 배포는 하지 않는다. 격리 SQL/RLS 검증과 모의 API 화면 테스트 방법도 해당 가이드에 명시한다.
 
 - `supabase/config.toml`의 Edge Function JWT 설정 및 Edge Function의 사용자 식별
 - `verify_jwt = false`인 성적 이력 Edge Function의 내부 토큰·소유자 검증과 클라이언트 먼저 적용하는 [운영 절차](history-security-rollout.md)
@@ -153,7 +155,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 `npm run build`는 Vite 정적 빌드 후 `node --import tsx scripts/prerender.ts`를 실행한다. 새 패키지나 Chromium 없이 기존 React 서버 렌더러로 공개 83개 화면을 생성한다. 렌더링 전에 기존 anon 키로 현재 공개 문항 통계 전체를 GET 한 번 수행한다. 15초 제한·건수/구조/발행본 검증을 적용하며 실패하면 빌드도 실패한다. 이후 실제 React 렌더링 중에는 외부 fetch를 금지하며 인증 세션·공지·개인 데이터를 가져오지 않는다. 브라우저는 HTML의 통계를 캐시에 넣지 않고 기존 DB 최신 조회 흐름을 따른다. 로컬 `npm run check`의 build 단계도 이 공개 읽기를 사용하므로 네트워크 연결이 필요하다.
 
-`npm run build:test`는 `e2e/fixtures/question-statistics-2026.json`의 기존 공개 집계 파일로 같은 생성기를 검증하며 운영 DB 요청은 없다. 고정 파일은 2026학년도 두 과목/두 문형뿐이므로 다른 시험은 미발행 상태로 검증된다. Vercel 환경에서는 fixture 옵션을 거절하여 테스트 파일이 실서비스에 배포되지 않도록 한다. Vercel Build Command는 계속 `npm run build`를 사용해야 한다. 테스트 빌드 산출물은 운영 배포에 사용하지 않는다.
+`npm run build:test`는 `e2e/fixtures/question-statistics-v2.json`의 오프라인 비교 fixture로 같은 생성기를 검증하며 운영 DB 요청은 없다. 고정 파일은 2026 두 과목의 기존 v1을 검수 대응표로 변환하고 다른 36묶음은 0표본으로 채운다. 운영 v2 발행에 사용할 수 없다. Vercel 환경에서는 fixture 옵션을 거절하여 테스트 파일이 실서비스에 배포되지 않도록 한다. Vercel Build Command는 계속 `npm run build`를 사용해야 한다. 테스트 빌드 산출물은 운영 배포에 사용하지 않는다.
 
 정답률은 코드에 하드코딩하지 않는다. 기존 절차로 DB 공개 통계를 발행한 뒤 최신 Production 배포의 Vercel Redeploy를 실행하면 새 commit/push 없이 HTML이 최신 발행본으로 바뀐다. Build Cache 사용은 해제한다. 새 학년도·정답표·집계 규칙 변경은 코드/DB 지원 범위 변경이므로 별도 개발과 배포 절차가 필요하다. [HTML 갱신 운영 절차](question-statistics-html.md)를 따른다.
 
@@ -204,3 +206,5 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 승인된 관리자/홈 UI와 신규 private SQL·Edge 세 함수·SW를 로컬 구현했다. `npm run test:push`는 실제 신규 SQL의 합성 PostgreSQL 및 Deno 타입/API/worker/라이브러리 암호화를 검사한다. `npm run test:e2e:push`는 별도 포트 3001에서 전체 Supabase/알림 API를 모킹하여 UI를 검사한다. SW 단위 검사는 기존 Vitest에 포함한다. 새 명령은 전체 check와 품질 CI에 추가했다. 운영에 연결된 로컬에서 등록·초안·preview·테스트 확인도 실행하지 않는다.
 
 개발 모드는 기본 off이며 프론트의 명시 true/정확 origin, Edge PUSH_ENABLED, DB enabled 및 수동 캠페인 별도 스위치가 필요하다. `.env.production`에는 비밀 없는 두 공개 푸시 설정만 기록하며 정식 origin 외 preview/localhost에서는 비활성화한다. 새 세 함수는 main 함수 CI 대상이므로 DB 준비가 main push보다 앞서야 한다. 별도 opt-in Cron SQL은 자동 migration 대상이 아니며 사용자 릴리스 요청에 따라 운영에 적용했다. Edge의 `ECE_KEYLOG=0`은 필수 서버 설정이며 읽기 전용 환경에서 변경하지 않는다. 기존 프론트 공개 키가 기본 anon 키와 다르면 `PUSH_PUBLIC_API_KEY`로 기존 공개 키를 지정한다. 이 차이와 읽기 전용 초기화는 Deno runtime 회귀 검사로 검증한다. 설정·키 보관·실기기/처리량 한계는 [구현·운영 준비](push-notifications-implementation.md), DB·secrets·함수·Cron 반영과 v1.9.0 릴리스 상태는 [운영 기록](push-notifications-rollout.md)을 따른다. 실제 기기 테스트 완료 전 일반 캠페인은 비활성화한다.
+
+2026-10-12: `npm run check`는 registry:check 및 test:statistics를 추가하고, build:test → HTML 검사 → 마지막 운영 공개 GET build 순서로 실행한다. CI에도 원본 PDF/운영 자격증명 없이 대응표·격리 SQL 검사를 추가했다. v2 테이블 미설치만 명시적 미가용이며 일반 조회 실패/부분 응답은 빌드를 실패시킨다.

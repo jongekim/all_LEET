@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { getPrerenderPages } from '../scripts/prerenderRoutes';
 import { getPageSeo } from '../src/utils/pageSeo';
-import { answerKeyVersion } from '../src/utils/questionStatisticsModel';
+import fixture from '../e2e/fixtures/question-statistics-v2.json';
 
 test('첫 기출 HTML은 접힌 정답표·문항별 정답률을 실제 본문에 포함한다', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
@@ -27,12 +27,7 @@ test('앱 시작 후에는 HTML의 과거 정답률 대신 기존 DB 최신 조�
     requests.push(route.request().method());
     const url = route.request().url();
     if (!url.includes('/rest/v1/question_statistics_snapshots')) return route.fulfill({ json: [] });
-    return route.fulfill({ json: [{
-      year: '2026', subject: 'verbal', exam_type: 'odd', snapshot_id: '999',
-      answer_key_version: answerKeyVersion({ year: '2026', subject: 'verbal', examType: 'odd' }), aggregation_version: 'all_saved_records_v1',
-      question_count: 30, sample_count: '40', source_snapshot_at: '2026-10-05T00:00:00Z', published_at: '2026-10-05T01:00:00Z',
-      items: Array.from({ length: 30 }, (_, i) => ({ question_no: i + 1, choice_counts: [0, 0, 0, 40, 0], unanswered_count: 0 })),
-    }] });
+    return route.fulfill({json:fixture.filter(r=>r.year==='2026').map(r=>({...r,snapshot_id:'999',sample_count:'40',items:r.items.map(item=>({...item,choice_counts:[0,0,0,40,0],unanswered_count:0}))}))});
   });
   await page.goto('/past-exams?year=2026&subject=verbal&type=odd');
   await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');

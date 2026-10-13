@@ -13,8 +13,8 @@ Supabase 클라이언트는 `src/contexts/AuthContext.tsx`에서 생성된다. �
 | 채팅 | `chat_messages` | 전역 채팅 메시지 |
 | 채팅 | `chat_rate_limits` | 메시지 삽입 트리거의 제한 상태 |
 | 채점 | `grading_notes` | 응시 묶음·과목·문항별 개인 메모 |
-| 채점 통계 | `question_statistics_snapshots` | 발행 세대·시험 조합별 전체 문항 분포 |
-| 채점 통계 | `question_statistics_publication` | 현재 공개 세대 포인터 한 행 |
+| 채점 통계 v1(동결) | `question_statistics_snapshots` | 발행 세대·시험 조합별 전체 문항 분포 |
+| 채점 통계 v1(동결) | `question_statistics_publication` | 현재 공개 세대 포인터 한 행 |
 | 커뮤니티 | `community_posts` | 게시글 및 카운터·이미지 URL |
 | 커뮤니티 | `community_comments` | 게시글 댓글 |
 | 커뮤니티 | `community_post_likes`, `community_comment_likes` | 사용자별 좋아요 |
@@ -66,11 +66,13 @@ POST와 DELETE는 배열 전체를 읽어 수정한 뒤 같은 키에 다시 저
 
 ## 마이그레이션 상태
 
+2026-10-12 신규 `20261012122322_canonical_question_statistics_v2.sql`은 **로컬 구현·격리 검증 상태이며 운영 미적용**이다. private.question_statistics_catalogs_v2/runs_v2와 public.question_statistics_snapshots_v2/publication_v2 및 승인/발행/롤백 함수를 추가한다. 38묶음·1,350ID·승인 카탈로그·정렬 JSON SHA256·안전 정수·건수 분할을 검사하고 모든 테이블에 RLS를 적용한다. anon/authenticated에는 현재 세대 SELECT만 허용한다. SECURITY INVOKER·동일 advisory lock·CAS·원자 발행·과거 카탈로그 보존을 사용한다. v1/KV는 유지한다. [v2 DB/운영 절차](question-statistics-v2.md)를 따른다.
+
 문항 통계 마이그레이션 `20260917075220_question_statistics`는 2026-09-17 운영에 적용했다. `private.exam_answer_key_versions`, `private.exam_question_answer_keys`, `private.question_statistics_runs`에 정답 버전과 발행 감사 정보를 저장하고 공개 두 테이블에 스냅샷과 현재 포인터를 저장한다. 모든 신규 테이블에 RLS를 적용하며 anon/authenticated는 현재 공개 집계의 SELECT만 가능하다. 공개 쓰기·발행 RPC·개인 기록 접근은 허용하지 않는다. 최초 발행 ID `1`: 76조합, 5,716건, 원본 조회 2026-09-17 16:56:30 KST.
 
 기존 KV를 원본으로 집계한 발행본을 개발자가 필요할 때 수동 교체한다. 자동/예약 갱신은 없다. 발행·롤백 함수는 private SECURITY INVOKER이고 advisory lock·예상 세대 검사·전체 트랜잭션을 사용한다. [설계](question-statistics-design.md) 및 [수동 갱신](question-statistics.md)에 구조·검증·운영 규칙을 명시한다. 이번 변경은 기존 이력 API의 인증 모델을 보완하지 않는다.
 
-기출문제 정답률 HTML 생성은 기존 `question_statistics_snapshots`의 anon SELECT/RLS로 현재 공개 발행본만 읽는다. DB 스키마·정책·발행 함수·마이그레이션·원본 KV 변경은 없다. service role이나 관리 토큰은 빌드에 필요하지 않다. 2026-10-05 운영 공개 읽기 확인: HTTP 200, 76조합, 발행 ID `1`, 09예비~2026학년도. 2027학년도 통계는 발행되어 있지 않았으므로 HTML에 임의 정답률을 넣지 않는다. DB 발행과 정적 HTML 재배포는 별개이며 [HTML 운영 절차](question-statistics-html.md)를 따른다.
+2026-10-05의 이전 HTML 구현은 기존 `question_statistics_snapshots`의 anon SELECT/RLS로 현재 공개 발행본만 읽는다. 당시에는 DB 변경이 없었다. 신규 브라우저/HTML은 v2만 읽으며 v1로 fallback하지 않는다. service role이나 관리 토큰은 빌드에 필요하지 않다. 2026-10-05 운영 공개 읽기 확인: HTTP 200, 76조합, 발행 ID `1`, 09예비~2026학년도. 2027학년도 통계는 발행되어 있지 않았으므로 HTML에 임의 정답률을 넣지 않는다. DB 발행과 정적 HTML 재배포는 별개이며 [HTML 운영 절차](question-statistics-html.md)를 따른다.
 
 저장소에는 채팅, 채점 메모, 커뮤니티 이미지 관련 SQL 파일이 있다. 원격 마이그레이션 이력에는 KV 테이블, 커뮤니티 보드/쿨다운/태그, 커뮤니티 이미지, 홈 공지가 기록되어 있다. 양쪽 목록은 동일하지 않다.
 
