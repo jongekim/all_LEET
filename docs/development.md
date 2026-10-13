@@ -203,6 +203,8 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 
 네이버앱 팝업 제외는 `naverBrowser.test.ts`, `PushConsent.test.tsx`, `npm run test:e2e:push`로 검증한다. iPhone·Android inapp/higgs UA와 실제 API 지원 여부를 분리해 홈·직접 진입·새로고침·시간 경과에도 팝업 및 권한/푸시 요청이 없는지 확인한다. 기존 브라우저 안내 회귀도 함께 실행한다. [검증 범위](naver-browser-compatibility.md)를 따른다.
 
+현재 자동 팝업은 [최초 동의 표시 규칙](push-consent-rules.md)을 따른다. 단위 검사는 허용 이력·권한/지원 변경·서버 실패·저장 차단·교차 탭을 포함하며, 푸시 E2E는 실제 hook과 모의 API로 허용/차단/미지원/설치 필요 환경의 팝업 제외를 확인한다. 아래의 등록 실패 재접속 안내와 설치 필요 자동 안내는 이전 구현 기록이며 현재 규칙으로 대체됐다.
+
 서비스 접속 팝업의 7일 유예는 `PushConsent.test.tsx`와 푸시 E2E의 모의 시계로 검증한다. 상단 재진입 링크 없음·새로고침·Esc·기간 만료, 홈 밖 회원/비회원 자동 안내·권한 허용 후 등록 실패 재접속을 모바일/PC에서 확인하며 실제 알림 권한과 Supabase는 모킹한다. 분리 미리보기는 `docs/previews/push-consent-popup.html`이며 실제 등록하지 않는다. 로컬 안내 UI만 확인하려면 정확한 localhost origin을 지정해 `VITE_PUSH_ENABLED=true VITE_PUSH_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000 npm run dev -- --port 3000 --strictPort`로 실행할 수 있다. 실제 등록/저장 버튼 검증은 운영 연결 대신 모의 E2E에서 진행한다.
 
 승인된 관리자/홈 UI와 신규 private SQL·Edge 세 함수·SW를 로컬 구현했다. `npm run test:push`는 실제 신규 SQL의 합성 PostgreSQL 및 Deno 타입/API/worker/라이브러리 암호화를 검사한다. `npm run test:e2e:push`는 별도 포트 3001에서 전체 Supabase/알림 API를 모킹하여 UI를 검사한다. SW 단위 검사는 기존 Vitest에 포함한다. 새 명령은 전체 check와 품질 CI에 추가했다. 운영에 연결된 로컬에서 등록·초안·preview·테스트 확인도 실행하지 않는다.

@@ -23,6 +23,14 @@ beforeEach(() => {
   vi.resetModules();
   mock.request.mockReset();
   mock.session.mockReset();
+  const preferences = new Map<string, string>();
+  Object.defineProperty(window, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => preferences.get(key) ?? null,
+      setItem: (key: string, value: string) => preferences.set(key, value),
+    },
+  });
   vi.stubGlobal("crypto", webcrypto);
   local = {
     installationId: crypto.randomUUID(),
@@ -75,6 +83,12 @@ afterEach(() => {
   delete (navigator as unknown as Record<string, unknown>).serviceWorker;
 });
 describe("installation races", () => {
+  it("서버 상태 조회가 실패해도 기존 설치의 허용 이력을 보존한다", async () => {
+    mock.request.mockRejectedValue(new Error("server unavailable"));
+    const { syncPushInstallation } = await import("./pushInstallation");
+    await expect(syncPushInstallation()).rejects.toThrow("server unavailable");
+    expect(window.localStorage.getItem("all-leet:push-permission-granted:v1")).toBe("1");
+  });
   it("등록 ACK가 먼저 도착하면 늦은 pending 응답이 active를 덮지 않는다", async () => {
     mock.request.mockImplementation(async (_kind: string, action: string) => {
       if (action === "config") {

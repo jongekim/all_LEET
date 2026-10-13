@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PushConsent } from "./PushConsent";
+import { PUSH_PERMISSION_HISTORY_KEY } from "../utils/pushPromptPreferences";
 
 const mock = vi.hoisted(() => ({
   useSubscription: vi.fn(),
@@ -85,14 +86,22 @@ describe("알림 동의 팝업", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(mock.useSubscription).not.toHaveBeenCalled();
   });
-  it("일반 Safari에서는 기존 설치 안내를 유지한다", () => {
+  it("웹 알림을 지원하지 않는 Safari에서는 설치 안내도 표시하지 않는다", () => {
     vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
       "Mozilla/5.0 (iPhone) Version/18.0 Mobile/15E148 Safari/604.1",
     );
     Object.assign(mock.value, { needsInstall: true, supported: false });
     render(<PushConsent />);
     wait();
-    expect(screen.getByRole("heading", { name: "홈 화면에 추가하고 알림을 받아보세요" })).toBeVisible();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+  it("표시 조건은 홈 화면 실행 여부 대신 웹 알림 지원과 동의 상태를 사용한다", () => {
+    Object.assign(mock.value, { needsInstall: true, supported: true });
+    render(<PushConsent />);
+    wait();
+    expect(screen.getByRole("heading", { name: "all LEET 소식을 놓치지 마세요" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "알림 받을게요" })).toBeVisible();
+    expect(screen.queryByText("홈 화면에 추가하고 알림을 받아보세요")).not.toBeInTheDocument();
   });
   it("3초 뒤 안내만 표시하고 버튼을 눌렀을 때만 권한 요청을 시작한다", () => {
     render(<PushConsent />);
@@ -124,7 +133,7 @@ describe("알림 동의 팝업", () => {
     wait();
     expect(screen.getByRole("dialog")).toBeVisible();
   });
-  it("권한 허용 즉시 닫고 등록 지연·실패에도 같은 방문에서 자동으로 다시 열지 않는다", () => {
+  it("권한 허용 이력을 남기고 등록 실패·재접속·권한 초기화 뒤에도 자동으로 다시 열지 않는다", () => {
     const view = render(<PushConsent />);
     wait();
     fireEvent.click(screen.getByRole("button", { name: "알림 받을게요" }));
@@ -134,29 +143,28 @@ describe("알림 동의 팝업", () => {
     view.rerender(<PushConsent />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(window.localStorage.getItem(key)).toBeNull();
+    expect(window.localStorage.getItem(PUSH_PERMISSION_HISTORY_KEY)).toBe("1");
     Object.assign(mock.value, { busy: false, error: "등록 실패" });
     view.rerender(<PushConsent />);
     fireEvent.focus(window);
     wait(10000);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     view.unmount();
+    Object.assign(mock.value, { permission: "default" });
     render(<PushConsent />);
-    wait();
-    expect(screen.getByRole("alert")).toHaveTextContent("등록 실패");
-    mock.value.subscribe.mockImplementation((callback: () => void) => callback());
-    fireEvent.click(screen.getByRole("button", { name: "등록 다시 확인" }));
+    wait(week + 10000);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(window.localStorage.getItem(key)).toBeNull();
   });
-  it("알림 권한을 거절하면 팝업과 차단 안내를 유지한다", () => {
+  it("알림 권한을 거절하면 팝업을 숨기고 차단 안내와 7일 유예를 남기지 않는다", () => {
     const view = render(<PushConsent />);
     wait();
     fireEvent.click(screen.getByRole("button", { name: "알림 받을게요" }));
     Object.assign(mock.value, { permission: "denied" });
     view.rerender(<PushConsent />);
-    expect(screen.getByRole("dialog")).toBeVisible();
-    expect(screen.getByRole("heading", { name: "이 기기의 알림이 차단되어 있어요" })).toBeVisible();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(window.localStorage.getItem(key)).toBeNull();
+    expect(window.localStorage.getItem(PUSH_PERMISSION_HISTORY_KEY)).toBeNull();
   });
   it("닫기 버튼도 7일 유예를 저장하며 별도 재진입 링크는 없다", () => {
     render(<PushConsent />);
@@ -169,11 +177,17 @@ describe("알림 동의 팝업", () => {
   });
   it.each([
     { checked: false, permission: "granted" },
+    { checked: true, permission: "granted", error: "서버 등록 실패" },
+    { needsInstall: true, permission: "granted" },
+    { permission: "denied" },
+    { supported: false, checked: false },
+    { supported: false, checked: true },
+    { needsInstall: true, supported: false, checked: false },
     { state: { status: "active" } },
     { state: { status: "pending" } },
     { enabled: false },
   ])(
-    "허용한 기기의 확인 전·등록 완료·대기·비활성에는 자동 표시하지 않는다: %j",
+    "허용·차단·미지원·등록 완료·대기·비활성에는 자동 표시하지 않는다: %j",
     (condition) => {
       Object.assign(mock.value, condition);
       render(<PushConsent />);
@@ -184,12 +198,9 @@ describe("알림 동의 팝업", () => {
   );
   it.each([
     { checked: false },
-    { permission: "granted", error: "서버 확인 실패" },
-    { permission: "denied" },
-    { needsInstall: true, supported: false, checked: false },
-    { supported: false, checked: false },
+    { checked: true, error: "서버 확인 실패" },
   ])(
-    "미동의·미등록·차단·설치 필요는 직접 누르지 않아도 안내한다: %j",
+    "웹 알림 지원·미결정·허용 이력 없음에만 자동 안내한다: %j",
     (condition) => {
       Object.assign(mock.value, condition);
       render(<PushConsent />);
@@ -200,6 +211,17 @@ describe("알림 동의 팝업", () => {
       expect(mock.value.subscribe).not.toHaveBeenCalled();
     },
   );
+  it("다른 탭에서 허용 이력이 기록되면 열린 팝업도 즉시 숨긴다", () => {
+    render(<PushConsent />);
+    wait();
+    expect(screen.getByRole("dialog")).toBeVisible();
+    window.localStorage.setItem(PUSH_PERMISSION_HISTORY_KEY, "1");
+    fireEvent(window, new StorageEvent("storage", { key: PUSH_PERMISSION_HISTORY_KEY, newValue: "1" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(window.localStorage.getItem(key)).toBeNull();
+    wait(week + 10000);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
   it("저장소가 차단되어도 현재 화면에서는 나중에를 반복 표시하지 않는다", () => {
     vi.spyOn(window.localStorage, "getItem").mockImplementation(() => {
       throw new Error("blocked");

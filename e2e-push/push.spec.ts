@@ -505,7 +505,7 @@ for (const guest of [true, false]) {
   });
 }
 
-test("권한만 허용하고 서버 등록에 실패한 기기도 재접속 시 자동 안내한다", async ({ page }) => {
+test("허용 이력이 있으면 등록 실패·재접속·권한 초기화 뒤에도 팝업을 표시하지 않는다", async ({ page }) => {
   await mock(page, true);
   await page.route(
     "https://*.supabase.co/functions/v1/push-subscriptions/config",
@@ -521,15 +521,68 @@ test("권한만 허용하고 서버 등록에 실패한 기기도 재접속 시 
     ),
   ).toBeNull();
   await page.reload();
-  await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10000 });
-  await expect(
-    page.getByRole("button", { name: "등록 다시 확인", exact: true }),
-  ).toBeVisible();
+  await page.clock.install();
+  await page.clock.runFor(10000);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("all-leet:push-permission-granted:v1"))).toBe("1");
+  await page.evaluate(() => localStorage.setItem("mock-push-permission", "default"));
+  await page.reload();
+  await page.clock.runFor(10000);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(
     await page.evaluate(() =>
       (Notification as unknown as { requests: number }).requests
     ),
   ).toBe(0);
+});
+
+for (const condition of ["granted", "denied", "unsupported", "ios-browser", "history"] as const) {
+  test(`허용·차단·미지원·허용 이력에는 자동 안내하지 않는다: ${condition}`, async ({ page }) => {
+    await page.addInitScript((condition) => {
+      if (condition === "granted" || condition === "denied") localStorage.setItem("mock-push-permission", condition);
+      if (condition === "history") localStorage.setItem("all-leet:push-permission-granted:v1", "1");
+      if (condition === "unsupported") Object.defineProperty(window, "isSecureContext", { value: false });
+      if (condition === "ios-browser") Object.defineProperty(navigator, "userAgent", { get: () => "Mozilla/5.0 (iPhone) Version/18.0 Mobile/15E148 Safari/604.1" });
+    }, condition);
+    const state = await mock(page, true);
+    await page.clock.install();
+    await page.clock.runFor(10000);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.goto("/community");
+    await page.clock.runFor(10000);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(state.pushRequests).toEqual([]);
+    expect(await page.evaluate(() => (Notification as unknown as { requests: number }).requests)).toBe(0);
+    if (condition === "granted") expect(await page.evaluate(() => localStorage.getItem("all-leet:push-permission-granted:v1"))).toBe("1");
+  });
+}
+
+test("기존 설치가 있으면 서버 조회 실패와 권한 초기화에도 팝업을 표시하지 않는다", async ({ page }) => {
+  const state = await mock(page, true);
+  await page.evaluate(async (installation) => {
+    const core = (window as unknown as {
+      LEETPushCore: { mutate(fn: () => Record<string, unknown>): Promise<unknown> };
+    }).LEETPushCore;
+    await core.mutate(() => ({
+      installationId: installation,
+      capability: "A".repeat(43),
+      intent: 0,
+      desiredUserId: null,
+    }));
+  }, installation);
+  await page.route("https://*.supabase.co/functions/v1/push-subscriptions/state", (route) =>
+    route.fulfill({ status: 503, json: { code: "STORAGE_UNAVAILABLE" } })
+  );
+  const failedStateResponse = page.waitForResponse((response) =>
+    response.url().endsWith("/push-subscriptions/state") && response.status() === 503
+  );
+  await page.reload();
+  await failedStateResponse;
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("all-leet:push-permission-granted:v1"))).toBe("1");
+  await page.clock.install();
+  await page.clock.runFor(10000);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(state.pushRequests).not.toContain("register");
 });
 
 for (const width of [390, 1280]) {

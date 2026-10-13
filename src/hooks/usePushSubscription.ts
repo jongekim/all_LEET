@@ -7,6 +7,7 @@ import {
   type PushState,
 } from "../utils/pushApi";
 import { registerPush, syncPushInstallation } from "../utils/pushInstallation";
+import { rememberPushPermissionGranted } from "../utils/pushPromptPreferences";
 export function usePushSubscription() {
   const { currentUser } = useAuth();
   const [state, setState] = useState<PushState | null>(null),
@@ -24,20 +25,25 @@ export function usePushSubscription() {
       mounted.current = false;
     };
   }, []);
-  const supported = enabled && typeof navigator !== "undefined" &&
-    isSecureContext && "serviceWorker" in navigator &&
-    "PushManager" in window && "Notification" in window;
   const ios = typeof navigator !== "undefined" &&
     (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
   const needsInstall = ios && typeof window !== "undefined" &&
     !window.matchMedia("(display-mode: standalone)").matches &&
     !(navigator as Navigator & { standalone?: boolean }).standalone;
+  const supported = enabled && !needsInstall && typeof navigator !== "undefined" &&
+    isSecureContext && "serviceWorker" in navigator &&
+    "PushManager" in window && "Notification" in window;
+  useEffect(() => {
+    if (permission === "granted") rememberPushPermissionGranted();
+  }, [permission]);
   const refresh = useCallback(async () => {
     if (!supported || needsInstall) return;
     try {
       navigator.serviceWorker.controller?.postMessage({ type: "PUSH_SYNC" });
       const result = await syncPushInstallation(userId);
+      // 기존 설치 기록도 과거 권한 허용의 근거로 보존한다.
+      if (result) rememberPushPermissionGranted();
       if (mounted.current) {
         setState(result);
         setError("");
@@ -92,6 +98,7 @@ export function usePushSubscription() {
         setError("브라우저 사이트 설정에서 알림 권한을 변경할 수 있습니다.");
         return;
       }
+      rememberPushPermissionGranted();
       if (mounted.current) onPermissionGranted?.();
       const result = await registerPush();
       if (mounted.current) setState(result);

@@ -1,5 +1,6 @@
 import { supabase } from "../contexts/AuthContext";
 import { projectId, publicAnonKey } from "./supabase/info";
+import { rememberPushPermissionGranted } from "./pushPromptPreferences";
 import {
   type InstallationProof,
   pushEnabled,
@@ -185,6 +186,8 @@ export async function syncPushInstallation(
     ) return null;
     let local = await core().read();
     if (!local) return null;
+    // 허용 뒤 생성된 설치 증명은 서버 조회가 실패해도 허용 이력으로 남긴다.
+    rememberPushPermissionGranted();
     const { data: { session } } = await supabase.auth.getSession();
     if (
       (session?.user.id || null) !== (initiator?.user.id || null) ||
