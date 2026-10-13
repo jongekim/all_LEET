@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react@0.487.0";
 import { usePushSubscription } from "../hooks/usePushSubscription";
+import { isNaverInAppBrowser } from "../utils/naverBrowser";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,13 @@ function readSnooze(fallback = 0): number {
 }
 
 export function PushConsent() {
+  if (typeof navigator !== "undefined" && isNaverInAppBrowser(navigator.userAgent)) {
+    return null;
+  }
+  return <PushConsentAvailable />;
+}
+
+function PushConsentAvailable() {
   const push = usePushSubscription();
   if (!push.enabled || push.state?.status === "active") return null;
   return <PushConsentPrompt push={push} />;

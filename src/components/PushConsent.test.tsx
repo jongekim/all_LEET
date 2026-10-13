@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PushConsent } from "./PushConsent";
 
 const mock = vi.hoisted(() => ({
+  useSubscription: vi.fn(),
   value: {
     enabled: true,
     supported: true,
@@ -24,7 +25,7 @@ const mock = vi.hoisted(() => ({
 }));
 vi.mock(
   "../hooks/usePushSubscription",
-  () => ({ usePushSubscription: () => mock.value }),
+  () => ({ usePushSubscription: mock.useSubscription }),
 );
 const key = "all-leet:push-prompt-snooze:v1", week = 7 * 24 * 60 * 60 * 1000;
 beforeEach(() => {
@@ -52,6 +53,7 @@ beforeEach(() => {
     busy: false,
   });
   mock.value.subscribe.mockReset();
+  mock.useSubscription.mockReset().mockReturnValue(mock.value);
 });
 afterEach(() => {
   cleanup();
@@ -64,6 +66,34 @@ function wait(ms = 3000) {
   });
 }
 describe("알림 동의 팝업", () => {
+  it.each([
+    "Mozilla/5.0 (iPhone) Mobile/15E148 Safari/604.1 NAVER(inapp; search; 620; 10.10.2; XR)",
+    "Mozilla/5.0 (Linux; Android 14; wv) Mobile Safari/537.36 NAVER (inapp; search; 550; 8.2.0)",
+    "Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36 NAVER (higgs; search; 550; 8.2.0; 20.50.533.26)",
+  ])("네이버앱에서는 알림 hook과 자동 안내를 실행하지 않는다: %s", (ua) => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(ua);
+    const view = render(<PushConsent />);
+    wait(10000);
+    fireEvent.focus(window);
+    wait(week);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mock.useSubscription).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem(key)).toBeNull();
+    view.unmount();
+    render(<PushConsent />);
+    wait();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mock.useSubscription).not.toHaveBeenCalled();
+  });
+  it("일반 Safari에서는 기존 설치 안내를 유지한다", () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (iPhone) Version/18.0 Mobile/15E148 Safari/604.1",
+    );
+    Object.assign(mock.value, { needsInstall: true, supported: false });
+    render(<PushConsent />);
+    wait();
+    expect(screen.getByRole("heading", { name: "홈 화면에 추가하고 알림을 받아보세요" })).toBeVisible();
+  });
   it("3초 뒤 안내만 표시하고 버튼을 눌렀을 때만 권한 요청을 시작한다", () => {
     render(<PushConsent />);
     expect(screen.queryByRole("button", { name: "서비스 알림 받기" })).not.toBeInTheDocument();

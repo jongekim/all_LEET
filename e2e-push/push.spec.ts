@@ -279,6 +279,33 @@ async function confirm(page: Page) {
   await page.getByRole("button", { name: "기기에서 표시·이동 확인했습니다" })
     .click();
 }
+for (const browser of [
+  { name: "iPhone", ua: "Mozilla/5.0 (iPhone) Mobile/15E148 Safari/604.1 NAVER(inapp; search; 620; 10.10.2; XR)" },
+  { name: "Android inapp", ua: "Mozilla/5.0 (Linux; Android 14; wv) Mobile Safari/537.36 NAVER (inapp; search; 550; 8.2.0)" },
+  { name: "Android higgs", ua: "Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36 NAVER (higgs; search; 550; 8.2.0; 20.50.533.26)" },
+]) {
+  test(`네이버앱에서는 홈·직접 진입·새로고침에도 알림 팝업이 없다: ${browser.name}`, async ({ page }, info) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript((ua) => {
+      Object.defineProperty(navigator, "userAgent", { get: () => ua });
+    }, browser.ua);
+    const state = await mock(page, true);
+    await page.clock.install();
+    await expect(page.getByRole("heading", { name: "리트 채점은 all LEET", exact: true })).toBeVisible();
+    await page.clock.runFor(10000);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.screenshot({ path: info.outputPath("naver-home.png") });
+    await page.goto("/community");
+    await page.clock.runFor(10000);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.reload();
+    await page.clock.runFor(10000);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(state.pushRequests).toEqual([]);
+    expect(await page.evaluate(() => (Notification as unknown as { requests: number }).requests)).toBe(0);
+    expect(await page.evaluate(() => localStorage.getItem("all-leet:push-prompt-snooze:v1"))).toBeNull();
+  });
+}
 for (const width of [390, 1280]) {
   test(
     `푸시 구독 통계·새로고침·실패/0 구분·권한 회수 ${width}`,

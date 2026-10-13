@@ -2,7 +2,7 @@
 
 ## 기준
 
-서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.12.0`이다.
+서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.12.1`이다.
 
 버전은 [Semantic Versioning 2.0.0](https://semver.org/lang/ko/)의 `MAJOR.MINOR.PATCH` 형식을 따른다. 한 번 실서비스에 배포된 버전 번호는 다시 사용하거나 낮추지 않는다.
 
@@ -44,6 +44,12 @@
 | `npm run release:major` | MAJOR 버전 증가 및 MINOR/PATCH 초기화 |
 
 `release:*` 명령은 작업 트리가 깨끗하지 않으면 npm이 중단할 수 있다. 다른 작업의 변경 사항을 보존하기 위한 안전장치이므로, 해당 변경을 먼저 정리하거나 별도 작업 트리에서 릴리스를 준비한다.
+
+## v1.12.1 변경 내역
+
+iPhone·Android 네이버앱에서 자동 알림 구독 팝업을 표시하지 않도록 수정한다. 공식 inapp/higgs UA 표식으로 해당 팝업과 hook을 마운트하지 않는다. 일반 브라우저·홈 화면 웹앱의 기존 안내, 7일 유예, PWA 설치 버튼과 구독/발송 서버 계약은 유지한다. [진단·구현·검증](naver-browser-compatibility.md)을 따른다.
+
+사용자의 버전 관리부터 배포 요청에 따라 PATCH 버전을 올리고, 관련 소스·테스트·문서·버전·최종 운영 공개 읽기 빌드만 커밋해 main에 push한다. DB·Storage·인증·Edge Function 변경은 없다. 변경 경로가 기존 Edge 배포 workflow의 paths에 해당하지 않으므로 웹만 배포한다. 다른 작업의 기출 이미지·마크다운 자료와 로컬 캐시는 보존한다. 버전 검증 및 전체 품질 게이트를 통과한 뒤 push하며 최종 커밋·Vercel READY·실서비스 검증 결과는 작업 완료 기록에 남긴다.
 
 ## v1.12.0 변경 내역
 
