@@ -211,36 +211,41 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                         {isSmallScreen ? (
                           <div
                             className="pointer-events-none absolute z-50"
-                            style={{ bottom: '100%', right: 0, marginBottom: 8, width: 'min(260px, calc(100vw - 32px))' }}
+                            style={{ top: '50%', right: '100%', marginRight: 10, transform: 'translateY(-50%)', width: 'max-content', maxWidth: 'calc(100vw - 152px)' }}
                           >
                             <div className="relative">
-                              <div className="bg-gray-50 border border-gray-200 shadow-lg rounded-lg px-3 py-2 text-xs text-gray-700 animate-slide-up">
-                                <span className="font-bold text-gray-900">성적 분석</span> 버튼을 눌러 예시를 먼저 둘러보세요
+                              <div className="bg-gray-50 border border-gray-200 shadow-lg rounded-lg text-xs text-gray-700 animate-slide-up" style={{ padding: '4px 8px' }}>
+                                <span style={{ display: 'block', whiteSpace: 'nowrap' }}>
+                                  <span className="font-bold text-gray-900">성적 분석</span> 버튼을 눌러{' '}
+                                </span>
+                                <span style={{ display: 'block', whiteSpace: 'nowrap' }}>예시를 먼저 둘러보세요</span>
                               </div>
                               {/* 삼각형 테두리 (회색) */}
                               <div
                                 style={{
                                   position: 'absolute',
-                                  bottom: -7,
-                                  right: 15,
+                                  top: '50%',
+                                  right: -7,
+                                  transform: 'translateY(-50%)',
                                   width: 0,
                                   height: 0,
-                                  borderLeft: '7px solid transparent',
-                                  borderRight: '7px solid transparent',
-                                  borderTop: '7px solid rgba(229, 231, 235, 1)',
+                                  borderTop: '7px solid transparent',
+                                  borderBottom: '7px solid transparent',
+                                  borderLeft: '7px solid rgba(229, 231, 235, 1)',
                                 }}
                               />
                               {/* 삼각형 본체 (흰색) */}
                               <div
                                 style={{
                                   position: 'absolute',
-                                  bottom: -6,
-                                  right: 16,
+                                  top: '50%',
+                                  right: -6,
+                                  transform: 'translateY(-50%)',
                                   width: 0,
                                   height: 0,
-                                  borderLeft: '6px solid transparent',
-                                  borderRight: '6px solid transparent',
-                                  borderTop: '6px solid var(--color-gray-50)',
+                                  borderTop: '6px solid transparent',
+                                  borderBottom: '6px solid transparent',
+                                  borderLeft: '6px solid var(--color-gray-50)',
                                 }}
                               />
                             </div>
