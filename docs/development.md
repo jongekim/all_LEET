@@ -181,6 +181,8 @@ UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방�
 
 ## 관리자 이용 통계 검증·활성화
 
+2026-10-16 고도화는 `analyticsInsights.test.ts`/`useToolTracking.test.tsx`와 `test:analytics`의 `test-analytics-insights-sql.ts`, Deno/API 및 `e2e/admin-analytics.spec.ts`로 집계 분모·반환일 공백·실제 노출·무활동 만료·권한 회수를 검증한다. 독립 정적 미리보기는 그대로 유지하고 실제 앱에는 fixture를 넣지 않는다. v1.13.0 전체 `npm run check`를 단일 실행으로 통과했다. DB → 통계 Edge → 웹의 운영 적용과 검증은 [운영 적용 기록](admin-analytics-enhancement-rollout.md), 세부 계약은 [구현·검증](admin-analytics-enhancement-implementation.md)을 따른다.
+
 `npm run check`와 CI 품질 워크플로에 `npm run test:analytics`를 포함했다. 이 명령은 개발 의존성 PGlite 0.5.8의 임시 PostgreSQL에서 합성 역할/Auth/KV를 구성하여 신규 통계 마이그레이션을 검증하고, 신규 Deno 함수 타입 및 모의 요청 테스트를 실행한다. `src/utils/analyticsClient.test.ts`와 `adminAnalyticsApi.test.ts`는 기존 Vitest에, `e2e/admin-analytics.spec.ts`는 모의 Supabase Playwright에 포함된다. 운영 수집/저장 요청이 발생하지 않는다.
 
 기본 로컬/preview에는 수집이 없다. 운영 빌드, `VITE_USAGE_ANALYTICS_ENABLED=true`, 정확한 `VITE_USAGE_ANALYTICS_ORIGINS`가 모두 필요하다. 서버는 `USAGE_ANALYTICS_ENABLED`와 DB의 기본 false 설정을 추가로 검사한다. `ANALYTICS_ALLOWED_ORIGINS`를 함수에서 지정하며 브라우저에 service-role 비밀값을 넣지 않는다. Supabase 신규 함수는 `supabase/functions/usage-events`와 `admin-analytics`, 공유 소스는 `_shared`다. main 함수 배포에는 기존 이력 함수와 두 통계 함수를 포함했다. DB 마이그레이션은 별도 적용하며 자동 db push로 저장소의 과거 운영 이력을 덮어쓰지 않는다.

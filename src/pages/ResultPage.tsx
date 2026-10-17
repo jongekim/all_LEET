@@ -1,3 +1,6 @@
+import { useToolTracking } from '../hooks/useToolTracking';
+import { ResultTelemetryProvider } from '../components/ResultTelemetryProvider';
+import { finishResultTiming } from '../utils/analyticsTiming';
 import { getExamTypeLabel, isSingleFormYear } from '../utils/examType';
 import { PageHeader } from '../components/PageHeader';
 import { PageBackButton } from '../components/PageBackButton';
@@ -117,10 +120,10 @@ export function ResultPage({ admin, onUpdateAnswers }: { admin?: AdminResultView
       <h2 className="text-2xl font-bold text-gray-900">결과를 찾을 수 없습니다</h2>
     </main>
   </div>;
-  return <ResultRateVisibilityProvider>
+  return <ResultTelemetryProvider source={location.state?.entry_source || 'new_grading'} enabled={!admin}><ResultRateVisibilityProvider>
     <ResultPageContent key={`${currentUser?.id ?? 'guest'}:${results.map((r: GradingResult) => `${r.subject}:${r.timestamp}`).join(',')}`}
       initialResults={results} admin={admin} onUpdateAnswers={onUpdateAnswers} />
-  </ResultRateVisibilityProvider>;
+  </ResultRateVisibilityProvider></ResultTelemetryProvider>;
 }
 function ResultPageContent({ admin, onUpdateAnswers, initialResults }: {
   admin?: AdminResultView; onUpdateAnswers?: UpdateAnswers; initialResults: GradingResult[];
@@ -185,6 +188,7 @@ function ResultPageContent({ admin, onUpdateAnswers, initialResults }: {
     const context = location.state?.telemetry as GradingContext | undefined;
     if (location.state?.entry_source === 'new_grading' && context) {
       tracking.trackGrading('grading_result_viewed', context, { entry_source: 'new_grading' });
+      finishResultTiming(context);
     } else if (location.state?.entry_source === 'history' || location.state?.entry_source === 'example') {
       const first = viewedResults[0];
       tracking.track('past_result_viewed', 'history', { entry_source: location.state.entry_source, year: first.year, exam_type: isSingleFormYear(first.year) ? 'single' : first.examType, subjects: viewedResults.length > 1 ? 'both' : first.subject }, location.key);
@@ -300,10 +304,12 @@ function ResultPageContent({ admin, onUpdateAnswers, initialResults }: {
     }
   };
 
+  const {observe:observeNote,begin:beginNote}=useToolTracking('note',!!currentUser&&!admin&&location.state?.entry_source!=='example');
   const saveActiveNote = async () => {
     if (!currentUser) return;
 
     if (admin) { await admin.changeNote(activeSubject, activeQuestionNo, noteDraft.trim() || null); return; }
+    const noteResult=beginNote();
     const trimmed = noteDraft.trim();
     setNoteSaving(true);
     try {
@@ -352,8 +358,10 @@ function ResultPageContent({ admin, onUpdateAnswers, initialResults }: {
         }));
       }
 
+      noteResult('success');
       setNoteModalOpen(false);
     } catch (e) {
+      noteResult('failed');
       console.error('Failed to save note:', e);
       alert('메모 저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
@@ -503,7 +511,7 @@ function ResultPageContent({ admin, onUpdateAnswers, initialResults }: {
         {/* 메모 한번에 보기 */}
         <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={openAllNotesModal}
+            ref={observeNote} onClick={openAllNotesModal}
             className="flex-1 bg-white hover:bg-gray-50 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors border border-gray-200"
           >
             메모 한번에 보기{currentUser ? ` (${allNotesCount})` : ''}

@@ -1,3 +1,4 @@
+import { insightsFixture } from './fixtures/analytics-insights';
 import { expect, test, type Page } from '@playwright/test';
 import { addDays, buildDashboard, kstDay, makePeriod, previousPeriod, type DashboardRange, type Fact } from '../supabase/functions/_shared/dashboard';
 const admin = '00000000-0000-4000-8000-000000000001', member = '00000000-0000-4000-8000-000000000002';
@@ -28,7 +29,8 @@ async function mock(page: Page, allowed = true, fail = false) {
     if (url.pathname.includes('/admin-analytics/')) {
       requests.push(req.url()); expect(req.url()).not.toContain('undefined'); expect(req.method()).toBe('GET'); expect(req.headers().authorization).toBe('Bearer mock-token');
       if (fail) { await route.fulfill({ status: 503, json: { code: 'ANALYTICS_UNAVAILABLE' } }); return; }
-      if(url.pathname.endsWith('dashboard'))await route.fulfill({json:dashboardFixture(url)});
+      if(url.pathname.endsWith('insights'))await route.fulfill({json:insightsFixture(url)});
+      else if(url.pathname.endsWith('dashboard'))await route.fulfill({json:dashboardFixture(url)});
       else if(url.pathname.endsWith('activity-feed'))await route.fulfill({json:{items:[{...activity,...reference}],snapshot_at:new Date().toISOString(),start:`${url.searchParams.get('start')}T00:00:00+09:00`,end:`${addDays(url.searchParams.get('end')!,1)}T00:00:00+09:00`,status:'complete',coverage}});
       else if(url.pathname.endsWith('member-options'))await route.fulfill({json:{items:url.searchParams.get('purpose')==='audit_actor'?[{...reference,user_id:admin,name:'현재 관리자',is_current_admin:true},{user_id:'00000000-0000-4000-8000-000000000999',name:null,email:null,created_at:null,account_info_status:'missing',is_current_admin:false}]:[reference],next_cursor:null,purpose:url.searchParams.get('purpose'),sort_version:'1',snapshot_at:time}});
       else if (url.pathname.endsWith('member-directory')) await route.fulfill({ json: { items: [{ user_id: member, name: '<script>테스트 회원</script>', email: 'member@example.test', created_at: time, confirmed_at: time, last_seen: time, sessions: 2, grading: 1, past_exams: 1, history_views: 1, channels: ['pwa', 'browser'] }], next_cursor: null, coverage } });
@@ -42,11 +44,12 @@ async function mock(page: Page, allowed = true, fail = false) {
   });
   return requests;
 }
-for (const width of [390, 1280]) test(`관리자 통계 7개 탭·필터·회원 활동 ${width}`, async ({ page }, testInfo) => {
+for (const width of [320, 390, 1280]) test(`관리자 통계 7개 탭·필터·회원 활동 ${width}`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 900 }); const requests = await mock(page);
   await page.goto('/admin'); await page.getByRole('link', { name: /이용 통계/ }).click();
-  await expect(page.getByRole('heading', { name: '서비스 이용 통계' })).toBeVisible();
-  await expect(page.getByRole('heading',{name:'서비스 변화 대시보드'})).toBeVisible();await expect(page.locator('.admin-dash-card')).toHaveCount(6);
+  await expect(page.getByRole('heading', { name: '서비스 이용통계' })).toBeVisible();
+  await expect(page.getByRole('heading',{name:'이용 추이'})).toBeVisible();await expect(page.locator('.kpi')).toHaveCount(6);
+  await page.getByText('수집 품질 · 관측 범위').click();await expect(page.getByLabel('선택 기간의 일별 관측 상태')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   for (const name of ['기능', '채점', '회원/재방문', 'PWA']) {
     await page.getByRole('tab', { name, exact: true }).click(); await expect(page.getByRole('tabpanel')).not.toContainText('불러오고 있습니다');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -73,10 +76,46 @@ for (const width of [390, 1280]) test(`관리자 통계 7개 탭·필터·회원
   await expect(page.getByText('채널 필터 적용 중 · 전체 채널 비교 미지원',{exact:true})).toBeVisible();expect(requests.some(u=>u.includes('dashboard?')&&u.includes('channel=pwa'))).toBe(true);
 });
 test('통계 오류와 권한 없는 직접 접근', async ({ page }) => {
-  await mock(page, true, true); await page.goto('/admin/analytics'); await expect(page.getByRole('alert')).toContainText('불러오지 못했습니다');
+  await mock(page, true, true); await page.goto('/admin/analytics'); await expect(page.getByRole('alert').first()).toContainText('불러오지 못했습니다');
 });
 test('일반 회원에게 통계 API 요청이 발생하지 않는다', async ({ page }) => {
   const requests = await mock(page, false); await page.goto('/admin/analytics'); await expect(page).toHaveURL('/',{timeout:15_000}); expect(requests).toHaveLength(0);
+});
+test('같은 프레임의 탭·기간·채널 변경은 최신 선택을 함께 유지한다',async({page})=>{
+  const requests=await mock(page);await page.goto('/admin/analytics?tab=access');await expect(page.getByRole('cell',{name:'활동 조회',exact:true})).toBeVisible();
+  await page.evaluate(()=>{(document.querySelector('#tab-overview') as HTMLButtonElement).click();const channel=document.querySelector('[aria-label="실행 채널"]') as HTMLSelectElement;channel.value='pwa';channel.dispatchEvent(new Event('change',{bubbles:true}));});
+  await expect(page.getByRole('tab',{name:'개요',exact:true})).toHaveAttribute('aria-selected','true');await expect(page.getByRole('combobox',{name:'실행 채널',exact:true})).toHaveValue('pwa');await expect(page.locator('.kpi')).toHaveCount(6);
+  await page.evaluate(()=>{([...document.querySelectorAll('.range-control button')].find(node=>node.textContent==='30일') as HTMLButtonElement).click();const channel=document.querySelector('[aria-label="실행 채널"]') as HTMLSelectElement;channel.value='browser';channel.dispatchEvent(new Event('change',{bubbles:true}));});
+  await expect(page.getByRole('button',{name:'30일',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.getByRole('combobox',{name:'실행 채널',exact:true})).toHaveValue('browser');
+  await expect.poll(()=>requests.filter(url=>url.includes('/dashboard?')).some(url=>{const q=new URL(url).searchParams;return q.get('range')==='30d'&&q.get('channel')==='browser';})).toBe(true);
+});
+test('확장 분석의 실제 기능 단계·실행 분모·코호트 상태·정의 모달',async({page},info)=>{
+  const requests=await mock(page);const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto('/admin/analytics');await page.getByText('수집 품질 · 관측 범위').click();
+  await page.getByRole('checkbox',{name:'직전 기간 비교'}).uncheck();await expect(page.locator('.equation')).not.toContainText('직전');
+  await expect(page.locator('.quality-grid')).toContainText('수락');await expect(page.locator('.quality-grid')).toContainText('21');
+  await page.getByRole('button',{name:'지표 정의',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('D7과 W1');await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('tab',{name:'기능',exact:true}).click();
+  const tools=page.getByRole('table',{name:'기능 사용 기회 대비 사용률'});await expect(tools).toContainText('100%');
+  await page.getByRole('button',{name:'분야별 분석',exact:true}).click();await expect(page.getByRole('heading',{name:'분야별 분석 · 사용 기회부터 결과까지'})).toBeVisible();
+  await page.getByLabel('이용 화면').selectOption('past');await expect(tools).toContainText('미관측');await expect(tools).toContainText('미제공');await expect(tools).not.toContainText('0.0%');
+  await page.getByRole('tab',{name:'채점',exact:true}).click();await expect(page.locator('.funnel-step')).toHaveCount(4);
+  await page.getByRole('button',{name:'채점 실행',exact:true}).click();await expect(page.locator('.funnel-step')).toHaveCount(3);
+  await expect(page.getByRole('table',{name:'과목별 저장 응답'}).getByRole('row',{name:'전체 저장 대상 2 100%'})).toBeVisible();
+  await page.screenshot({path:info.outputPath('enhanced-grading-desktop.png'),fullPage:true});
+  await page.getByRole('tab',{name:'회원/재방문',exact:true}).click();await page.getByRole('button',{name:'30일',exact:true}).click();
+  await expect(page.getByRole('table',{name:'재방문 코호트'})).toContainText('관찰 중');
+  await page.getByRole('tab',{name:'회원/재방문',exact:true}).focus();await page.keyboard.press('ArrowRight');await expect(page.getByRole('tab',{name:'회원 활동',exact:true})).toBeFocused();
+  expect(requests.some(url=>url.includes('/insights?')&&url.includes('report=grading'))).toBe(true);expect(errors).toEqual([]);
+});
+test('새 분석 미가용은 0으로 표시하지 않고 필터 미지원과 권한 만료를 구분한다',async({page})=>{
+  await mock(page);
+  await page.route('https://*.supabase.co/functions/v1/admin-analytics/insights**',route=>{const data=insightsFixture(new URL(route.request().url()));return route.fulfill({json:{...data,status:'unavailable',available_from:null}});});
+  await page.goto('/admin/analytics?tab=grading');await expect(page.getByText('이 기간에 조회 가능한 자료가 없습니다.',{exact:false})).toBeVisible();await expect(page.locator('.funnel-step')).toHaveCount(0);
+  await page.unroute('https://*.supabase.co/functions/v1/admin-analytics/insights**');
+  await page.goto('/admin/analytics?tab=grading&outcome=failed');await expect(page.getByText('처리 결과 조건은 행동 상세 조회에서 확인할 수 있습니다.',{exact:false})).toBeVisible();await expect(page.locator('.funnel-step')).toHaveCount(0);
+  await page.route('https://*.supabase.co/functions/v1/admin-analytics/insights**',route=>route.fulfill({status:401,contentType:'text/html',body:'Expired'}));
+  await page.getByRole('button',{name:'새로고침',exact:true}).click();await expect(page.getByRole('alert')).toContainText('로그인 상태');await expect(page.getByRole('tab')).toHaveCount(0);
 });
 test('현재 계정의 HTML 403은 모든 개인 행을 지우고 다른 탭의 재조회를 중단한다',async({page})=>{
   const requests=await mock(page);await page.goto('/admin/analytics?tab=activity');await expect(page.getByRole('cell',{name:/member@example.test/})).toBeVisible();
@@ -88,11 +127,11 @@ test('현재 계정의 HTML 403은 모든 개인 행을 지우고 다른 탭의 
 
 for(const width of [390,1280])test(`실제 대시보드 기간·회원 상세 이동·선택 해제 ${width}`,async({page},info)=>{
   const requests=await mock(page);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.setViewportSize({width,height:900});await page.goto('/admin/analytics');
-  for(const label of ['7일','30일','6개월','1년']){await page.getByRole('button',{name:label,exact:true}).click();await expect(page.getByText('선택 기간의 자료 가용',{exact:true})).toBeVisible();}
-  await page.getByText('구간별 정확한 값 보기',{exact:true}).click();await expect(page.locator('details tbody tr')).toHaveCount(12);
+  for(const label of ['7일','30일','6개월','1년']){await page.getByRole('button',{name:label,exact:true}).click();await expect(page.getByText('선택 기간 관측 가능',{exact:true})).toBeVisible();}
+  await page.getByText('구간별 정확한 값',{exact:true}).click();await expect(page.locator('details tbody tr')).toHaveCount(12);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('actual-admin-dashboard.png'),fullPage:true});
   await page.getByRole('combobox',{name:'실행 채널',exact:true}).selectOption('pwa');await expect(page.getByText('채널 필터 적용 중 · 전체 채널 비교 미지원',{exact:true})).toBeVisible();
-  await page.locator('.admin-dash-feed table').getByRole('button').first().click();await expect(page.getByRole('tab',{name:'회원 활동',exact:true})).toHaveAttribute('aria-selected','true');
+  await page.locator('.mini-activity').getByRole('button').first().click();await expect(page.getByRole('tab',{name:'회원 활동',exact:true})).toHaveAttribute('aria-selected','true');
   await expect(page.getByText(/대시보드 분석 .* 상세 조회 .* 상세 원본 최대 90일/)).toBeVisible();await expect(page.getByRole('cell',{name:/채점 계산 완료/})).toBeVisible();
   const request=new URL(requests.filter(u=>u.includes('member-activity')).at(-1)!);expect(request.searchParams.get('channel')).toBe('pwa');expect(request.searchParams.get('start')).toBe(addDays(kstDay(new Date()),-90));expect(page.url()).not.toContain(member);expect(page.url()).not.toContain('member%40');
   await expect(page.locator('.admin-picker-selected')).toContainText('member@example.test');const before=requests.filter(u=>u.includes('member-activity')).length;
@@ -100,7 +139,7 @@ for(const width of [390,1280])test(`실제 대시보드 기간·회원 상세 �
   await page.getByRole('tab',{name:'개요',exact:true}).click();await expect(page.getByRole('button',{name:'1년',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.getByRole('combobox',{name:'실행 채널',exact:true})).toHaveValue('pwa');expect(errors).toEqual([]);
 });
 test('PWA 개인 선택은 전체 코호트를 바꾸지 않고 PWA 채널로 회원 상세 이동',async({page})=>{
-  const requests=await mock(page);await page.goto('/admin/analytics?tab=pwa&feature=grading&year=2027');await expect(page.getByRole('heading',{name:'최초 PWA 핵심 이용 기준 재방문'})).toBeVisible();
+  const requests=await mock(page);await page.goto('/admin/analytics?tab=pwa&feature=grading&year=2027');await expect(page.getByRole('heading',{name:'PWA 최초 핵심 이용 기준 재방문'})).toBeVisible();
   await page.getByRole('button',{name:'회원 선택 목록 열기'}).click();await page.getByRole('listbox').getByRole('option').click();await expect(page.getByRole('cell',{name:/채점 계산 완료/})).toBeVisible();
   const url=new URL(requests.filter(u=>u.includes('member-activity')).at(-1)!);expect(url.searchParams.get('channel')).toBe('pwa');expect(url.searchParams.get('user_id')).toBe(member);expect(url.searchParams.get('feature')).toBe('grading');expect(url.searchParams.get('year')).toBe('2027');
 });
@@ -116,13 +155,13 @@ test('감사 대상·과거 관리자 목록 선택은 조회 제출까지 요�
   const url=new URL(requests.filter(u=>u.includes('admin-access-history')).at(-1)!);expect(url.searchParams.get('target_user_id')).toBe(member);expect(url.searchParams.get('admin_user_id')).toBe('00000000-0000-4000-8000-000000000999');expect(page.url()).not.toContain(member);
 });
 test('목록에서 HTML 401을 받으면 대시보드·피드·선택 화면을 함께 제거',async({page})=>{
-  await mock(page);await page.goto('/admin/analytics');await expect(page.locator('.admin-dash-feed table')).toContainText('member@example.test');
+  await mock(page);await page.goto('/admin/analytics');await expect(page.locator('.mini-activity')).toContainText('테스트 회원',{timeout:15_000});
   await page.route('https://*.supabase.co/functions/v1/admin-analytics/member-options**',route=>route.fulfill({status:401,contentType:'text/html',body:'<html>Expired</html>'}));
-  await page.getByRole('button',{name:'회원 선택 목록 열기'}).click();await expect(page.getByRole('alert')).toContainText('로그인 상태');await expect(page.locator('.admin-dash')).toHaveCount(0);await expect(page.getByRole('combobox')).toHaveCount(0);await expect(page.getByRole('cell',{name:/member@example.test/})).toHaveCount(0);
+  await page.getByRole('button',{name:'회원 선택 목록 열기'}).click();await expect(page.getByRole('alert')).toContainText('로그인 상태');await expect(page.locator('.analytics-enhanced')).toHaveCount(0);await expect(page.getByRole('combobox')).toHaveCount(0);await expect(page.getByRole('cell',{name:/member@example.test/})).toHaveCount(0);
 });
 test('일시적 대시보드 갱신 실패는 같은 필터 자료만 유지하고 필터 변경에서는 이전 수치를 숨긴다',async({page})=>{
-  await mock(page);await page.goto('/admin/analytics');await expect(page.locator('.admin-dash-card')).toHaveCount(6);
+  await mock(page);await page.goto('/admin/analytics');await expect(page.locator('.kpi')).toHaveCount(6,{timeout:15_000});
   await page.route('https://*.supabase.co/functions/v1/admin-analytics/dashboard**',route=>route.fulfill({status:503,json:{code:'ANALYTICS_UNAVAILABLE'}}));
-  await page.getByRole('button',{name:'새로고침',exact:true}).click();await expect(page.getByRole('alert')).toContainText('이전 조회 / 갱신 실패');await expect(page.locator('.admin-dash-card')).toHaveCount(6);
-  await page.getByRole('button',{name:'30일',exact:true}).click();await expect(page.getByRole('alert')).not.toContainText('이전 조회 / 갱신 실패');await expect(page.locator('.admin-dash-card')).toHaveCount(0);
+  await page.getByRole('button',{name:'새로고침',exact:true}).click();await expect(page.getByRole('alert')).toContainText('갱신 실패');await expect(page.locator('.kpi')).toHaveCount(6);
+  await page.getByRole('button',{name:'30일',exact:true}).click();await expect(page.getByRole('alert')).not.toContainText('갱신 실패');await expect(page.locator('.kpi')).toHaveCount(0);
 });

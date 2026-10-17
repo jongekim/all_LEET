@@ -1,3 +1,4 @@
+import { useToolTracking } from '../hooks/useToolTracking';
 import { useId, useState } from 'react';
 import { Check, ChevronDown, ChevronUp, Minus, X } from 'lucide-react';
 import type { GradingResult } from '../App';
@@ -17,6 +18,7 @@ export function FieldAnalysis({ result, analysis = result.fieldAnalysis, onQuest
   analysis?: GradingResult['fieldAnalysis'];
   onQuestionSelect: (question: number) => void;
 }) {
+  const {observe:observeTool,begin:beginTool}=useToolTracking('field',!!analysis.length,{year:result.year,subjects:result.subject});
   const [expanded, setExpanded] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const id = useId();
@@ -33,7 +35,7 @@ export function FieldAnalysis({ result, analysis = result.fieldAnalysis, onQuest
     <div id={id} hidden={!expanded}>
       <p className="field-analysis-intro">내 답안 기준 · 분야를 누르면 문항별 결과를 볼 수 있습니다.</p>
       {!analysis.length && <p className="field-analysis-empty">분야별 분류 자료가 아직 준비되지 않았습니다.</p>}
-      <div className="field-analysis-rows">
+      <div className="field-analysis-rows" ref={observeTool}>
         {analysis.map((field,index)=>{
           const rate = field.total ? Math.round(field.correct / field.total * 100) : null;
           const open = selected === field.field;
@@ -44,7 +46,7 @@ export function FieldAnalysis({ result, analysis = result.fieldAnalysis, onQuest
           return <div className="field-analysis-item" key={field.field}>
             <button type="button" className="field-analysis-row" aria-expanded={open} aria-controls={detailId}
               aria-label={`${subject} ${field.field} ${field.correct}/${field.total} 정답, 내 정답 비율 ${rate ?? '미계산'}${rate === null ? '' : '%'}, 문항 ${open ? '접기' : '보기'}`}
-              onClick={()=>setSelected(open ? null : field.field)}>
+              onClick={()=>{if(!open)beginTool()('success');setSelected(open ? null : field.field);}}>
               <span className="field-analysis-name">{field.field}</span>
               <span className="field-analysis-track" aria-hidden="true"><span style={{width:`${rate ?? 0}%`}} /></span>
               <span className="field-analysis-count">{field.correct}<span> / {field.total}</span></span>

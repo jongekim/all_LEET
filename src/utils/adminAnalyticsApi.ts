@@ -3,6 +3,7 @@ import { projectId, publicAnonKey } from './supabase/info';
 import type { AccessRow, ActivityRow, AnalyticsFilters, AnalyticsReport, MemberSummary, PageResult, ReportKind } from '../types/analytics';
 import type { ActivityFeed, Dashboard, DashboardRange, MemberOptions, MemberPurpose } from '../types/analytics';
 import { AdminAnalyticsError, AnalyticsAuthorizationScope } from './adminAnalyticsErrors';
+import type { AnalyticsInsights } from '../../supabase/functions/_shared/analytics-insights';
 
 const messages: Record<string, string> = {
   AUTH_REQUIRED: '로그인 상태를 확인한 뒤 다시 시도해주세요.',
@@ -54,7 +55,7 @@ async function read<T>(path: string, filters: Partial<AnalyticsFilters>, owner: 
     console.error('관리자 통계 조회 실패', response.status);
     throw new AdminAnalyticsError(code, response.status, [500,502,503,504].includes(response.status), messages[code] || messages.ANALYTICS_UNAVAILABLE);
   }
-  if (!body || typeof body !== 'object' || Array.isArray(body) || (path === 'report' ? !Array.isArray(body.metrics) : path === 'dashboard' ? body.dashboard_policy_version !== 2 || !Array.isArray(body.cards) || !Array.isArray(body.series) : !Array.isArray(body.items))) throw new AdminAnalyticsError('INVALID_RESPONSE', response.status, false, messages.ANALYTICS_UNAVAILABLE);
+  if (!body || typeof body !== 'object' || Array.isArray(body) || (path === 'insights' ? body.insights_version!==1 || !Array.isArray(body.cohorts) || !Array.isArray(body.tools) || !body.funnels || !body.review : path === 'report' ? !Array.isArray(body.metrics) : path === 'dashboard' ? body.dashboard_policy_version !== 2 || !Array.isArray(body.cards) || !Array.isArray(body.series) : !Array.isArray(body.items))) throw new AdminAnalyticsError('INVALID_RESPONSE', response.status, false, messages.ANALYTICS_UNAVAILABLE);
   return body as T;
   } catch (error) {
     if (error instanceof AdminAnalyticsError && request) scope!.reject(error, request.generation);
@@ -62,6 +63,7 @@ async function read<T>(path: string, filters: Partial<AnalyticsFilters>, owner: 
   } finally { request?.finish(); }
 }
 return {
+  insights: (filters: AnalyticsFilters, owner: string, report: ReportKind, signal?: AbortSignal) => read<AnalyticsInsights>('insights', filters, owner, {report}, signal),
   report: (filters: AnalyticsFilters, owner: string, report: ReportKind, signal?: AbortSignal) => read<AnalyticsReport>('report', filters, owner, { report }, signal),
   members: (filters: AnalyticsFilters, owner: string, query = '', cursor = '', signal?: AbortSignal) => read<PageResult<MemberSummary>>('member-directory', filters, owner, { query, cursor }, signal),
   activity: (filters: AnalyticsFilters, owner: string, target: { user_id?: string; session_id?: string }, cursor = '', signal?: AbortSignal) => read<PageResult<ActivityRow>>('member-activity', filters, owner, { ...target, cursor }, signal),

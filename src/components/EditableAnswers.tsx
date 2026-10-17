@@ -1,3 +1,4 @@
+import { useToolTracking } from '../hooks/useToolTracking';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pencil } from 'lucide-react';
 import type { GradingResult } from '../App';
@@ -40,6 +41,8 @@ export function EditableAnswers({ result, notes, onOpenNote, editing, anotherEdi
   const computed = useMemo(() => {
     try { return editedResult(base, draft); } catch { return null; }
   }, [base, draft]);
+  const {observe:observeTool,begin:beginTool}=useToolTracking('edit',canEdit&&!!computed,{year:result.year,subjects:result.subject});
+  const editResult=useRef<ReturnType<typeof beginTool>|null>(null);
   const dirty = editing && (changed.length > 0 || saving);
   useUnsavedDdayChanges(dirty);
   useEffect(() => { if (editing) onDirtyChange(dirty); }, [dirty, editing, onDirtyChange]);
@@ -56,6 +59,7 @@ export function EditableAnswers({ result, notes, onOpenNote, editing, anotherEdi
   }, [dirty]);
 
   const start = () => {
+    editResult.current=beginTool();
     setBase(result); setDraft({ ...result.userAnswers }); setSelected(null);
     setMessage(''); setError(''); setBlocked(false); onStart();
   };
@@ -66,12 +70,15 @@ export function EditableAnswers({ result, notes, onOpenNote, editing, anotherEdi
   const apply = async () => {
     if (inFlight.current || !changed.length || !computed || blocked) return;
     inFlight.current = true; setSaving(true); setError('');
+    const finishEdit=editResult.current||beginTool();editResult.current=null;
     try {
       await onApply(base, draft);
+      finishEdit('success');
       if (!alive.current) return;
       setMessage(`${changed.length}문항 수정이 반영되었습니다.${persisted ? ' 기존 회독과 메모는 유지됩니다.' : ' 이 결과는 현재 화면에만 반영됩니다.'}`);
       setSelected(null); onDirtyChange(false); onFinish();
     } catch (failure) {
+      finishEdit(failure instanceof HistoryApiError&&failure.code==='RESULT_UNKNOWN'?'unknown':'failed');
       if (!alive.current) return;
       console.error('답안 수정 실패', failure);
       setError(failure instanceof Error ? failure.message : '답안 수정에 실패했습니다. 입력한 내용은 유지됩니다.');
@@ -100,7 +107,7 @@ export function EditableAnswers({ result, notes, onOpenNote, editing, anotherEdi
     <div className="answer-edit-heading">
       <h3 className="text-lg font-bold text-gray-900 mb-4">{result.subject === 'verbal' ? '언어이해' : '추리논증'} - 입력한 답안</h3>
       {editing ? <span className="answer-edit-mode">답안 수정 중</span> : canEdit &&
-        <Button type="button" variant="outline" size="sm" className="answer-edit-start" disabled={anotherEditing || !computed}
+        <Button ref={observeTool} type="button" variant="outline" size="sm" className="answer-edit-start" disabled={anotherEditing || !computed}
           title={computed ? undefined : '저장된 정답과 현재 채점 자료가 달라 수정할 수 없습니다.'} onClick={start}>
           <Pencil className="w-4 h-4" />답안 수정
         </Button>}

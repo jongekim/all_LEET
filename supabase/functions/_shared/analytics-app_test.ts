@@ -64,3 +64,14 @@ Deno.test('목록 조회는 기간·수집 비활성과 독립적이며 알려�
   assert((await f.app(req(''))).status===200);assert(f.calls[0].name==='product_analytics_member_options');assert(!('p_filters' in f.calls[0].args));
   assert((await f.app(req('?start=2026-01-01'))).status===400);assert((await f.app(req('?query='+Array(122).join('a')))).status===400);assert(f.calls.length===1);
 });
+Deno.test('확장 통계는 관리자만 단일 읽기 RPC를 호출하고 개인 사실을 응답에 노출하지 않는다',async()=>{
+ const f=fixture('admin');const headers={Authorization:'Bearer valid'};
+ f.deps.rpc=(name,args)=>{f.calls.push({name,args});return Promise.resolve({snapshot_at:new Date().toISOString(),available_from:null,started_at:null,last_accepted_at:null,collection_enabled:false,events:[],sessions:[],first_usage:[],gaps:[],quality:{},publications:{days:0,first_day:null,last_day:null,published_at:null}});};
+ const url='https://example.test/admin-analytics/insights';
+ assert((await f.app(new Request(url))).status===401);
+ const response=await f.app(new Request(url,{headers})),body=await response.json();
+ assert(response.status===200);assert(body.insights_version===1);assert(!('events' in body));assert(!('first_usage' in body));assert(f.calls.length===1);assert(f.calls[0].name==='product_analytics_insights_source');assert(f.calls[0].args.p_actor===id);
+ assert((await f.app(new Request(url+'?user_id='+id,{headers}))).status===400);
+ assert((await f.app(new Request(url+'?report=unknown',{headers}))).status===400);
+ f.deps.isAdmin=()=>Promise.resolve(false);assert((await f.app(new Request(url,{headers}))).status===403);assert(f.calls.length===1);
+});

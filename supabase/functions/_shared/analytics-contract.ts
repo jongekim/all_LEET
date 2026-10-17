@@ -12,6 +12,7 @@ export const eventNames = [
   'operation_outcome', 'install_cta_viewed', 'install_cta_clicked', 'install_guide_opened',
   'install_prompt_available', 'install_prompt_requested', 'install_prompt_result',
   'install_event_observed', 'execution_channel_changed',
+  'tool_available', 'tool_exposed', 'tool_used', 'tool_result', 'client_timing', 'grading_validation_failed',
 ] as const;
 export type EventName = typeof eventNames[number];
 export type Channel = 'pwa' | 'browser' | 'other' | 'unknown';
@@ -22,7 +23,8 @@ export type Attributes = Partial<Record<
   'year' | 'subjects' | 'exam_type' | 'input_flow_id' | 'previous_input_flow_id' | 'resume_reason' |
   'grading_run_id' | 'save_attempt_id' | 'entry_source' | 'target_type' | 'target_id' | 'outcome' |
   'history_kind' | 'reference_kind' | 'institution' | 'round' | 'question_no' | 'guide_type' |
-  'install_attempt_id' | 'error_code' | 'last_interaction_at' | 'activity_sequence' | 'has_records',
+  'install_attempt_id' | 'error_code' | 'last_interaction_at' | 'activity_sequence' | 'has_records' |
+  'app_version' | 'tool' | 'surface' | 'result_context_id' | 'operation_id' | 'elapsed_ms' | 'visible_ms' | 'timing_phase',
   string | number | boolean
 >>;
 export interface UsageEvent {
@@ -64,8 +66,8 @@ export interface PageResult<T> { items: T[]; next_cursor: string | null; coverag
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const features = ['navigation', 'grading', 'past_exams', 'history', 'mock', 'admission', 'community', 'chat', 'install'];
 const routes = ['/', '/result', '/history', '/mock-history', '/mock-input', '/past-exams', '/admission', '/admission-result', '/community', '/community/:id', '/chat', '/login', '/signup', '/forgot-password', '/reset-password', '/terms', '/privacy-policy'];
-const attributeKeys = ['year', 'subjects', 'exam_type', 'input_flow_id', 'previous_input_flow_id', 'resume_reason', 'grading_run_id', 'save_attempt_id', 'entry_source', 'target_type', 'target_id', 'outcome', 'history_kind', 'reference_kind', 'institution', 'round', 'question_no', 'guide_type', 'install_attempt_id', 'error_code', 'last_interaction_at', 'activity_sequence', 'has_records'];
-export const memberActivity = (name: EventName) => !['session_activity', 'execution_channel_changed'].includes(name) && !name.startsWith('install_');
+const attributeKeys = ['year', 'subjects', 'exam_type', 'input_flow_id', 'previous_input_flow_id', 'resume_reason', 'grading_run_id', 'save_attempt_id', 'entry_source', 'target_type', 'target_id', 'outcome', 'history_kind', 'reference_kind', 'institution', 'round', 'question_no', 'guide_type', 'install_attempt_id', 'error_code', 'last_interaction_at', 'activity_sequence', 'has_records', 'app_version', 'tool', 'surface', 'result_context_id', 'operation_id', 'elapsed_ms', 'visible_ms', 'timing_phase'];
+export const memberActivity = (name: EventName) => !['session_activity', 'execution_channel_changed', 'tool_available', 'tool_exposed', 'client_timing'].includes(name) && !name.startsWith('install_');
 export const coreActivity = (name: EventName) => ['grading_completed', 'past_exam_file_clicked', 'reference_opened', 'history_viewed', 'mock_saved', 'admission_completed'].includes(name);
 
 export function validateEvent(input: unknown): UsageEvent | null {
@@ -93,7 +95,8 @@ export function validateEvent(input: unknown): UsageEvent | null {
     outcome: ['success', 'failed', 'unknown', 'accepted', 'dismissed', 'error'], history_kind: ['official', 'mock'],
     reference_kind: ['answers', 'conversion'], guide_type: ['ios', 'android_menu', 'desktop_bookmark'],
     target_type: ['exam', 'pdf', 'question', 'post', 'comment', 'note', 'history', 'mock', 'admission', 'chat'],
-    error_code: ['REQUEST_FAILED', 'RESULT_UNKNOWN', 'AUTH_REQUIRED', 'ACCOUNT_CHANGED', 'CLIENT_ERROR', 'PROMPT_ERROR'],
+    tool: ['distribution','field','edit','note'], surface: ['new','history','example','past'], timing_phase: ['calculation','save','render','result'],
+    error_code: ['EMPTY_INPUT','REQUEST_FAILED', 'RESULT_UNKNOWN', 'AUTH_REQUIRED', 'ACCOUNT_CHANGED', 'CLIENT_ERROR', 'PROMPT_ERROR'],
   };
   if (Object.entries(allow).some(([key, values]) => attrs[key] !== undefined && !values.includes(String(attrs[key])))) return null;
   if (attrs.year !== undefined && !/^(09예비|20\d{2})$/.test(String(attrs.year))) return null;
@@ -114,6 +117,12 @@ export function validateEvent(input: unknown): UsageEvent | null {
   if (name === 'mock_saved' && (!attrs.save_attempt_id || attrs.outcome !== 'success')) return null;
   if (name.startsWith('install_prompt_') && name !== 'install_prompt_available' && !attrs.install_attempt_id) return null;
   if (name === 'session_activity' && (!attrs.last_interaction_at || !Number.isSafeInteger(attrs.activity_sequence))) return null;
+  if (attrs.app_version !== undefined && !/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(String(attrs.app_version))) return null;
+  if (name.startsWith('tool_') && (!attrs.tool || !attrs.surface || !attrs.result_context_id)) return null;
+  if (['tool_used','tool_result'].includes(name) && !attrs.operation_id) return null;
+  if (name === 'tool_result' && !['success','failed','unknown'].includes(String(attrs.outcome))) return null;
+  if (name === 'client_timing' && (!attrs.grading_run_id || !attrs.timing_phase || !Number.isFinite(attrs.elapsed_ms) || !Number.isFinite(attrs.visible_ms) || Number(attrs.elapsed_ms)>3_600_000 || Number(attrs.visible_ms)>Number(attrs.elapsed_ms))) return null;
+  if (name === 'grading_validation_failed' && attrs.error_code !== 'EMPTY_INPUT') return null;
   return e as unknown as UsageEvent;
 }
 

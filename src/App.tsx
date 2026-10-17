@@ -1,3 +1,4 @@
+import { ResultTelemetryProvider } from './components/ResultTelemetryProvider';
 import { useEffect, useLayoutEffect } from 'react';
 import { useUserHistory } from './hooks/useUserHistory';
 import { useUsageTracking } from './hooks/useUsageTracking';
@@ -244,7 +245,7 @@ export function AppContent() {
           />
 
           <Route path="/community" element={<CommunityPage />} />
-          <Route path="/past-exams" element={<PastExamsPage />} />
+          <Route path="/past-exams" element={<ResultTelemetryProvider source="past" enabled><PastExamsPage /></ResultTelemetryProvider>} />
           <Route path="/community/:id" element={<CommunityPostPage />} />
 
           <Route path="/chat" element={<ChatPage />} />

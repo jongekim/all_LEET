@@ -67,6 +67,17 @@ describe('optional usage collection', () => {
     const flushing = f.client.flush(); f.client.configure('other', false); finish([]); await flushing;
     expect(f.client.pending()).toHaveLength(0);
   });
+  it('수동 조작 없는 기능 노출·시간 측정은 세션의 무활동 만료를 연장하지 않는다', () => {
+    const f=fixture(), original=f.client.pending()[0].session_id, generation=f.client.identity();
+    const attributes={tool:'field',surface:'new',result_context_id:'00000000-0000-4000-8000-000000009000'};
+    f.advance(29);f.client.trackForIdentity(generation,'tool_available','grading',attributes);
+    f.client.trackForIdentity(generation,'tool_exposed','grading',attributes);
+    f.advance(2);const run=f.client.beginGrading('2027','odd','both');expect(run.session_id).not.toBe(original);
+    f.client.trackTiming(run,'result',120,100);f.client.trackTiming(run,'result',500,100);
+    expect(f.client.pending().filter(e=>e.event_name==='client_timing')).toHaveLength(1);
+    f.client.configure('another',false);f.client.trackTiming(run,'save',120,100,'verbal');
+    expect(f.client.pending()).toHaveLength(0);
+  });
   it('새 문서에서 세대 번호가 같아도 다른 계정의 보존된 결과 상태를 재귀속하지 않는다', () => {
     const f = fixture(); f.client.configure('member-a', false);
     const saved = f.client.beginGrading('2027', 'single', 'both');

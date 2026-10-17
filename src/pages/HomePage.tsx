@@ -1,3 +1,4 @@
+import { startGradingTiming, startResultRenderTiming, visibleTimer } from '../utils/analyticsTiming';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { YearSelector } from '../components/YearSelector';
@@ -69,10 +70,12 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
 
     const hasVerbalAnswers = Object.keys(verbalAnswers).length > 0;
     const hasReasoningAnswers = Object.keys(reasoningAnswers).length > 0;
-    if (!hasVerbalAnswers && !hasReasoningAnswers) { alert('최소 한 과목의 답안을 입력해주세요.'); return; }
+    if (!hasVerbalAnswers && !hasReasoningAnswers) { usageAnalytics().track('grading_validation_failed','grading',{error_code:'EMPTY_INPUT'}); alert('최소 한 과목의 답안을 입력해주세요.'); return; }
     const tracking = usageAnalytics();
     const telemetry = tracking.beginGrading(selectedYear, isSingleFormYear(selectedYear) ? 'single' : examType, hasVerbalAnswers && hasReasoningAnswers ? 'both' : hasVerbalAnswers ? 'verbal' : 'reasoning');
 
+    startGradingTiming(telemetry);
+    const calculationTimer = visibleTimer();
     const results: GradingResult[] = [];
     const groupTimestamp = Date.now();
     // 언어이해 답안이 있으면 채점
@@ -93,6 +96,8 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
       results.push(reasoningResult);
     }
 
+    const calculation = calculationTimer();
+    tracking.trackTiming(telemetry,'calculation',calculation.elapsed,calculation.visible);
     tracking.trackGrading('grading_completed', telemetry);
 
     setIsGrading(true);
@@ -101,6 +106,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
     try {
       for (const result of results) {
         const saveAttemptId = analyticsId();
+        const saveTimer = visibleTimer();
         try {
           const saved = await onAddToHistory(result);
           if (saved) {
@@ -113,13 +119,14 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
           console.error('채점 결과 저장 실패', error);
           const subject = result.subject === 'verbal' ? '언어이해' : '추리논증';
           saveErrors.push(`${subject}: ${error instanceof Error ? error.message : '저장 결과를 확인하지 못했습니다.'}`);
-        }
+        } finally { const duration=saveTimer();if(currentUser)tracking.trackTiming(telemetry,'save',duration.elapsed,duration.visible,result.subject); }
       }
     } finally {
       setIsGrading(false);
     }
 
     // 결과 페이지로 이동
+    startResultRenderTiming(telemetry);
     navigate('/result', { state: { results, saveErrors, telemetry, entry_source: 'new_grading', ownerId: currentUser?.id ?? null, savedTimestamps } });
   };
 

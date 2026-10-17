@@ -103,6 +103,8 @@ DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 �
 
 ## 관리자 이용 통계
 
+2026-10-16 승인된 고도화 화면을 로컬 앱에 연결했다. `AnalyticsOverview`/`AnalyticsInsightsPanels`가 기존 대시보드·피드와 새 insights API를 사용하며 스타일은 `.analytics-enhanced`에 한정한다. `analytics-insights.ts`는 service-only 단일 읽기 source에서 집계 DTO만 만든다. `ResultTelemetryProvider`·`useToolTracking`·`analyticsTiming`은 일반 화면의 기존 동작을 유지하면서 기능 기회/실제 노출/조작/시간만 수집한다. 수동 조작 없는 신호는 세션과 활동일을 연장하지 않는다. v1.13.0 릴리스에서 신규 SQL과 통계 Edge를 먼저 운영 적용하고 웹을 main의 동일 릴리스로 배포한다. [고도화 구현](admin-analytics-enhancement-implementation.md)의 계약과 [운영 적용 기록](admin-analytics-enhancement-rollout.md)을 따른다.
+
 `useUsageTracking`이 계정·라우트·실제 조작의 공통 수집 상태를 관리한다. `analyticsClient`의 메모리 큐·채널별 30분 세션·입력/실행 ID와 `usageAnalytics`의 운영 origin/명시 스위치를 사용한다. 일반 화면 UI는 유지하고 기능 성공/열기 위치에 관측만 추가했다. 배경 이력 조회, 설치 상태 확인, SW 갱신은 핵심 이용으로 취급하지 않는다. 브라우저 오류/차단으로 통계가 미도달해도 계산·이력 저장을 막지 않는다.
 
 `adminAnalyticsApi`는 최신 계정 토큰으로 GET을 실행하고 요청 전후 계정 일치를 확인한다. 화면은 계정별 재마운트, 취소·15초 제한·no-store를 사용하며 검색어를 URL에 넣지 않는다. `AdminAnalyticsPage`의 7개 탭과 `admin-analytics.css`는 승인된 관리자 범위에만 적용된다. 관리자 화면·실제 관리자/승인된 테스트 계정은 이용 수집에서 제외한다.

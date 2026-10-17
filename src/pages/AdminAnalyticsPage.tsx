@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { AnalyticsOverview } from '../components/admin/AnalyticsOverview';
+import { AnalyticsInsightsView } from '../components/admin/AnalyticsInsightsPanels';
+import { MetricDefinitions } from '../components/admin/AnalyticsPrimitives';
+import { makePeriod } from '../../supabase/functions/_shared/dashboard';
+import { PushSubscriberStats } from '../components/PushSubscriberStats';
+import { pushEnabled } from '../utils/pushApi';
+import { AdminAnalyticsError } from '../utils/adminAnalyticsErrors';
+import '../styles/admin-analytics-enhanced.css';
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
@@ -6,7 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
 import { adminAnalyticsApi, createAdminAnalyticsApi } from '../utils/adminAnalyticsApi';
 import { detailPeriod } from '../utils/adminAnalyticsNavigation';
-import { AdminDashboard, type DashboardControls } from '../components/admin/AdminDashboard';
+import { type DashboardControls } from '../components/admin/AdminDashboard';
 import { AdminMemberPicker } from '../components/admin/AdminMemberPicker';
 import { AnalyticsAuthorizationScope } from '../utils/adminAnalyticsErrors';
 import { parseFilters, UUID } from '../../supabase/functions/_shared/analytics-contract';
@@ -17,7 +25,7 @@ import '../styles/admin-analytics.css';
 const tabs = [['overview', '개요'], ['features', '기능'], ['grading', '채점'], ['members', '회원/재방문'], ['activity', '회원 활동'], ['pwa', 'PWA'], ['access', '관리자 조회 이력']] as const;
 type Tab = typeof tabs[number][0];
 const names: Record<string, string> = { navigation: '화면 탐색', grading: '채점', past_exams: '기출', history: '성적 이력', mock: '사설 모의고사', admission: '지원 분석', community: '커뮤니티', chat: '채팅', install: '설치 안내', pwa: 'PWA', browser: '브라우저', other: '기타 실행', unknown: '판별 불가', verbal: '언어이해', reasoning: '추리논증', both: '두 과목', odd: '홀수형', even: '짝수형', single: '단일 문형', success: '성공 확인', failed: '실패 확인', accepted: '수락', dismissed: '닫음' };
-const eventLabels: Record<string, string> = { page_view: '화면 조회', grading_input_started: '답안 입력 시작', grading_input_resumed: '답안 입력 재개', grading_requested: '채점 요청', grading_completed: '채점 계산 완료', grading_result_viewed: '새 채점 결과 조회', past_result_viewed: '과거·예시 결과 조회', history_save_outcome: '이력 저장 응답', history_viewed: '성적 이력 조회', history_trend_viewed: '성적 추이 조회', past_exam_file_clicked: '기출 PDF 링크 클릭', reference_opened: '참고표 열기', question_distribution_opened: '문항 분포 열기', mock_saved: '사설 성적 저장 응답', admission_completed: '지원 분석 완료', admission_result_viewed: '지원 분석 결과 조회', community_post_viewed: '게시글 조회', chat_loaded: '채팅 화면 조회', install_cta_viewed: '설치 버튼 노출', install_cta_clicked: '설치 버튼 클릭', install_guide_opened: '설치 안내 열기', install_prompt_available: '설치 프롬프트 사용 가능', install_prompt_requested: '설치 프롬프트 요청', install_prompt_result: '설치 프롬프트 응답', install_event_observed: '설치 이벤트 관측', execution_channel_changed: '실행 채널 변경' };
+const eventLabels: Record<string, string> = { tool_available:'기능 사용 가능',tool_exposed:'기능 노출',tool_used:'기능 실행',tool_result:'기능 결과 확인',client_timing:'처리 구간 시간',grading_validation_failed:'채점 입력 검증', page_view: '화면 조회', grading_input_started: '답안 입력 시작', grading_input_resumed: '답안 입력 재개', grading_requested: '채점 요청', grading_completed: '채점 계산 완료', grading_result_viewed: '새 채점 결과 조회', past_result_viewed: '과거·예시 결과 조회', history_save_outcome: '이력 저장 응답', history_viewed: '성적 이력 조회', history_trend_viewed: '성적 추이 조회', past_exam_file_clicked: '기출 PDF 링크 클릭', reference_opened: '참고표 열기', question_distribution_opened: '문항 분포 열기', mock_saved: '사설 성적 저장 응답', admission_completed: '지원 분석 완료', admission_result_viewed: '지원 분석 결과 조회', community_post_viewed: '게시글 조회', chat_loaded: '채팅 화면 조회', install_cta_viewed: '설치 버튼 노출', install_cta_clicked: '설치 버튼 클릭', install_guide_opened: '설치 안내 열기', install_prompt_available: '설치 프롬프트 사용 가능', install_prompt_requested: '설치 프롬프트 요청', install_prompt_result: '설치 프롬프트 응답', install_event_observed: '설치 이벤트 관측', execution_channel_changed: '실행 채널 변경' };
 const formatTime = (value: string | null | undefined) => value ? new Date(value).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false }) : '—';
 const count = (value: number | null | undefined) => value == null ? '—' : value.toLocaleString('ko-KR');
 const rate = (n: number | null, d: number) => n == null || !d ? '—' : `${(n / d * 100).toFixed(1)}%`;
@@ -31,11 +39,12 @@ export function AdminAnalyticsPage() {
 function AnalyticsWorkspace({ owner }: { owner: string }) {
   const scope = useMemo(() => new AnalyticsAuthorizationScope(owner), [owner]);
   const api = useMemo(() => createAdminAnalyticsApi(scope), [scope]);
+  const onDenied=useMemo(()=>()=>scope.reject(new AdminAnalyticsError('ADMIN_REQUIRED',403,false,'통계를 조회할 관리자 권한이 없습니다.'),scope.getSnapshot()),[scope]);
   useSyncExternalStore(scope.subscribe, scope.getSnapshot, scope.getSnapshot);
   useEffect(() => () => scope.dispose(), [scope]);
-  return <AnalyticsApiContext.Provider value={api}>{scope.error ? <div className="min-h-screen bg-gray-50"><PageHeader title="이용 통계" /><main className="admin-shell"><Link to="/admin" className="admin-back">관리자 메뉴</Link><Notice error>{scope.error.message}</Notice></main></div> : <AnalyticsContent owner={owner} />}</AnalyticsApiContext.Provider>;
+  return <AnalyticsApiContext.Provider value={api}>{scope.error ? <div className="min-h-screen bg-gray-50"><PageHeader title="이용 통계" /><main className="admin-shell"><Link to="/admin" className="admin-back">관리자 메뉴</Link><Notice error>{scope.error.message}</Notice></main></div> : <AnalyticsContent owner={owner} onDenied={onDenied} />}</AnalyticsApiContext.Provider>;
 }
-function AnalyticsContent({ owner }: { owner: string }) {
+function AnalyticsContent({ owner,onDenied }: { owner: string;onDenied:()=>void }) {
   const api = useContext(AnalyticsApiContext);
   const [params, setParams] = useSearchParams();
   const rawTab = params.get('tab');
@@ -43,11 +52,18 @@ function AnalyticsContent({ owner }: { owner: string }) {
   const filters = useMemo(() => parseFilters(params), [params]);
   const [refresh, setRefresh] = useState(0);
   const [controls, setControls] = useState<DashboardControls>({range:'7d',channel:['pwa','browser','other','unknown'].includes(params.get('channel')||'')?params.get('channel')!:'',compare:true});
+  // Router transitions can render later than the next filter event. Keep the
+  // pending intent synchronous so rapid actions compose instead of reverting.
+  const pendingParams=useRef(params),pendingControls=useRef(controls);
+  useLayoutEffect(()=>{pendingParams.current=params;},[params]);
+  useLayoutEffect(()=>{pendingControls.current=controls;},[controls]);
   const [entryUser, setEntryUser] = useState('');
   const [detailNote, setDetailNote] = useState('');
   const filterKey = JSON.stringify(filters);
-  function chooseTab(next: Tab) { const p = new URLSearchParams(params); if (next !== 'access') p.delete('kind'); p.set('tab', next); setEntryUser('');setDetailNote('');setParams(p, { replace: true }); }
-  function apply(next: AnalyticsFilters) { setDetailNote('');setParams(new URLSearchParams({ ...next, tab }), { replace: true }); }
+  function updateParams(next:URLSearchParams) {pendingParams.current=next;setParams(next,{replace:true});}
+  function currentTab():Tab {const value=pendingParams.current.get('tab');return tabs.some(([key])=>key===value)?value as Tab:'overview';}
+  function chooseTab(next: Tab) { const p = new URLSearchParams(pendingParams.current); if (next !== 'access') p.delete('kind'); p.set('tab', next); setEntryUser('');setDetailNote('');updateParams(p); }
+  function apply(next: AnalyticsFilters) {setDetailNote('');const changed={...pendingControls.current,channel:next.channel||''};pendingControls.current=changed;setControls(changed);updateParams(new URLSearchParams({ ...next, tab:currentTab() }));}
   function openDetail(next: string, requested: {start:string;end:string;channel?:string}, userId='') {
     const result=detailPeriod({...requested,channel:requested.channel as AnalyticsFilters['channel']});
     if(!result){setDetailNote('선택 기간에는 최근 90일 상세 자료와 겹치는 날짜가 없습니다.');return;}
@@ -55,20 +71,39 @@ function AnalyticsContent({ owner }: { owner: string }) {
     setEntryUser(userId);
     const p=new URLSearchParams({tab:next});
     for(const [key,value] of Object.entries(result.filters))if(typeof value==='string'&&value)p.set(key,value);
-    setParams(p,{replace:true});
+    updateParams(p);
   }
-  return <div className="min-h-screen bg-gray-50">
-    <PageHeader title="이용 통계" description="누가 어떤 기능을 얼마나 이용하는지 확인합니다." />
-    <main className="admin-shell analytics-shell"><div className="admin-container">
-      <Link to="/admin" className="admin-back"><ArrowLeft size={16} />관리자 메뉴</Link>
-      <div className="admin-heading"><div><p className="admin-eyebrow">ADMIN ANALYTICS</p><h1>서비스 이용 통계</h1><p>수신 시각 · 한국 시간(KST) · 실제 회원 ID 기준 · 관리자/테스트 계정 제외</p></div>{tab!=='overview'&&<Button variant="outline" onClick={() => setRefresh(v => v + 1)}><RefreshCw size={16} aria-hidden="true" />새로고침</Button>}</div>
-      <div role="tablist" aria-label="통계 항목" className="analytics-tabs">{tabs.map(([key, label]) => <button type="button" role="tab" id={`tab-${key}`} aria-selected={tab === key} aria-controls="analytics-content" key={key} onClick={() => chooseTab(key)}>{label}</button>)}</div>
-      {tab!=='overview'&&<FilterForm key={`${filterKey}:${tab === 'access'}`} filters={filters} audit={tab === 'access'} onApply={apply} />}
+  function changeControls(patch:Partial<DashboardControls>,reset=false) {
+    const next={...pendingControls.current,...patch};pendingControls.current=next;setControls(next);const period=makePeriod(next.range);
+    const result=detailPeriod({...period,channel:next.channel as AnalyticsFilters['channel']});
+    if(!result)return;setEntryUser('');setDetailNote(result.clipped?`분석 ${period.start} ~ ${period.end} / 상세 조회 ${result.filters.start} ~ ${result.filters.end} · 최근 90일 교집합`:'');
+    const latestFilters=parseFilters(pendingParams.current);
+    const combined={...(!reset&&latestFilters?latestFilters:{}),...result.filters,channel:next.channel||undefined};
+    const updated=new URLSearchParams({tab:currentTab()});for(const [key,value] of Object.entries(combined))if(typeof value==='string'&&value)updated.set(key,value);
+    updateParams(updated);
+  }
+  function changeComparison(compare:boolean) {const next={...pendingControls.current,compare};pendingControls.current=next;setControls(next);}
+  const period=makePeriod(controls.range);
+  const displayedPeriod=tab==='overview'||!filters?period:filters;
+  const displayedDays=Math.round((Date.parse(displayedPeriod.end)-Date.parse(displayedPeriod.start))/86400000)+1;
+  return <div className="analytics-enhanced">
+    <PageHeader title="이용 통계" description="서비스 이용의 변화와 채점·복습·재이용을 확인합니다." />
+    <main className="shell">
+      <Link to="/admin" className="admin-back"><ArrowLeft size={16}/>관리자 메뉴</Link>
+      <div className="page-heading"><div><p className="eyebrow">SERVICE ANALYTICS</p><h1>서비스 이용통계</h1><p className="muted">이용의 변화부터 채점·복습·재이용까지 한눈에 확인합니다.</p></div><MetricDefinitions/></div>
+      <div role="tablist" aria-label="통계 항목" className="tabs" onKeyDown={event=>{const index=tabs.findIndex(([key])=>key===currentTab());const direction=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;if(direction){event.preventDefault();const next=tabs[(index+direction+tabs.length)%tabs.length][0];chooseTab(next);document.getElementById(`tab-${next}`)?.focus();}}}>{tabs.map(([key,label])=><button type="button" role="tab" id={`tab-${key}`} tabIndex={tab===key?0:-1} aria-selected={tab===key} aria-controls="analytics-content" key={key} onClick={()=>chooseTab(key)}>{label}</button>)}</div>
+      <section className="filters" aria-label="통계 조회 조건"><div className="range-control" role="group" aria-label="분석 기간">{([['7d','7일'],['30d','30일'],['6m','6개월'],['1y','1년']] as const).map(([range,label])=><button type="button" key={range} aria-pressed={controls.range===range} onClick={()=>changeControls({range})}>{label}</button>)}</div><label className="compact-field">실행 채널<select aria-label="실행 채널" value={controls.channel} onChange={e=>changeControls({channel:e.target.value})}><option value="">전체 채널</option><option value="browser">브라우저</option><option value="pwa">PWA</option><option value="other">기타</option><option value="unknown">판별 불가</option></select></label><label className="compare"><input type="checkbox" checked={controls.compare} onChange={e=>changeComparison(e.target.checked)}/>직전 기간 비교</label><div className="filter-actions"><button className="button text-button" type="button" onClick={()=>changeControls({range:'7d',channel:'',compare:true},true)}>초기화</button><button className="button secondary" type="button" onClick={()=>setRefresh(v=>v+1)}><RefreshCw size={13} aria-hidden="true"/> 새로고침</button></div></section>
+      <div className="period-line"><span>{tab==='overview'?'분석':'상세 조회'} {displayedPeriod.start} — {displayedPeriod.end} · {displayedDays}일 · KST</span><span>수신 시각 기준 · 관리자·테스트 계정 제외</span></div>
+      {tab!=='overview'&&<details><summary>날짜·상세 조건</summary><FilterForm key={`${filterKey}:${tab==='access'}`} filters={filters} audit={tab==='access'} onApply={apply}/></details>}
       {detailNote&&<Notice>{detailNote}</Notice>}
       <section role="tabpanel" id="analytics-content" aria-labelledby={`tab-${tab}`}>
-        {tab==='overview'?<AdminDashboard owner={owner} services={api} initialControls={controls} onControlsChange={setControls} onDetail={openDetail} onMemberSelect={(id,f)=>openDetail('activity',f,id)}/>: !filters ? <Notice error>날짜와 필터를 확인해주세요. 조회 기간은 최대 90일이며 미래 날짜는 선택할 수 없습니다.</Notice> : tab === 'activity' ? <MemberExplorer key={refresh} initialUserId={entryUser} owner={owner} filters={filters} /> : tab === 'access' ? <AccessExplorer key={`${filterKey}:${refresh}`} owner={owner} filters={filters} /> : <><ReportView key={`${tab}:${filterKey}:${refresh}`} owner={owner} filters={filters} tab={tab} />{tab==='pwa'&&<MemberShortcut owner={owner} filters={{...filters,channel:'pwa'}} onSelect={(id)=>openDetail('activity',{...filters,channel:'pwa'},id)} />}</>}
-      </section>
-    </div></main>
+        {tab==='overview'?<AnalyticsOverview owner={owner} api={api} controls={controls} revision={refresh} onDetail={openDetail}/>:!filters?<Notice error>날짜와 필터를 확인해주세요. 상세 조회는 최대 90일입니다.</Notice>:tab==='activity'?<MemberExplorer key={refresh} initialUserId={entryUser} owner={owner} filters={filters}/>:tab==='access'?<AccessExplorer key={`${filterKey}:${refresh}`} owner={owner} filters={filters}/>:<>
+          {tab==='pwa'&&filters.channel&&filters.channel!=='pwa'?<Notice>PWA 실행 분석에 이 채널 조건은 지원하지 않습니다. 전체 채널 또는 PWA로 바꿔 확인해주세요.</Notice>:<AnalyticsInsightsView api={api} owner={owner} filters={filters} report={tab} revision={refresh} compare={controls.compare}/>}
+          {(tab==='members'||(tab==='pwa'&&(!filters.channel||filters.channel==='pwa')))&&<ReportView key={`${tab}:${filterKey}:${refresh}`} owner={owner} filters={filters} tab={tab}/>}
+          {tab==='pwa'&&<><MemberShortcut owner={owner} filters={{...filters,channel:'pwa'}} onSelect={id=>openDetail('activity',{...filters,channel:'pwa'},id)}/><PushSubscriberStats actorId={owner} enabled={pushEnabled()} onDenied={onDenied}/></>}
+        </>}
+      </section><footer className="page-footer"><span>자체 관측 자료 · 전체 실제 이용을 보장하지 않음</span><span>회원·세션 중복 제거 / 개인 선택은 전체 집계와 독립</span></footer>
+    </main>
   </div>;
 }
 function MemberShortcut({owner,filters,onSelect}:{owner:string;filters:AnalyticsFilters;onSelect(id:string):void}) {
@@ -93,7 +128,7 @@ function FilterForm({ filters, audit, onApply }: { filters: AnalyticsFilters | n
     <label className="admin-field">시작일<input type="date" value={draft.start} onChange={e => set('start', e.target.value)} required /></label>
     <label className="admin-field">종료일<input type="date" value={draft.end} onChange={e => set('end', e.target.value)} required /></label>
     {audit && select('kind', '조회 종류', [['member_directory', '회원 검색'], ['member_activity', '회원 활동'], ['admin_access_history', '관리자 조회 이력'], ['member_options','회원 선택 목록'], ['activity_feed','최근 회원 활동']])}
-    {!audit && <>{select('feature', '기능', ['navigation', 'grading', 'past_exams', 'history', 'mock', 'admission', 'community', 'chat', 'install'].map(v => [v, names[v]]))}{select('outcome', '처리 결과', [['success', '성공 확인'], ['failed', '실패 확인'], ['unknown', '응답 미확인']])}{select('channel', '실행 채널', ['pwa', 'browser', 'other', 'unknown'].map(v => [v, names[v]]))}{select('os', '운영체제', [['ios', 'iOS/iPadOS'], ['android', 'Android'], ['windows', 'Windows'], ['macos', 'macOS'], ['linux', 'Linux'], ['other', '기타'], ['unknown', '판별 불가']])}{select('device', '기기', [['mobile', '휴대폰'], ['tablet', '태블릿'], ['desktop', '데스크톱'], ['unknown', '판별 불가']])}{select('login', '로그인 상태', [['member', '회원'], ['anonymous', '비로그인']])}{select('year', '학년도', ['09예비', ...Array.from({ length: 18 }, (_, i) => String(2010 + i))].map(v => [v, v]))}{select('subjects', '과목', ['verbal', 'reasoning', 'both'].map(v => [v, names[v]]))}{select('exam_type', '문형', ['odd', 'even', 'single'].map(v => [v, names[v]]))}</>}
+    {!audit && <>{select('feature', '기능', ['navigation', 'grading', 'past_exams', 'history', 'mock', 'admission', 'community', 'chat', 'install'].map(v => [v, names[v]]))}{select('outcome', '처리 결과', [['success', '성공 확인'], ['failed', '실패 확인'], ['unknown', '응답 미확인']])}{select('channel', '실행 채널', ['pwa', 'browser', 'other', 'unknown'].map(v => [v, names[v]]))}{select('os', '운영체제', [['ios', 'iOS/iPadOS'], ['android', 'Android'], ['windows', 'Windows'], ['macos', 'macOS'], ['linux', 'Linux'], ['other', '기타'], ['unknown', '판별 불가']])}{select('device', '기기', [['mobile', '휴대폰'], ['tablet', '태블릿'], ['desktop', '데스크톱'], ['unknown', '판별 불가']])}{select('login', '로그인 상태', [['member', '회원'], ['anonymous', '비로그인']])}{select('year', '학년도', ['09예비', ...Array.from({ length: 18 }, (_, i) => String(2010 + i))].map(v => [v, v]))}{select('subjects', '과목 조합', ['verbal', 'reasoning', 'both'].map(v => [v, names[v]]))}{select('exam_type', '문형', ['odd', 'even', 'single'].map(v => [v, names[v]]))}</>}
     <Button type="submit" className="admin-primary">필터 적용</Button><p className="admin-muted analytics-filter-help">선택 날짜 포함 · 기본값은 최근 완료된 7일 · 행동 원본 조회 최대 90일</p>
     {error && <Notice error>{error}</Notice>}
   </form>;
@@ -128,7 +163,6 @@ function ReportView({ owner, filters, tab }: { owner: string; filters: Analytics
       {(tab === 'features' || tab === 'overview' || tab === 'pwa') && <section className="admin-panel"><h2>기능별 이용</h2><p className="admin-muted">회원·세션에는 해당 기능 화면 조회도 포함하고 행동 수에는 화면 조회를 제외합니다. PDF는 링크 클릭 기준입니다.</p><Table headings={['기능', '회원', '세션', '행동']}>{report.features.length ? report.features.map(r => <tr key={r.feature}><td>{names[r.feature] || r.feature}</td><td>{count(r.members)}</td><td>{count(r.sessions)}</td><td>{count(r.actions)}</td></tr>) : <EmptyRow columns={4} />}</Table></section>}
       {tab === 'grading' && <>{conversion.status === 'filters_unavailable' ? <Notice>입력 시작 시 과목 조합을 확정할 수 없어 과목·처리 결과 필터에서는 입력→결과 전환을 제공하지 않습니다. 과목을 전체로 바꿔 확인해주세요.</Notice> : <section className="admin-panel"><h2>입력 → 새 채점 결과 조회</h2><p className="admin-muted">최초 입력이 선택 기간에 속한 세션 중 마지막 유효 활동 수신 후 45분이 지난 세션이 분모입니다. 결과는 같은 입력 흐름·실행에 연결합니다.</p><div className="analytics-stat-line"><p>관찰 종료 <strong>{count(conversion.closed)}</strong></p><p>결과 조회 <strong>{count(conversion.converted)}</strong></p><p>전환율 <strong>{rate(conversion.converted, conversion.closed)}</strong></p></div><div className="analytics-stat-line"><p>진행 중 {count(conversion.open)}</p><p>유예 중 {count(conversion.grace)}</p><p>미확정 {count(conversion.uncertain)}</p><p>입력 재개 {count(conversion.resumed)}</p></div></section>}<EventBreakdown report={report} /></>}
       {tab === 'pwa' && <><section className="admin-panel"><h2>PWA와 브라우저를 이용한 회원</h2><p className="admin-muted">PWA {count(report.pwa.pwa_only + report.pwa.both)}명 · 브라우저 {count(report.pwa.browser_only + report.pwa.both)}명 · 두 채널 모두 {count(report.pwa.both)}명. 채널별 회원 수는 중복될 수 있습니다.</p><Table headings={['채널 조합', '회원']}><tr><td>PWA만</td><td>{count(report.pwa.pwa_only)}</td></tr><tr><td>브라우저만</td><td>{count(report.pwa.browser_only)}</td></tr><tr><td>둘 다</td><td>{count(report.pwa.both)}</td></tr><tr><td>기타/판별 불가만</td><td>{count(report.pwa.other_only)}</td></tr></Table></section><section className="admin-panel"><h2>설치 신호</h2><p className="admin-muted">설치 버튼·프롬프트·appinstalled는 관측 건수입니다. 실제 설치 보유자 수나 iOS 설치 완료 수로 해석하지 않습니다.</p><SignalCounts report={report} /></section></>}
-      {(tab === 'members' || tab === 'pwa') && <section className="admin-panel"><h2>{tab === 'pwa' ? '최초 PWA 핵심 이용 기준 재방문' : '최초 핵심 이용 기준 재방문'}</h2><p className="admin-muted">D+1·D+7·D+30의 해당 KST 날짜에 핵심 기능을 이용했는지 집계합니다. 10명 미만은 표본이 적어 해석에 주의가 필요합니다. 관찰 기간이 끝나지 않은 값은 —로 표시합니다.</p>{report.cohort_status !== 'available' ? <Notice>{report.cohort_status === 'filters_unavailable' ? '최초 이용 코호트에는 기간만 적용할 수 있습니다. 나머지 필터를 전체로 바꿔 조회해주세요.' : '수집 전이거나 선택 기간의 일부를 관측하지 못해 확정 코호트를 제공하지 않습니다.'}</Notice> : <Table headings={['최초 이용일', '회원', 'D1', 'D7', 'D30']}>{report.cohorts.length ? report.cohorts.map(c => <tr key={c.date}><td>{c.date}</td><td>{count(c.members)}{c.members < 10 && <small>표본 적음</small>}</td><td>{rate(c.d1, c.members)} ({count(c.d1)})</td><td>{rate(c.d7, c.members)} ({count(c.d7)})</td><td>{rate(c.d30, c.members)} ({count(c.d30)})</td></tr>) : <EmptyRow columns={5} />}</Table>}</section>}
     </>}
     {tab === 'members' && <Membership report={report} />}
     {(tab === 'overview' || tab === 'members') && <Inventory report={report} />}

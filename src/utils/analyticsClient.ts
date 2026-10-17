@@ -19,6 +19,7 @@ export function detectEnvironment(win: Window, nav: Navigator, retained?: Channe
 interface Session { id: string; lastInteraction: number }
 export interface GradingContext { input_flow_id: string; grading_run_id: string; session_id: string; year: string; subjects: string; exam_type: string; identity_generation: number; owner_id: string | null }
 interface Options {
+  appVersion?: string;
   enabled: boolean; storage: Pick<Storage, 'getItem' | 'setItem'>; now: () => number; uuid: () => string;
   environment: () => Environment; visible: () => boolean;
   send: (events: UsageEvent[], owner: string | null) => Promise<Ack[]>;
@@ -59,7 +60,7 @@ export function createUsageClient(options: Options) {
     if (onceKey && onceKeys.has(onceKey)) return;
     const event: UsageEvent = { event_id: options.uuid(), session_id: sessionId, page_instance_id: pageId, page_entry_id: pageEntryId,
       event_sequence: ++sequence, occurred_at: new Date(options.now()).toISOString(), metric_version: METRIC_VERSION,
-      event_name: name, feature, route, ...environment, attributes };
+      event_name: name, feature, route, ...environment, attributes: { ...attributes, ...(options.appVersion ? {app_version: options.appVersion} : {}) } };
     if (!validateEvent(event)) return;
     if (onceKey) onceKeys.add(onceKey);
     // Bounded memory only: a closed browser does not create a durable anonymous identifier.
@@ -89,8 +90,9 @@ export function createUsageClient(options: Options) {
     },
     track: emit, activity,
     identity: () => identityGeneration,
+    entry: () => pageEntryId,
     trackForIdentity(generation: number, name: EventName, feature: Feature, attributes: Attributes = {}, once?: string) {
-      if (generation === identityGeneration) emit(name, feature, attributes, once);
+      if (generation === identityGeneration) emit(name, feature, attributes, once, !['tool_available','tool_exposed','client_timing'].includes(name));
     },
     resetInput() { flow = null; },
     input(year: string, examType: string, hasExistingAnswers: boolean) {
@@ -118,6 +120,10 @@ export function createUsageClient(options: Options) {
     trackGrading(name: 'grading_completed' | 'grading_result_viewed' | 'history_save_outcome', context: GradingContext, attributes: Attributes = {}, once?: string) {
       if (context.identity_generation !== identityGeneration || context.owner_id !== owner) return;
       emit(name, 'grading', { input_flow_id: context.input_flow_id, grading_run_id: context.grading_run_id, year: context.year, subjects: context.subjects, exam_type: context.exam_type, ...attributes }, once || context.grading_run_id, true, context.session_id);
+    },
+    trackTiming(context: GradingContext, phase: 'calculation' | 'save' | 'render' | 'result', elapsed: number, visible: number, subject?: string) {
+      if(context.identity_generation!==identityGeneration || context.owner_id!==owner || !Number.isFinite(elapsed) || elapsed>3_600_000) return;
+      emit('client_timing','grading',{grading_run_id:context.grading_run_id,input_flow_id:context.input_flow_id,year:context.year,subjects:subject||context.subjects,exam_type:context.exam_type,timing_phase:phase,elapsed_ms:Math.min(3_600_000,Math.max(0,Math.round(elapsed))),visible_ms:Math.min(3_600_000,Math.max(0,Math.round(Math.min(visible,elapsed))))},`${context.grading_run_id}:${phase}:${subject||''}`,false,context.session_id);
     },
     async flush() {
       if (sending || !options.enabled || blocked || !queue.length) return;

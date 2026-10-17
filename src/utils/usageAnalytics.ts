@@ -3,6 +3,7 @@ import { projectId, publicAnonKey } from './supabase/info';
 import { createUsageClient, detectEnvironment } from './analyticsClient';
 import { analyticsId } from './analyticsId';
 import type { UsageEvent, Ack } from '../types/analytics';
+import { version } from '../../package.json';
 
 let client: ReturnType<typeof createUsageClient> | undefined;
 export function usageAnalytics() {
@@ -16,7 +17,7 @@ export function usageAnalytics() {
       const detected = detectEnvironment(win, navigator, retained); retained = detected.execution_channel; return detected;
     };
     const storage = { getItem(key: string) { return win?.localStorage.getItem(key) || null; }, setItem(key: string, value: string) { win?.localStorage.setItem(key, value); } };
-    client = createUsageClient({ enabled, storage, now: Date.now, uuid: analyticsId, environment, visible: () => !!win && document.visibilityState === 'visible',
+    client = createUsageClient({ appVersion: version, enabled, storage, now: Date.now, uuid: analyticsId, environment, visible: () => !!win && document.visibilityState === 'visible',
       async send(events: UsageEvent[], owner: string | null): Promise<Ack[]> {
         const { data, error } = await supabase.auth.getSession();
         if (error || (data.session?.user.id || null) !== owner) throw new Error('ACCOUNT_CHANGED');

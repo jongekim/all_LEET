@@ -2,7 +2,7 @@
 
 ## 기준
 
-서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.12.3`이다.
+서비스 버전은 `package.json`의 `version`을 단일 기준으로 사용한다. `package-lock.json`의 루트 패키지 버전은 반드시 이에 일치해야 한다. 현재 기준 버전은 `1.13.0`이다.
 
 버전은 [Semantic Versioning 2.0.0](https://semver.org/lang/ko/)의 `MAJOR.MINOR.PATCH` 형식을 따른다. 한 번 실서비스에 배포된 버전 번호는 다시 사용하거나 낮추지 않는다.
 
@@ -44,6 +44,12 @@
 | `npm run release:major` | MAJOR 버전 증가 및 MINOR/PATCH 초기화 |
 
 `release:*` 명령은 작업 트리가 깨끗하지 않으면 npm이 중단할 수 있다. 다른 작업의 변경 사항을 보존하기 위한 안전장치이므로, 해당 변경을 먼저 정리하거나 별도 작업 트리에서 릴리스를 준비한다.
+
+## v1.13.0 변경 내역
+
+승인된 관리자 이용통계 미리보기를 실제 앱에 반영한다. 수집 품질과 날짜별 가용성, 회원 수×반복 횟수 분해, 입력 흐름/실행/과목 저장 분모, 기능 사용 가능·실제 노출·조작 결과, 대기시간, 복습·D7/W1·이용일·실행 앱 버전을 구분한다. 빠른 탭·기간·채널 변경과 권한 회수 시 자료 제거를 검증한다.
+
+사용자의 최종 검증·버전 관리·배포 요청에 따라 MINOR 버전을 올리고 신규 analytics insights DB → usage-events/admin-analytics → 웹 순서로 적용한다. 다른 작업물과 캐시는 보존한다. [구현·검증](admin-analytics-enhancement-implementation.md), [운영 적용 기록](admin-analytics-enhancement-rollout.md)에 최종 결과와 실제 배포 상태를 기록한다.
 
 ## v1.12.3 변경 내역
 

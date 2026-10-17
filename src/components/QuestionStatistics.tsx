@@ -1,3 +1,4 @@
+import { useToolTracking } from '../hooks/useToolTracking';
 import { getExamTypeLabel, isSingleFormYear } from '../utils/examType';
 import { createContext, useContext, type ReactNode } from 'react';
 import { useQuestionStatistics } from '../hooks/useQuestionStatistics';
@@ -54,15 +55,16 @@ export function QuestionRate({ question, variant = 'result' }: { question: numbe
   return <QuestionRateDialog key={`${snapshot.year}:${snapshot.subject}:${snapshot.exam_type}:${snapshot.snapshot_id}`} snapshot={snapshot} question={question} variant={variant} />;
 }
 function QuestionRateDialog({snapshot,question,variant}:{snapshot:FormStatisticsView;question:number;variant:'result'|'answer-key'}) {
+  const {observe:observeTool,begin:beginTool}=useToolTracking('distribution',snapshot.sample_count>0,{year:snapshot.year,subjects:snapshot.subject});
   const item = snapshot.items[question - 1];
   if (!item) return null;
   const correct = item.correct_answer;
   const n = snapshot.sample_count;
   const rate = formatRate(item.choice_counts[correct - 1], n);
   const rows = [...item.choice_counts, item.unanswered_count];
-  return <Dialog onOpenChange={open => { if (open) usageAnalytics().track('question_distribution_opened', 'grading', { year: snapshot.year, subjects: snapshot.subject, exam_type: isSingleFormYear(snapshot.year) ? 'single' : snapshot.exam_type, question_no: question, target_type: 'question', target_id: `${snapshot.year}:${snapshot.subject}:${question}` }); }}>
+  return <Dialog onOpenChange={open => { if (open) { beginTool()('success');usageAnalytics().track('question_distribution_opened', 'grading', { year: snapshot.year, subjects: snapshot.subject, exam_type: isSingleFormYear(snapshot.year) ? 'single' : snapshot.exam_type, question_no: question, target_type: 'question', target_id: `${snapshot.year}:${snapshot.subject}:${question}` }); } }}>
     <DialogTrigger asChild>
-      <button type="button" className={`question-rate${variant === 'answer-key' ? ' question-rate--answer-key' : ''}`} aria-label={`${question}번 정답률 ${rate}, 응답 분포 보기`}>
+      <button ref={observeTool} type="button" className={`question-rate${variant === 'answer-key' ? ' question-rate--answer-key' : ''}`} aria-label={`${question}번 정답률 ${rate}, 응답 분포 보기`}>
         {variant === 'result' && <span className="question-rate-caption">정답률</span>}<span>{rate}</span>
         {variant === 'answer-key' && <span className="question-rate-chevron" aria-hidden="true">›</span>}
       </button>

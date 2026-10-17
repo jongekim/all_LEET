@@ -2,6 +2,7 @@ import { MAX_BATCH, parseFilters, UUID, validateEvent } from './analytics-contra
 import type { UsageEvent } from './analytics-contract.ts';
 import { addDays, buildDashboard, customPeriod, kstDay, makePeriod, previousPeriod, type DashboardRange, type DashboardSource } from './dashboard.ts';
 import type { CursorCodec } from './analytics-cursor.ts';
+import { buildInsights, type InsightsSource } from './analytics-insights.ts';
 export interface AnalyticsDependencies {
   enabled: boolean; origins: string[];
   verify(token: string): Promise<{ userId: string | null; unavailable?: boolean }>;
@@ -64,6 +65,14 @@ export function createAnalyticsApp(kind: 'collect' | 'admin', deps: AnalyticsDep
       }
       const url = new URL(request.url), params = url.searchParams;
       const tail = url.pathname.split('/').filter(Boolean).at(-1);
+      if (tail === 'insights') {
+        if ([...params.keys()].some(k=>!['start','end','channel','os','device','login','year','subjects','exam_type','feature','outcome','report'].includes(k))) return respond({code:'INVALID_FILTERS'},400);
+        const filters=parseFilters(params),report=params.get('report')||'overview';
+        if(!filters||!['overview','features','grading','members','pwa'].includes(report)) return respond({code:'INVALID_FILTERS'},400);
+        const source=await deps.rpc('product_analytics_insights_source',{p_actor:userId,p_filters:filters}) as InsightsSource;
+        if(!source||!Array.isArray(source.events)||!Array.isArray(source.sessions)||!Array.isArray(source.first_usage)||!Array.isArray(source.gaps)||typeof source.snapshot_at!=='string') throw new Error('INVALID_STORAGE_RESPONSE');
+        return respond(buildInsights(source,filters,report as import('./analytics-contract.ts').ReportKind));
+      }
       if (tail === 'member-options') {
         if ([...params.keys()].some(k=>!['purpose','query','cursor'].includes(k))) return respond({code:'INVALID_FILTERS'},400);
         const purpose=params.get('purpose')||'member_activity',query=(params.get('query')||'').trim();

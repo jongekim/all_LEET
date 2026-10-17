@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="admin-analytics-enhanced.css">
+  <title>all LEET · 관리자 이용통계 고도화 미리보기</title>
+</head>
+<body>
+  <div class="preview-banner"><span class="preview-dot" aria-hidden="true"></span><strong>설계 미리보기</strong><span>모든 수치·회원·운영 이력은 가상 예시입니다.</span><span class="preview-safe">서버 연결 없음</span></div>
+  <header class="app-header"><div class="header-inner"><span class="brand">all <b>LEET</b><span>ADMIN</span></span><span class="breadcrumb">관리자 <span aria-hidden="true">/</span> 이용통계</span><span class="avatar" aria-label="미리보기 관리자">A</span></div></header>
+  <main class="shell">
+    <div class="page-heading"><div><p class="eyebrow">SERVICE ANALYTICS</p><h1>서비스 이용통계</h1><p class="muted">이용의 변화부터 채점·복습·재이용까지 한눈에 확인합니다.</p></div><div class="heading-side"><span class="date-stamp">예시 기준 2026.10.16 · KST</span><button id="definitions-button" class="button secondary" type="button">지표 정의</button></div></div>
+    <section class="preview-controls" aria-label="미리보기 상태 설정"><label for="scenario">미리보기 상태</label><select id="scenario"><option value="ready">충분한 관측 자료</option><option value="early">수집 초기 · 장기 발행 없음</option><option value="gap">재방문 관찰일에 수집 공백</option><option value="zero">정상 수집 · 이용 0건</option><option value="error">조회 오류</option><option value="denied">관리자 권한 만료</option></select><span id="scenario-caption">축적된 가상 자료로 개선 후 화면을 살펴봅니다.</span></section>
+    <nav class="tabs" role="tablist" aria-label="통계 항목">
+      <button id="tab-overview" type="button" role="tab" aria-controls="panel" aria-selected="true" data-tab="overview">개요</button>
+      <button id="tab-features" type="button" role="tab" aria-controls="panel" aria-selected="false" data-tab="features">기능</button>
+      <button id="tab-grading" type="button" role="tab" aria-controls="panel" aria-selected="false" data-tab="grading">채점</button>
+      <button id="tab-members" type="button" role="tab" aria-controls="panel" aria-selected="false" data-tab="members">회원/재방문</button>
+      <button id="tab-activity" type="button" role="tab" aria-controls="panel" aria-selected="false" data-tab="activity">회원 활동</button>
+      <button id="tab-pwa" type="button" role="tab" aria-controls="panel" aria-selected="false" data-tab="pwa">PWA</button>
+      <button id="tab-access" type="button" role="tab" aria-controls="panel" aria-selected="false" data-tab="access">관리자 조회 이력</button>
+    </nav>
+    <section class="filters" aria-label="통계 조회 조건"><div class="range-control" role="group" aria-label="분석 기간"><button type="button" data-range="7d" aria-pressed="true">7일</button><button type="button" data-range="30d" aria-pressed="false">30일</button><button type="button" data-range="6m" aria-pressed="false">6개월</button><button type="button" data-range="1y" aria-pressed="false">1년</button></div><label class="compact-field">실행 채널<select id="channel" aria-label="실행 채널"><option value="all">전체 채널</option><option value="browser">브라우저</option><option value="pwa">PWA</option></select></label><label class="compare"><input id="compare" type="checkbox" checked>직전 기간 비교</label><div class="filter-actions"><button id="reset-button" class="button text-button" type="button">초기화</button><button id="refresh-button" class="button secondary" type="button">새로고침</button></div></section>
+    <div class="period-line"><span id="period-label"></span><span id="period-note"></span></div>
+    <div id="live-status" class="sr-only" role="status" aria-live="polite"></div>
+    <div id="panel" role="tabpanel" aria-labelledby="tab-overview"></div>
+    <footer class="page-footer"><span>가상 데이터 · 실제 앱과 분리된 화면 제안</span><span>회원·세션 중복 제거 / 수신 시각 기준 / 관리자·테스트 계정 제외</span></footer>
+  </main>
+  <dialog id="definitions-dialog" aria-labelledby="definitions-title"><div class="dialog-heading"><div><p class="eyebrow">METRIC GUIDE</p><h2 id="definitions-title">숫자를 읽는 기준</h2></div><button class="button secondary" id="close-definitions" type="button">닫기</button></div><div class="definition-list"><article><h3>회원 · 세션 · 실행</h3><p>회원은 기간 내 고유 계정입니다. 비회원은 세션으로 구분하며 회원 수와 합쳐 사람 수로 표시하지 않습니다. 두 과목을 함께 채점하면 실행은 1회, 저장 대상은 최대 2개입니다.</p></article><article><h3>카드와 그래프</h3><p>카드는 선택 기간 전체의 고유 수입니다. 그래프는 구간의 일평균이며, 날짜별 고유 회원 수를 더해 기간 회원 수로 사용하지 않습니다.</p></article><article><h3>D7과 W1</h3><p>D7은 최초 핵심 이용일의 정확히 7일 뒤입니다. W1은 D+7~D+13의 재이용입니다. 해당 관찰 기간이 완료되고 자료가 가용한 회원만 분모에 포함합니다.</p></article><article><h3>기능 사용률</h3><p>기능이 사용 가능했고 실제 화면 노출까지 관측된 진입을 분모로 계산합니다. 노출이 관측되지 않은 실행은 별도 집계합니다.</p></article><article><h3>미계산 상태</h3><p>0건은 정상 관측된 0입니다. 수집 전·공백·미성숙·지원하지 않는 필터·조회 오류는 서로 다른 상태로 표시합니다.</p></article><article><h3>새 계측이 필요한 분석</h3><p>대기시간, 기능 노출, 실행 앱 버전, 서버 저장 확정은 추가 수집이 필요한 제안입니다. 이 미리보기의 수치는 모두 가상이며 현재 운영에서 제공되는 자료가 아닙니다.</p></article></div></dialog>
+  <script src="admin-analytics-enhanced.js"></script>
+</body>
+</html>
