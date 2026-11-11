@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import '../styles/question-statistics.css';
 import { usageAnalytics } from '../utils/usageAnalytics';
 import { ResultRateVisibilityContext } from '../contexts/ResultRateVisibilityContext';
+import { DataMethodDialog } from './DataMethodDialog';
 
 const StatisticsContext = createContext<FormStatisticsView | undefined>(undefined);
 const warning = '채점 기록이 30건 이하로 데이터가 충분하지 않아 정답률의 정확도가 떨어질 수 있습니다.';
@@ -23,6 +24,10 @@ export function QuestionStatistics({ selection, compatible = true, children }: {
   const notice = snapshot ? <>
         {!visibility && <p>문항별 정답률</p>}
         <p>정답률을 누르면 선지별 선택률과 미응답률을 볼 수 있습니다. 미응답은 오답으로 포함합니다.</p>
+        <div className="question-statistics-context">
+          <p>※ 정답률은 all LEET에 저장된 풀이 기록을 기준으로 하며, 반복 채점을 포함합니다. 실제 시험 전체 응시자의 정답률과 다를 수 있습니다.</p>
+          <DataMethodDialog kind="statistics" />
+        </div>
         {snapshot.sample_count <= 30 && <p className="question-statistics-warning">{warning}</p>}
         {snapshot.sample_count === 0 && <p>아직 채점 기록이 없어 정답률을 계산할 수 없습니다.</p>}
       </> : !compatible ? <p>정답 버전이 달라 문항 통계를 표시하지 않습니다. 기존 답안과 메모는 그대로 사용할 수 있습니다.</p>

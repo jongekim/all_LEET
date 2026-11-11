@@ -49,11 +49,11 @@ test('홈 바로가기, 시험 선택, 새로고침과 뒤로가기', async ({ p
   await expect(answers.getByRole('listitem')).toHaveCount(30);
   const oddAnswer = getCorrectAnswers('2026', 'verbal', 'odd')[5];
   await expect(answers.getByRole('listitem', { name: `5번 정답 ${oddAnswer}`, exact: true })).toBeVisible();
-  await page.getByRole('button', { name: '짝수형', exact: true }).click();
+  await page.getByRole('link', { name: '짝수형', exact: true }).click();
   await revealReview(page);
   const evenAnswer = getCorrectAnswers('2026', 'verbal', 'even')[5];
   await expect(answers.getByRole('listitem', { name: `5번 정답 ${evenAnswer}`, exact: true })).toBeVisible();
-  await page.getByRole('button', { name: '추리논증', exact: true }).click();
+  await page.getByRole('link', { name: '추리논증', exact: true }).click();
   await revealReview(page);
   await expect(answers.getByRole('listitem')).toHaveCount(40);
   await page.getByLabel('시험 학년도').selectOption('2018');
@@ -62,8 +62,8 @@ test('홈 바로가기, 시험 선택, 새로고침과 뒤로가기', async ({ p
   await page.reload();
   await expectReviewHidden(page);
   await expect(page.getByLabel('시험 학년도')).toHaveValue('2018');
-  await expect(page.getByRole('button', { name: '추리논증', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByRole('button', { name: '짝수형', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('link', { name: '추리논증', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('link', { name: '짝수형', exact: true })).toHaveAttribute('aria-current', 'page');
   await page.getByLabel('시험 학년도').selectOption('09예비');
   await revealReview(page);
   await expect(answers.getByRole('listitem')).toHaveCount(40);
@@ -97,10 +97,10 @@ test('맞은 개수별 환산표는 학년도·과목과 함께 바뀌고 누락
   await expect(table.getByRole('row')).toHaveCount(32);
   await expect(table.getByRole('row', { name: '30개 73.1 100.0', exact: true })).toBeVisible();
   await expect(page.getByText('일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다. 참고용으로 확인해주세요.')).toBeVisible();
-  await page.getByRole('button', { name: '짝수형', exact: true }).click();
+  await page.getByRole('link', { name: '짝수형', exact: true }).click();
   await revealReview(page);
   await expect(table.getByRole('row', { name: '30개 73.1 100.0', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: '추리논증', exact: true }).click();
+  await page.getByRole('link', { name: '추리논증', exact: true }).click();
   await revealReview(page);
   await expect(table.getByRole('row')).toHaveCount(42);
   const reasoning = SCORE_DATA['2026'].reasoning[40];
@@ -198,12 +198,12 @@ test('전개년·전과목·전문형 선택이 워터마크 PDF에 연결되고
   for (const document of PAST_EXAM_DOCUMENTS) {
     await page.getByLabel('시험 학년도').selectOption(document.year);
     await page.waitForURL(url => url.searchParams.get('year') === document.year);
-    const subjectButton = page.getByRole('button', { name: document.subject === 'verbal' ? '언어이해' : '추리논증', exact: true });
-    await subjectButton.click();
+    const subjectLink = page.getByRole('link', { name: document.subject === 'verbal' ? '언어이해' : '추리논증', exact: true });
+    await subjectLink.click();
     // Wait for the selection render before another URL update; rapid clicks
     // must not test an old render's searchParams closure.
-    await expect(subjectButton).toHaveAttribute('aria-pressed', 'true');
-    if (document.examType !== 'single') await page.getByRole('button', { name: document.examType === 'odd' ? '홀수형' : '짝수형', exact: true }).click();
+    await expect(subjectLink).toHaveAttribute('aria-current', 'page');
+    if (document.examType !== 'single') await page.getByRole('link', { name: document.examType === 'odd' ? '홀수형' : '짝수형', exact: true }).click();
     await expect(page.getByRole('link', { name: /PDF 열기/ })).toHaveAttribute('href', document.url);
     await expect(page.getByRole('link', { name: '다운로드', exact: true })).toHaveAttribute('href', downloadUrl(document.fileName));
   }
@@ -215,7 +215,7 @@ test('2027학년도 단일 문형 PDF와 정답·환산표를 제공한다', asy
   await expect(page).toHaveURL('/past-exams?year=2027&subject=verbal&type=odd');
   await expect(page.getByText('2027학년도 언어이해 단일 문형 문제지', { exact: true })).toBeVisible();
   await expect(page.getByText('단일 문형 (홀수형·짝수형 구분 없음)', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^(홀수형|짝수형)$/ })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /^(홀수형|짝수형)$/ })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('single-form.png'), fullPage: true });
   await expect(page.getByRole('link', { name: /PDF 열기/ })).toHaveAttribute('target', '_blank');
@@ -235,7 +235,7 @@ test('2027학년도 단일 문형 PDF와 정답·환산표를 제공한다', asy
   await expect(page.getByText('이 시험의 문항 통계가 아직 준비되지 않았습니다.')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('single-form-expanded.png'), fullPage: true });
-  await page.getByRole('button', { name: '추리논증', exact: true }).click();
+  await page.getByRole('link', { name: '추리논증', exact: true }).click();
   await expect(page.getByRole('link', { name: '다운로드', exact: true })).toHaveAttribute('href', downloadUrl('LEET-2027-reasoning-single.pdf'));
   await revealReview(page);
   await expect(page.getByRole('list', { name: '문항별 정답' }).getByRole('listitem')).toHaveCount(40);
@@ -248,7 +248,7 @@ test('2025학년도 추리논증은 선택한 홀수형·짝수형 파일을 각
   await page.goto('/past-exams?year=2025&subject=reasoning&type=odd');
   await expect(page.getByText('2025학년도 추리논증 홀수형 문제지', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '다운로드', exact: true })).toHaveAttribute('href', downloadUrl('LEET-2025-reasoning-odd.pdf'));
-  await page.getByRole('button', { name: '짝수형', exact: true }).click();
+  await page.getByRole('link', { name: '짝수형', exact: true }).click();
   await expect(page.getByText('2025학년도 추리논증 짝수형 문제지', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '다운로드', exact: true })).toHaveAttribute('href', downloadUrl('LEET-2025-reasoning-even.pdf'));
   await revealReview(page);
@@ -278,8 +278,11 @@ test('홈에서 2027학년도 단일 문형 답안을 입력하고 과거 문형
   await expect(page.getByText('단일 문형 (홀수형·짝수형 구분 없음)', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /^(홀수형|짝수형)$/ })).toHaveCount(0);
   await expect(page.getByRole('spinbutton')).toHaveCount(70);
-  await page.getByRole('spinbutton').first().fill('5');
-  await expect(page.getByRole('spinbutton').first()).toHaveValue('5');
+  const firstAnswer = page.getByRole('spinbutton', { name: '언어이해 1번 답안', exact: true });
+  await firstAnswer.fill('5');
+  await expect(firstAnswer).toHaveValue('5');
+  await expect(page.getByRole('spinbutton', { name: '언어이해 2번 답안', exact: true })).toBeFocused();
+  await expect(page.getByRole('spinbutton', { name: '추리논증 1번 답안', exact: true })).toBeEmpty();
   await expect(page.getByRole('main').getByRole('button', { name: '채점하기', exact: true })).toBeEnabled();
   await page.getByLabel('시험 학년도').selectOption('2026');
   await page.getByRole('button', { name: '짝수형', exact: true }).click();
@@ -288,6 +291,8 @@ test('홈에서 2027학년도 단일 문형 답안을 입력하고 과거 문형
   await expect(page.getByRole('spinbutton').first()).toBeEmpty();
   await expect(page.getByRole('button', { name: /^(홀수형|짝수형)$/ })).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath('grading-2027.png'), fullPage: true });
+  await page.getByRole('button', { name: '문의하기', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'all_leet@naver.com' })).toHaveAttribute('href', 'mailto:all_leet@naver.com');
   // 운영 이력 쓰기는 실행하지 않고 입력 및 제출 직전 상태까지만 검증한다.
 });
 

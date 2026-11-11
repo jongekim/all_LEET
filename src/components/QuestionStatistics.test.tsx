@@ -61,7 +61,8 @@ describe('공개 문항 통계 UI',()=>{
   it.each(['odd','even'] as const)('%s 유형 안내와 모달에 집계 날짜를 표시하지 않는다',examType=>{
     ready(30,examType);render(<QuestionStatistics selection={{...selection,examType}}><QuestionRate question={1}/></QuestionStatistics>);
     const notice=container.querySelector('.question-statistics-notice')!;
-    expect(notice.textContent).not.toMatch(/집계|2026/);
+    expect(notice.textContent).toContain('통계 집계 기준');
+    expect(notice.textContent).not.toMatch(/집계\s*(일자|날짜)|2026/);
     expect(notice.textContent?.includes('짝수형은 다회독 데이터가 많아 실제 정답률보다 높게 나타나는 경향이 있습니다.')).toBe(false);
     expect(notice.querySelector('.question-statistics-warning')).not.toBeNull();
     click('.question-rate');

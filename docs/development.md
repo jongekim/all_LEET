@@ -56,6 +56,8 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 ## 화면 수준 검증 정책
 
+기출 선택 링크·통계와 환산 기준 설명창·홈 답안 라벨 및 문의 링크는 `e2e/past-exams.spec.ts`, `e2e/question-statistics.spec.ts`에서 검증한다. `e2e-prerender/public-html.spec.ts`는 자바스크립트 없이 학년도 링크로 이동하는지 검사하고, `e2e/community-image-preview.spec.ts`는 모의 로그인에서 첨부별 대체 텍스트와 삭제 후 연결, 게시글·이미지 쓰기 요청이 없는지를 확인한다.
+
 로컬 앱도 현재 운영 Supabase 프로젝트에 연결되므로, 화면 수준 검증은 기본적으로 읽기 전용으로 수행한다.
 
 - 허용: 공개 화면·목록·상세 조회, 페이지 이동, 로그인 화면 진입, 폼 입력, 클라이언트 유효성 검사, 모달 열기/닫기, 이미지 선택과 미리보기, 제출 직전의 버튼 상태 확인

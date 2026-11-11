@@ -511,7 +511,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
             <span className="text-sm text-blue-100">({verbalQuestionCount}문항)</span>
           </div>
           <div className="p-4 sm:p-6">
-            <AnswerSheet
+            <AnswerSheet subjectLabel="언어이해"
               questionCount={verbalQuestionCount}
               userAnswers={verbalAnswers}
               onAnswerChange={handleVerbalAnswerChange}
@@ -528,7 +528,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
             <span className="text-sm text-purple-100">({reasoningQuestionCount}문항)</span>
           </div>
           <div className="p-4 sm:p-6">
-            <AnswerSheet
+            <AnswerSheet subjectLabel="추리논증"
               questionCount={reasoningQuestionCount}
               userAnswers={reasoningAnswers}
               onAnswerChange={handleReasoningAnswerChange}
@@ -618,7 +618,7 @@ export function HomePage({ user, onLogout, onAddToHistory }: HomePageProps) {
                   <div>
                     <p className="text-sm font-semibold text-blue-900">이메일 문의</p>
                     <a 
-                      href="mailto:contact@leetgrading.com" 
+                      href="mailto:all_leet@naver.com"
                       className="text-blue-600 hover:text-blue-700 font-medium break-all"
                     >
                       all_leet@naver.com

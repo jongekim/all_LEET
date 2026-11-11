@@ -1,0 +1,4 @@
+.reference-method-link { display:inline-flex; align-items:center; gap:2px; padding:3px 0; margin-top:5px; color:#2563eb; background:transparent; border:0; font-size:12px; font-weight:500; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.reference-method-dialog section h3 { font-size:14px; font-weight:600; color:#0f172a; margin:0 0 6px; }
+.reference-method-dialog section p { font-size:13px; color:#475569; line-height:1.8; margin:0; }
+.reference-method-link:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }

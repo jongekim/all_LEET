@@ -28,7 +28,7 @@ async function open(page:Page) {
 }
 test('실제 분포를 보여주고 키보드 닫기 뒤 트리거로 포커스를 복귀한다',async({page})=>{
   await mock(page);await open(page);
-  await expect(page.getByRole('status')).not.toContainText(/집계|다회독/);
+  await expect(page.getByRole('status')).not.toContainText(/집계\s*(일자|날짜)|다회독/);
   const button=page.getByRole('button',{name:'1번 정답률 79.5%, 응답 분포 보기',exact:true});
   await button.focus();await button.press('Enter');
   const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
@@ -38,12 +38,12 @@ test('실제 분포를 보여주고 키보드 닫기 뒤 트리거로 포커스�
   await expect(dialog).not.toContainText('254건');
   await expect(dialog.locator('.distribution-values')).not.toContainText([/건/]);
   await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(button).toBeFocused();
-  await page.getByRole('button',{name:'짝수형',exact:true}).click();
+  await page.getByRole('link',{name:'짝수형',exact:true}).click();
   await expect(page.getByRole('button',{name:/정답률/})).toHaveCount(0);
   await page.getByRole('button',{name:'정답표·점수 환산표 보기',exact:true}).click();
   await expect(page.getByRole('button',{name:'1번 정답률 79.5%, 응답 분포 보기',exact:true})).toBeVisible();
   await expect(page.getByRole('status')).not.toContainText('짝수형은 다회독 데이터가 많아 실제 정답률보다 높게 나타나는 경향이 있습니다.');
-  await expect(page.getByRole('status')).not.toContainText('집계');
+  await expect(page.getByRole('status')).not.toContainText(/집계\s*(일자|날짜)/);
   await page.getByRole('button',{name:/^1번 정답률/}).click();
   await expect(dialog).not.toContainText('짝수형은 다회독 데이터가 많아 실제 정답률보다 높게 나타나는 경향이 있습니다.');
   await expect(dialog).not.toContainText('집계');
@@ -80,6 +80,30 @@ test('통계 오류·재시도 중에도 정답표와 환산표는 사용할 수
   await page.unroute('**/rest/v1/question_statistics_snapshots*');
   await page.getByRole('button',{name:'다시 시도'}).click();
   await expect(page.getByRole('button',{name:/1번 정답률 79.5%/})).toBeVisible();
+});
+test('통계와 환산 기준은 별도 설명창을 열고 포커스를 돌려준다', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await mock(page);
+  await open(page);
+  await expect(page.getByRole('status')).toContainText('반복 채점을 포함');
+
+  const statistics = page.getByRole('button', { name: '통계 집계 기준' });
+  await statistics.click();
+  const statisticsDialog = page.getByRole('dialog', { name: '통계 집계 기준' });
+  await expect(statisticsDialog).toContainText('미응답은 오답으로 포함');
+  await expect(statisticsDialog).toContainText('실제 시험 전체 응시자');
+  await page.keyboard.press('Escape');
+  await expect(statisticsDialog).toBeHidden();
+  await expect(statistics).toBeFocused();
+
+  const conversion = page.getByRole('button', { name: '점수 환산 기준' });
+  await conversion.click();
+  const conversionDialog = page.getByRole('dialog', { name: '점수 환산 기준' });
+  await expect(conversionDialog).toContainText('일부 구간은 추정값입니다');
+  await conversionDialog.getByRole('button', { name: '닫기' }).click();
+  await expect(conversion).toBeFocused();
+  await expect(page.getByRole('table', { name: '맞은 개수별 표준점수와 백분위' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 test('채점 결과의 통계·2초 정답 보기·메모 버튼을 분리한다',async({page})=>{
   await mock(page);

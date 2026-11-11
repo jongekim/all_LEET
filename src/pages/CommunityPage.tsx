@@ -1,5 +1,5 @@
 import { PageHeader } from '../components/PageHeader';
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useId, useMemo, useState, type ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MessagesSquare, Tag, Send, Heart, Eye, MessageCircle, ImagePlus, X } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
@@ -7,6 +7,7 @@ import type { CommunityPost, CommunityTag } from '../types/community';
 import { COMMUNITY_TAGS } from '../types/community';
 import { formatTimeAgoKorean } from '../utils/timeAgo';
 import { compressImageFile } from '../utils/imageCompression';
+import '../styles/community-image-preview.css';
 
 const MAX_POST_IMAGES = 5;
 const MAX_INPUT_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
@@ -27,6 +28,8 @@ export function CommunityPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<File[]>([]);
+  const [imageDescriptions, setImageDescriptions] = useState<Map<File, string>>(() => new Map());
+  const imageDescriptionId = useId();
   const [isWriteOpen, setIsWriteOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
@@ -280,6 +283,7 @@ export function CommunityPage() {
       setTitle('');
       setContent('');
       setImages([]);
+      setImageDescriptions(new Map());
       setIsWriteOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -312,7 +316,14 @@ export function CommunityPage() {
   };
 
   const handleRemoveImage = (index: number) => {
+    const file = images[index];
     setImages((prev) => prev.filter((_, idx) => idx !== index));
+    setImageDescriptions((previous) => {
+      if (!previous.has(file)) return previous;
+      const next = new Map(previous);
+      next.delete(file);
+      return next;
+    });
   };
 
   const handleToggleLike = async (postId: string) => {
@@ -440,10 +451,25 @@ export function CommunityPage() {
                   <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {imagePreviewUrls.map((url, index) => (
                       <div key={url} className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white">
-                        <img src={url} alt={`첨부 이미지 ${index + 1}`} className="w-full h-24 object-cover" />
+                        <img src={url} alt={imageDescriptions.get(images[index])?.trim() || `첨부 이미지 ${index + 1}`} className="w-full h-24 object-cover" />
+                        <div className="community-image-description">
+                          <label htmlFor={`${imageDescriptionId}-${index}`}>이미지 설명 (선택)</label>
+                          <input
+                            id={`${imageDescriptionId}-${index}`}
+                            aria-describedby={`${imageDescriptionId}-${index}-help`}
+                            value={imageDescriptions.get(images[index]) ?? ''}
+                            placeholder="예: 문항별 오답을 정리한 복습 노트"
+                            onChange={event => {
+                              const value = event.target.value;
+                              setImageDescriptions(previous => new Map(previous).set(images[index], value));
+                            }}
+                          />
+                          <p id={`${imageDescriptionId}-${index}-help`}>글쓰기 미리보기에서만 사용됩니다.</p>
+                        </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(index)}
+                          aria-label={`첨부 이미지 ${index + 1} 삭제`}
                           className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-90 hover:opacity-100"
                         >
                           <X className="w-3 h-3" />

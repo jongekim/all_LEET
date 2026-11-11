@@ -1,8 +1,9 @@
 import { PageHeader } from '../components/PageHeader';
 import { usageAnalytics } from '../utils/usageAnalytics';
 import { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Files, SlidersHorizontal, BookOpen, ClipboardList, ChartNoAxesCombined } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Files, SlidersHorizontal, BookOpen, ClipboardList, ChartNoAxesCombined, CalendarDays, ChevronDown } from 'lucide-react';
+import { DataMethodDialog } from '../components/DataMethodDialog';
 import { YearSelector } from '../components/YearSelector';
 import { AnswerKeyTable } from '../components/AnswerKeyTable';
 import { QuestionStatistics } from '../components/QuestionStatistics';
@@ -39,10 +40,14 @@ export function PastExamsPage() {
     if (normalized.toString() !== searchParams.toString()) setSearchParams(normalized, { replace: true });
   }, [year, subject, examType, searchParams, setSearchParams]);
 
-  function updateSelection(key: string, value: string) {
+  function selectionParams(key: 'year' | 'subject' | 'type', value: string) {
     const next = new URLSearchParams(searchParams);
     next.set(key, value);
-    setSearchParams(next);
+    const selected = getPastExamSelection(next);
+    next.set('year', selected.year);
+    next.set('subject', selected.subject);
+    next.set('type', selected.examType);
+    return next;
   }
 
   return (
@@ -59,14 +64,14 @@ export function PastExamsPage() {
             <span className="past-exam-section-caption">09예비 ~ 2027학년도</span>
           </div>
           <div className="past-exam-filters">
-            <YearSelector selectedYear={year} onYearChange={value => updateSelection('year', value)} years={PAST_EXAM_YEARS} />
+            <YearSelector selectedYear={year} onYearChange={value => setSearchParams(selectionParams('year', value))} years={PAST_EXAM_YEARS} />
             <fieldset>
               <legend className="text-sm font-semibold text-gray-700 mb-2">과목 선택</legend>
               <div className="past-exam-segment">
                 {(['verbal', 'reasoning'] as const).map(value => (
-                  <button key={value} type="button" aria-pressed={subject === value} className="past-exam-choice" onClick={() => updateSelection('subject', value)}>
+                  <Link key={value} to={{ search: selectionParams('subject', value).toString() }} aria-current={subject === value ? 'page' : undefined} className="past-exam-choice">
                     {value === 'verbal' ? '언어이해' : '추리논증'}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </fieldset>
@@ -74,13 +79,25 @@ export function PastExamsPage() {
               <legend className="text-sm font-semibold text-gray-700 mb-2">시험 유형</legend>
               <div className="past-exam-segment">
                 {isSingleForm ? <p className="past-exam-single">단일 문형 (홀수형·짝수형 구분 없음)</p> : (['odd', 'even'] as const).map(value => (
-                  <button key={value} type="button" aria-pressed={examType === value} className="past-exam-choice" onClick={() => updateSelection('type', value)}>
+                  <Link key={value} to={{ search: selectionParams('type', value).toString() }} aria-current={examType === value ? 'page' : undefined} className="past-exam-choice">
                     {value === 'odd' ? '홀수형' : '짝수형'}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </fieldset>
           </div>
+          <details className="past-exam-year-links">
+            <summary>
+              <CalendarDays size={16} aria-hidden="true" />학년도별 기출<ChevronDown size={16} aria-hidden="true" />
+            </summary>
+            <div className="past-exam-year-grid">
+              {PAST_EXAM_YEARS.map(value => (
+                <Link key={value} to={{ search: selectionParams('year', value).toString() }} aria-current={year === value ? 'page' : undefined}>
+                  {value}
+                </Link>
+              ))}
+            </div>
+          </details>
         </section>
         <section aria-labelledby="past-exam-file-heading" className="past-exam-panel past-exam-documents">
           <div className="past-exam-section-heading">
@@ -91,7 +108,7 @@ export function PastExamsPage() {
           <p className="past-exam-section-description">{yearLabel} · {subjectLabel} · {typeLabel}</p>
           <PastExamFiles documents={documents} />
           {alternativeDocument && <div className="mt-4">
-            <button type="button" className="past-exam-link" onClick={() => updateSelection('type', alternativeDocument.examType === 'even' ? 'even' : 'odd')}>
+            <button type="button" className="past-exam-link" onClick={() => setSearchParams(selectionParams('type', alternativeDocument.examType === 'even' ? 'even' : 'odd'))}>
               {alternativeDocument.examType === 'odd' ? '홀수형' : '짝수형'} 문제지 보기
             </button>
           </div>}
@@ -124,7 +141,10 @@ export function PastExamsPage() {
             </div>
             <p className="text-sm text-gray-600 mt-2">{isSingleForm ? '맞은 개수 많은 순' : '홀수형·짝수형 공통 · 맞은 개수 많은 순'}</p>
             {scores ? <>
-              <p id="score-estimate-notice" className="text-xs text-gray-500 mt-2 mb-4">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다. 참고용으로 확인해주세요.</p>
+              <div className="text-xs text-gray-500 mt-2 mb-4">
+                <p id="score-estimate-notice">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다. 참고용으로 확인해주세요.</p>
+                <DataMethodDialog kind="conversion" year={year} />
+              </div>
               <ScoreConversionTable scores={scores} total={total} />
             </> : <p className="text-sm text-gray-600 mt-2">이 시험의 점수 환산표는 아직 준비 중입니다.</p>}
           </section>

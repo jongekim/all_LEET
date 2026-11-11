@@ -44,8 +44,8 @@ test('기출문제 선택에 따라 검색 메타데이터와 정규 URL을 갱�
   await expect(page.locator("meta[property='og:url']")).toHaveAttribute('content', canonical);
   await expect(page.getByRole('button', { name: '정답표·점수 환산표 보기' })).toHaveAttribute('aria-expanded', 'false');
 
-  await page.getByRole('button', { name: '추리논증', exact: true }).click();
-  await page.getByRole('button', { name: '짝수형', exact: true }).click();
+  await page.getByRole('link', { name: '추리논증', exact: true }).click();
+  await page.getByRole('link', { name: '짝수형', exact: true }).click();
   await expect(page).toHaveTitle('2018학년도 추리논증 짝수형 리트(LEET) 기출문제·정답표 | all LEET');
   await expect(page.locator("link[rel='canonical']")).toHaveAttribute('href', 'https://all-leet.vercel.app/past-exams?year=2018&subject=reasoning&type=even');
   await expect(page.getByRole('button', { name: '정답표·점수 환산표 보기' })).toHaveAttribute('aria-expanded', 'false');

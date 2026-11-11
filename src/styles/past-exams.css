@@ -39,6 +39,10 @@
 .past-exam-filters > *, .past-exam-filters fieldset { min-width: 0; }
 .past-exam-filters select { width: 100%; min-height: 52px; border-color: #e2e8f0; border-radius: 10px; font-size: 14px; }
 .past-exam-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   flex: 1;
   min-height: 44px;
   padding: 10px 12px;
@@ -51,7 +55,7 @@
 }
 .past-exam-choice { transition: background-color 160ms, color 160ms; }
 .past-exam-choice:hover { background: #e2e8f0; }
-.past-exam-choice[aria-pressed="true"] { background: white; color: #1d4ed8; box-shadow: 0 1px 4px rgb(15 23 42 / 10%); }
+.past-exam-choice[aria-current="page"] { background: white; color: #1d4ed8; box-shadow: 0 1px 4px rgb(15 23 42 / 10%); }
 .past-exam-choice:focus-visible, .past-exam-link:focus-visible, .past-exam-back:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 3px;
@@ -96,3 +100,14 @@
   .past-exam-review-icon { width: 40px; height: 40px; }
   .past-exam-review-action { font-size: 12px; gap: 2px; }
 }
+
+.past-exam-year-links { margin-top:20px; padding-top:14px; border-top:1px solid #e2e8f0; }
+.past-exam-year-links summary { display:flex; align-items:center; gap:7px; min-height:32px; color:#2563eb; font-size:13px; cursor:pointer; list-style:none; }
+.past-exam-year-links summary::-webkit-details-marker { display:none; }
+.past-exam-year-links summary > svg:last-child { margin-left:auto; transition:transform 160ms; }
+.past-exam-year-links[open] summary > svg:last-child { transform:rotate(180deg); }
+.past-exam-year-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; margin-top:12px; }
+.past-exam-year-grid a { display:flex; justify-content:center; align-items:center; min-height:36px; border-radius:7px; background:#f1f5f9; color:#475569; font-size:13px; padding:5px 2px; text-decoration:none; }
+.past-exam-year-grid a[aria-current="page"] { background:#eff6ff; color:#1d4ed8; font-weight:600; }
+.past-exam-year-links summary:focus-visible, .past-exam-year-grid a:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+@media (max-width: 639px) { .past-exam-year-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

@@ -83,6 +83,12 @@ test('자바스크립트 없이 홈과 선택한 기출문제·PDF 링크를 읽
   await expect(page).toHaveTitle(/2018학년도 추리논증 짝수형/);
   await expect(page.getByText('2018학년도 · 추리논증 · 짝수형', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /PDF 열기/ })).toHaveAttribute('href', /\/past-exams\/watermarked\/v1\//);
+  await page.getByText('학년도별 기출', { exact: true }).click();
+  const yearLink = page.getByRole('link', { name: '2027', exact: true });
+  const yearHref = new URL((await yearLink.getAttribute('href'))!, page.url());
+  expect(Object.fromEntries(yearHref.searchParams)).toMatchObject({ year: '2027', subject: 'reasoning', type: 'odd' });
+  await yearLink.click();
+  await expect(page.getByText('2027학년도 · 추리논증 · 단일 문형', { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 320, height: 780 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await context.close();
@@ -95,7 +101,7 @@ test('기출 선택·답안 입력과 검색 메타데이터는 앱 시작 후�
   await page.goto('/past-exams?year=2026&subject=verbal&type=odd');
   await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
   await expect(page.locator('#prerender-shell')).toHaveCount(0);
-  await page.getByRole('button', { name: '추리논증', exact: true }).click();
+  await page.getByRole('link', { name: '추리논증', exact: true }).click();
   await expect(page).toHaveTitle(/2026학년도 추리논증 홀수형/);
   await page.getByRole('button', { name: '정답표·점수 환산표 보기' }).click();
   await expect(page.getByRole('heading', { name: '2026학년도 추리논증 홀수형 정답표' })).toBeVisible();

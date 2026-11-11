@@ -1,8 +1,9 @@
 import { GradingResult } from '../App';
-import { useRef, useEffect, useState } from 'react';
+import { useId, useRef, useEffect, useState } from 'react';
 import { Check, X } from 'lucide-react';
 
 interface AnswerSheetProps {
+  subjectLabel: string;
   questionCount: number;
   userAnswers: Record<number, number>;
   onAnswerChange: (questionNumber: number, answer: number) => void;
@@ -10,7 +11,8 @@ interface AnswerSheetProps {
   correctAnswers?: Record<number, number>;
 }
 
-export function AnswerSheet({ questionCount, userAnswers, onAnswerChange, result, correctAnswers }: AnswerSheetProps) {
+export function AnswerSheet({ subjectLabel, questionCount, userAnswers, onAnswerChange, result, correctAnswers }: AnswerSheetProps) {
+  const inputId = useId();
   const questions = Array.from({ length: questionCount }, (_, i) => i + 1);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [revealedAnswers, setRevealedAnswers] = useState<Set<number>>(new Set());
@@ -123,11 +125,13 @@ export function AnswerSheet({ questionCount, userAnswers, onAnswerChange, result
               key={questionNum}
               className="flex items-center gap-2 relative"
             >
-              <label className="font-semibold text-gray-700 min-w-[3rem]">
+              <label htmlFor={inputId + '-' + questionNum} className="font-semibold text-gray-700 min-w-[3rem]">
                 {questionNum}.
               </label>
               <div className="relative flex-1">
                 <input
+                  id={inputId + '-' + questionNum}
+                  aria-label={subjectLabel + ' ' + questionNum + '번 답안'}
                   ref={(el) => {
                     inputRefs.current[questionNum - 1] = el;
                   }}
