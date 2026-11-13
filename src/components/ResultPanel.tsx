@@ -56,7 +56,6 @@ export function ResultPanel({ result, onQuestionSelect, example = false }: Resul
         </div>
       </div>
 
-      {result.year === '2027' && <p className="text-xs text-gray-500">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다.</p>}
       {(projection.status === 'ready' || projection.status === 'example') && <FieldAnalysis result={result} analysis={projection.analysis} onQuestionSelect={onQuestionSelect} />}
     </div>
   );

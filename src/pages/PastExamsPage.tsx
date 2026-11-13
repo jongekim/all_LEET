@@ -2,7 +2,7 @@ import { PageHeader } from '../components/PageHeader';
 import { usageAnalytics } from '../utils/usageAnalytics';
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Files, SlidersHorizontal, BookOpen, ClipboardList, ChartNoAxesCombined, CalendarDays, ChevronDown } from 'lucide-react';
+import { Files, SlidersHorizontal, BookOpen, ClipboardList, ChartNoAxesCombined, CalendarDays, ChevronDown, BookOpenText, ChevronRight } from 'lucide-react';
 import { DataMethodDialog } from '../components/DataMethodDialog';
 import { YearSelector } from '../components/YearSelector';
 import { AnswerKeyTable } from '../components/AnswerKeyTable';
@@ -15,6 +15,7 @@ import { SCORE_DATA } from '../utils/scoreData';
 import { getQuestionCount } from '../utils/grading';
 import { getPastExamSelection, PAST_EXAM_DOCUMENTS, PAST_EXAM_YEARS } from '../utils/pastExamData';
 import '../styles/past-exams.css';
+import '../styles/past-exam-data-guide.css';
 
 export function PastExamsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,6 +99,11 @@ export function PastExamsPage() {
               ))}
             </div>
           </details>
+          <div className="past-exam-guide-entry">
+            <a href="/past-exams/data-guide" className="past-exam-guide-link">
+              <BookOpenText size={16} aria-hidden="true" />기출 데이터 기준<ChevronRight size={16} aria-hidden="true" />
+            </a>
+          </div>
         </section>
         <section aria-labelledby="past-exam-file-heading" className="past-exam-panel past-exam-documents">
           <div className="past-exam-section-heading">
@@ -142,7 +148,6 @@ export function PastExamsPage() {
             <p className="text-sm text-gray-600 mt-2">{isSingleForm ? '맞은 개수 많은 순' : '홀수형·짝수형 공통 · 맞은 개수 많은 순'}</p>
             {scores ? <>
               <div className="text-xs text-gray-500 mt-2 mb-4">
-                <p id="score-estimate-notice">일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다. 참고용으로 확인해주세요.</p>
                 <DataMethodDialog kind="conversion" year={year} />
               </div>
               <ScoreConversionTable scores={scores} total={total} />

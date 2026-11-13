@@ -31,7 +31,7 @@
 
 - 언어이해: 18~29개 표준점수·백분위.
 - 추리논증: 23~38개 표준점수·백분위, 21개 표준점수 54.3.
-- 그 밖의 값은 추가 추정이며 `estimatedStandardScore`, `estimatedPercentile`로 각각 구분한다. 환산표 셀의 title과 기존 추정값 안내, 2027 채점 결과의 추정값 안내를 제공한다.
+- 그 밖의 값은 추가 계산으로 산출하며 내부 데이터에서는 `estimatedStandardScore`, `estimatedPercentile`로 각각 기록한다. 환산표와 채점 결과의 사용자 화면에는 점수를 숫자로 표시한다.
 
 ## 빈 구간 추정
 

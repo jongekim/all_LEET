@@ -96,7 +96,7 @@ test('맞은 개수별 환산표는 학년도·과목과 함께 바뀌고 누락
   const table = page.getByRole('table', { name: '맞은 개수별 표준점수와 백분위' });
   await expect(table.getByRole('row')).toHaveCount(32);
   await expect(table.getByRole('row', { name: '30개 73.1 100.0', exact: true })).toBeVisible();
-  await expect(page.getByText('일부 표준점수·백분위는 추정값으로 실제 성적과 차이가 있을 수 있습니다. 참고용으로 확인해주세요.')).toBeVisible();
+  await expect(table.locator('td[title]')).toHaveCount(0);
   await page.getByRole('link', { name: '짝수형', exact: true }).click();
   await revealReview(page);
   await expect(table.getByRole('row', { name: '30개 73.1 100.0', exact: true })).toBeVisible();

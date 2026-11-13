@@ -39,6 +39,8 @@ Vite 개발 서버 포트는 `vite.config.ts`에서 `3000`으로 설정되어 �
 디데이 저장 후 비로그인 화면 반영 검사는 별도 브라우저 컨텍스트의 서비스워커를 차단한다. 첫 설치 controllerchange 새로고침과 연속 페이지 이동의 경합을 피하며, 푸시·서비스워커 동작은 해당 전용 테스트에서 검증한다.
 
 SEO 경로를 변경할 때는 `src/utils/pageSeo.ts`의 공유 메타데이터 정의와 `src/public/sitemap.xml`을 함께 확인한다. 사이트맵에는 검색에 노출할 공개 경로만 넣고, 확인할 수 없는 `lastmod`는 기록하지 않는다. 게시글 메타데이터는 기존 게시글 조회 결과를 사용하며 별도의 서버 요청을 추가하지 않는다.
+
+화면을 유지하는 SEO 개선은 [HTTP·커뮤니티 HTML·캐시 구현](seo-nonvisual-improvements.md)을 따른다. `src/utils/appRoutes.ts`의 경로 목록과 React Router를 함께 갱신하고 `npm run prerender:routes`로 공개 HTML·개인 shell·커뮤니티 함수 rewrite를 생성한다. 없는 경로는 포괄 SPA fallback 대신 실제 404다. 커뮤니티 최초 HTML의 새 Node 함수는 기존 브라우저 조회와 별개로 요청별 anon 공개 GET 한 번을 수행하며 브라우저의 게시글 메타데이터 갱신에 별도 조회를 추가하지 않는다.
 기출문제 메타데이터는 선택한 학년도·과목·문형을 기준으로 설정한다. 쿼리 매개변수의 순서나 불필요한 매개변수가 달라도 canonical은 `year`, `subject`, `type` 순서의 유효한 선택 URL이어야 한다. `npm run sitemap:generate`는 등록된 문제지마다 하나의 선택 URL을 생성하며, 2027학년도 단일 문형은 `type=odd` 하나만 사용한다.
 내부 이동 요소를 수정할 때는 홈 바로가기·하단 메뉴·게시글 제목의 실제 `href`와 기존 경로 이동을 함께 확인한다.
 
@@ -155,7 +157,7 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 ## 공개 HTML 사전 렌더링
 
-`npm run build`는 Vite 정적 빌드 후 `node --import tsx scripts/prerender.ts`를 실행한다. 새 패키지나 Chromium 없이 기존 React 서버 렌더러로 공개 83개 화면을 생성한다. 렌더링 전에 기존 anon 키로 현재 공개 문항 통계 전체를 GET 한 번 수행한다. 15초 제한·건수/구조/발행본 검증을 적용하며 실패하면 빌드도 실패한다. 이후 실제 React 렌더링 중에는 외부 fetch를 금지하며 인증 세션·공지·개인 데이터를 가져오지 않는다. 브라우저는 HTML의 통계를 캐시에 넣지 않고 기존 DB 최신 조회 흐름을 따른다. 로컬 `npm run check`의 build 단계도 이 공개 읽기를 사용하므로 네트워크 연결이 필요하다.
+`npm run build`는 Vite 정적 빌드 후 `node --import tsx scripts/prerender.ts`를 실행한다. 새 패키지나 Chromium 없이 기존 React 서버 렌더러로 공개 84개 화면을 생성한다. 렌더링 전에 기존 anon 키로 현재 공개 문항 통계 전체를 GET 한 번 수행한다. 15초 제한·건수/구조/발행본 검증을 적용하며 실패하면 빌드도 실패한다. 이후 실제 React 렌더링 중에는 외부 fetch를 금지하며 인증 세션·공지·개인 데이터를 가져오지 않는다. 브라우저는 HTML의 통계를 캐시에 넣지 않고 기존 DB 최신 조회 흐름을 따른다. 로컬 `npm run check`의 build 단계도 이 공개 읽기를 사용하므로 네트워크 연결이 필요하다.
 
 `npm run build:test`는 `e2e/fixtures/question-statistics-v2.json`의 오프라인 비교 fixture로 같은 생성기를 검증하며 운영 DB 요청은 없다. 고정 파일은 2026 두 과목의 기존 v1을 검수 대응표로 변환하고 다른 36묶음은 0표본으로 채운다. 운영 v2 발행에 사용할 수 없다. Vercel 환경에서는 fixture 옵션을 거절하여 테스트 파일이 실서비스에 배포되지 않도록 한다. Vercel Build Command는 계속 `npm run build`를 사용해야 한다. 테스트 빌드 산출물은 운영 배포에 사용하지 않는다.
 
@@ -163,13 +165,15 @@ GitHub에서 `main` 브랜치 보호 규칙을 설정해 `Quality checks`의 성
 
 기출문제 등록·공개 정적 경로 변경 시 `npm run sitemap:generate`와 `npm run prerender:routes`를 실행하고 `vercel.json` 변경도 검토한다. 빌드는 생성 규칙과 실제 배포 rewrite의 일치를 검사하고 불일치하면 실패한다. 일반 코드 빌드는 배포 설정을 자동 수정하지 않는다. 공개 HTML의 query 순서·불필요한 매개변수·기본값·잘못된 선택·단일 문형 처리는 클라이언트 선택과 같아야 한다.
 
-`npm run test:prerender`는 먼저 생성된 build를 필요로 한다. 로컬 preview에서 저장된 Vercel rewrite의 query 조건을 적용하고 83개 최초 HTML 응답, 본문·canonical·제목·구조화 데이터, JavaScript 없는 접근, 앱 시작 후 선택과 정답표, 모바일 가로 넘침, 개인 경로 fallback을 검증한다. 이 preview는 배포 플랫폼 자체의 검증을 대체하지 않는다. 첫 배포 후 홈·과거 기출·예비시험·단일 문형 URL의 HTTP 응답을 추가 확인한다. `npm run check`와 CI는 빌드 이후 이 검증까지 실행한다.
+`npm run test:prerender`는 먼저 생성된 build를 필요로 한다. 로컬 preview에서 저장된 Vercel rewrite의 query 조건을 적용하고 84개 최초 HTML 응답, 본문·canonical·제목·구조화 데이터, JavaScript 없는 접근, 앱 시작 후 선택과 정답표, 모바일 가로 넘침, 개인 경로 fallback을 검증한다. 이 preview는 배포 플랫폼 자체의 검증을 대체하지 않는다. 첫 배포 후 홈·과거 기출·예비시험·단일 문형 URL의 HTTP 응답을 추가 확인한다. `npm run check`와 CI는 빌드 이후 이 검증까지 실행한다.
 
 UI 유지 검증은 같은 빌드에서 빈 `app.html`로 시작한 기존 방식과 사전 HTML로 시작한 방식을 비교한다. 홈·선택한 기출문제·로그인 화면의 데스크톱(1280px)과 모바일(375px) 최종 스크린샷이 같아야 한다. JavaScript 로딩을 보류한 상태부터 앱 시작까지 화면 프레임의 제목 개수를 검사해 빈 화면·중복 표시를 확인한다. 비로그인 채점 결과와 보호 경로의 로그인 이동도 검사하며 모든 Supabase 요청은 모의 응답으로 격리한다. 실제 로그인·운영 저장 요청은 실행하지 않는다.
 
 배포 후에는 HTML 원문에 해당 시험의 본문·제목·canonical이 있는지 먼저 확인한다. Search Console은 홈, 최신 기출, 과거 기출, 예비시험의 대표 URL을 각각 검사하고 마지막 크롤링 날짜·Google 선택 표준 URL·색인 제외 사유를 비교한다. 페이지 색인 보고서의 최신 날짜와 사이트맵 필터도 함께 확인한다. 사전 렌더링 검증 통과를 Google 색인 완료로 해석하지 않는다.
 
 `build/prerender/`와 `build/app.html`은 git에서 제외한 재생성 산출물이다. 기존 추적 중인 `build/index.html`과 assets 변경은 빌드 후 확인한다. 사전 렌더링 진입점과 preview 스크립트는 브라우저 배포 번들에 포함되지 않는다.
+
+`build/shells/`, `build/404.html`, `.generated/community/`도 재생성 산출물이다. 마지막 경로는 공개 정적 디렉터리 밖의 Node 함수 번들과 template이며 includeFiles로만 함수에 포함한다. 커뮤니티 데이터는 빌드에 저장하지 않는다. `npm run test:prerender`의 preview는 커뮤니티 합성 fixture를 사용해 운영 조회수 증가 없이 목록·상세 HTML/404/503과 UI를 검사한다. 실제 배포 후에는 Vercel의 정적 파일·404·함수 rewrite를 따로 확인한다.
 
 ## 디데이 설정 검증·적용 경계
 

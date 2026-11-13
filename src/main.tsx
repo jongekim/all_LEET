@@ -61,5 +61,7 @@
     shell.id = 'prerender-shell';
     while (rootElement.firstChild) shell.appendChild(rootElement.firstChild);
     rootElement.before(shell);
+    // 최신 커뮤니티 조회가 끝날 때까지 같은 공개 화면을 유지한다.
+    if (/^\/community(?:\/[^/]+)?\/?$/.test(window.location.pathname)) rootElement.hidden = true;
   }
   createRoot(rootElement).render(<App />);

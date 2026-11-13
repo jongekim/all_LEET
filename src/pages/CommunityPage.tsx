@@ -1,5 +1,7 @@
 import { PageHeader } from '../components/PageHeader';
-import { useEffect, useId, useMemo, useState, type ChangeEvent } from 'react';
+import { useContext, useEffect, useId, useMemo, useState, type ChangeEvent } from 'react';
+import { PublicCommunityContext } from '../contexts/PublicCommunityContext';
+import { usePublicHtmlReady } from '../hooks/usePublicHtmlReady';
 import { Link, useNavigate } from 'react-router-dom';
 import { MessagesSquare, Tag, Send, Heart, Eye, MessageCircle, ImagePlus, X } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
@@ -17,7 +19,10 @@ export function CommunityPage() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const initial = useContext(PublicCommunityContext);
+  const [posts, setPosts] = useState<CommunityPost[]>(initial?.posts ?? []);
+  const [loaded, setLoaded] = useState(false);
+  usePublicHtmlReady(loaded);
   const [tagFilter, setTagFilter] = useState<'all' | CommunityTag>('all');
   const [myFilter, setMyFilter] = useState<'all' | 'posts' | 'comments'>('all');
   const [searchDraft, setSearchDraft] = useState('');
@@ -57,6 +62,7 @@ export function CommunityPage() {
       if (error) {
         console.error('Failed to load community posts:', error);
         setPosts([]);
+        setLoaded(true);
         return;
       }
 
@@ -97,6 +103,7 @@ export function CommunityPage() {
       });
 
       setPosts(mapped);
+      setLoaded(true);
     };
 
     fetchPosts();

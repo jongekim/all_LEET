@@ -1,6 +1,9 @@
 import { CommunityPostBody } from '../components/CommunityPostBody';
 import { PageHeader } from '../components/PageHeader';
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { PublicCommunityContext } from '../contexts/PublicCommunityContext';
+import { usePublicHtmlReady } from '../hooks/usePublicHtmlReady';
+import { getCommunityPostSeo, getWebPageSchema } from '../utils/pageSeo';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Heart, MessageCircle, Eye, Flag, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, useAuth } from '../contexts/AuthContext';
@@ -21,20 +24,22 @@ export function CommunityPostPage() {
   const { currentUser } = useAuth();
   const currentUserId = currentUser?.id || '';
 
-  const [post, setPost] = useState<CommunityPost | null>(null);
+  const initial = useContext(PublicCommunityContext);
+  const [post, setPost] = useState<CommunityPost | null>(initial?.post ?? null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [likedCommentIds, setLikedCommentIds] = useState<Set<string>>(new Set());
   const [commentDraft, setCommentDraft] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initial === undefined);
+  usePublicHtmlReady(!loading);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!post || post.id !== id) return;
 
-    const title = `${post.title} | all LEET 커뮤니티`;
-    const description = post.content.replace(/\s+/g, ' ').trim().slice(0, 160)
-      || 'LEET 수험생 커뮤니티 게시글을 확인하세요.';
+    const { title, description } = getCommunityPostSeo(id, post);
+    const schema = document.getElementById('ldjson-webpage');
+    if (schema) schema.textContent = JSON.stringify(getWebPageSchema(getCommunityPostSeo(id, post)));
 
     document.title = title;
     const metadata = [

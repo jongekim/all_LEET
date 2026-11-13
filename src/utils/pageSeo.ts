@@ -11,10 +11,15 @@ const ROUTE_SEO: Record<string, { title: string; description: string }> = {
   '/mock-history': { title: '사설 모의고사 히스토리 | all LEET', description: '사설 모의고사 기록과 추이를 한눈에 확인하세요.' },
   '/privacy-policy': { title: '개인정보처리방침 | all LEET', description: 'all LEET 개인정보처리방침 안내 페이지입니다.' },
   '/terms': { title: '이용약관 | all LEET', description: 'all LEET 이용약관 안내 페이지입니다.' },
+  '/past-exams/data-guide': { title: '기출 정답·정답률·점수 환산 기준 | all LEET', description: 'LEET 기출 정답 자료의 범위, 문항별 정답률 집계 방식과 표준점수·백분위 산출 기준을 확인하세요.' },
   '/community': { title: '커뮤니티 게시판 | all LEET', description: 'LEET 수험생 커뮤니티 게시판에서 정보를 공유해보세요.' },
+  '/login': { title: '로그인 | all LEET', description: 'all LEET 계정으로 로그인하세요.' },
+  '/signup': { title: '회원가입 | all LEET', description: 'all LEET 회원가입 페이지입니다.' },
+  '/forgot-password': { title: '비밀번호 찾기 | all LEET', description: 'all LEET 계정의 비밀번호를 재설정하세요.' },
+  '/reset-password': { title: '비밀번호 재설정 | all LEET', description: 'all LEET 계정의 새 비밀번호를 설정하세요.' },
 };
 
-export const PUBLIC_STATIC_PATHS = ['/', '/history', '/mock-history', '/privacy-policy', '/terms'];
+export const PUBLIC_STATIC_PATHS = ['/', '/history', '/mock-history', '/privacy-policy', '/terms', '/past-exams/data-guide'];
 
 export function getPageSeo(pathname: string, search = '') {
   const path = pathname.replace(/\/$/, '') || '/';
@@ -39,6 +44,33 @@ export function getPageSeo(pathname: string, search = '') {
 export const WEBSITE_SCHEMA = {
   '@context': 'https://schema.org', '@type': 'WebSite',
   name: 'all LEET', alternateName: ['올리트', 'ALL LEET', '리트 채점은 all LEET'],
+  '@id': `${CANONICAL_ORIGIN}/#website`,
   url: `${CANONICAL_ORIGIN}/`, inLanguage: 'ko-KR',
   description: HOME_DESCRIPTION,
 };
+
+export function getWebPageSchema(seo: ReturnType<typeof getPageSeo>) {
+  return {
+    '@context': 'https://schema.org', '@type': 'WebPage',
+    '@id': `${seo.canonical}#webpage`, url: seo.canonical,
+    name: seo.title, description: seo.description, inLanguage: 'ko-KR',
+    isPartOf: { '@id': WEBSITE_SCHEMA['@id'] },
+    ...(seo.canonical === WEBSITE_SCHEMA.url ? {
+      mainEntity: {
+        '@type': 'WebApplication', '@id': `${WEBSITE_SCHEMA.url}#app`,
+        name: WEBSITE_SCHEMA.name, url: WEBSITE_SCHEMA.url,
+        applicationCategory: 'EducationalApplication', inLanguage: 'ko-KR',
+        description: HOME_DESCRIPTION,
+      },
+    } : {}),
+  };
+}
+
+export function getCommunityPostSeo(id: string, post: { title: string; content: string }) {
+  return {
+    title: `${post.title} | all LEET 커뮤니티`,
+    description: post.content.replace(/\s+/g, ' ').trim().slice(0, 160)
+      || 'LEET 수험생 커뮤니티 게시글을 확인하세요.',
+    canonical: `${CANONICAL_ORIGIN}/community/${encodeURIComponent(id)}`,
+  };
+}

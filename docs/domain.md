@@ -52,6 +52,8 @@ LEET 합산 표준점수와 GPA를 받아 `src/utils/lawschool.ts`의 학교별 
 
 커뮤니티는 게시글, 댓글, 좋아요, 신고, 조회 수, 이미지 첨부를 제공한다. 게시글 이미지는 `community-post-images` Storage 버킷에 업로드하고, 공개 URL 배열을 `community_posts.image_urls`에 저장한다. 화면 구현은 `CommunityPage.tsx`, `CommunityPostPage.tsx`에 있다.
 
+화면을 유지하는 SEO 개선은 기존 비로그인 목록·상세 화면을 요청별 공개 HTML에도 제공한다. 같은 anon 공개 조회를 사용하며 서버에서 조회수·좋아요·댓글을 쓰지 않는다. 회원별 필터·작성·최신 조회·조회수 증가는 기존 브라우저 흐름을 유지한다. 삭제된 글과 조회 장애는 HTTP 404/503으로 구분하며, 화면 문구·이미지 품질·입력 조작은 바꾸지 않는다. [구현·검증](seo-nonvisual-improvements.md)을 따른다.
+
 `src/utils/communityStorage.ts`에는 localStorage 기반의 과거 커뮤니티 구현이 남아 있지만, 현재 커뮤니티 페이지는 Supabase 테이블을 직접 사용한다.
 
 ## 전체 채팅

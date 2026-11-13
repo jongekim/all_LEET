@@ -1,5 +1,7 @@
 # 데이터베이스 및 Supabase
 
+2026-11-10 화면을 유지하는 SEO 작업은 기존 커뮤니티 세 테이블의 원격 컬럼·RLS·공개 SELECT와 최근 마이그레이션을 읽기 전용으로 재확인했다. 신규 Vercel HTML 함수는 기존 anon 공개 GET만 사용하며 Cookie·회원 토큰·service role·쓰기 RPC를 사용하지 않는다. DB·RLS·Storage·Supabase 함수 변경은 없다. [구현 경계](seo-nonvisual-improvements.md)를 따른다.
+
 ## 사용 방식
 
 Supabase 클라이언트는 `src/contexts/AuthContext.tsx`에서 생성된다. 브라우저는 anon 키로 인증, 채팅, 커뮤니티, 오답 메모, Storage를 직접 사용한다. 공식 채점 이력과 사설 모의고사 이력은 Edge Function이 service role로 KV 테이블에 저장한다.

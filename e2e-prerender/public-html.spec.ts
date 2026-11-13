@@ -57,7 +57,7 @@ test('모든 공개 URL은 첫 응답에 본문·고유 메타데이터를 포�
     expect(html).toContain(seo.canonical.replace(/&/g, '&amp;'));
     expect(html).toContain('<h1');
     expect(html).not.toContain('<div id="root"></div>');
-    expect(html.match(/type="application\/ld\+json"/g)).toHaveLength(1);
+    expect(html.match(/type="application\/ld\+json"/g)).toHaveLength(2);
   }
 });
 
@@ -115,44 +115,52 @@ test('기출 선택·답안 입력과 검색 메타데이터는 앱 시작 후�
   expect(errors).toEqual([]);
 });
 
-test('개인·동적 화면 fallback에는 공개 화면과 개인정보가 저장되지 않는다', async ({ request }) => {
+test('개인 화면 shell에는 공개 화면과 개인정보가 저장되지 않는다', async ({ request }) => {
   const fallback = readFileSync('build/app.html', 'utf8');
   expect(fallback).toContain('<div id="root"></div>');
-  for (const path of ['/login', '/admission', '/community/example']) expect(await (await request.get(path)).text()).toBe(fallback);
+  for (const path of ['/login', '/admission']) {
+    const html = await (await request.get(path)).text();
+    expect(html).toContain('<div id="root"></div>');
+    expect(html).toContain('<meta name="robots" content="noindex, follow"');
+    expect(html).not.toContain('<h1');
+  }
 });
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 }]) {
-  test(`사전 HTML 이후 화면은 기존 앱 시작 방식과 동일하다 (${viewport.width}px)`, async ({ page }, testInfo) => {
-    await page.setViewportSize(viewport);
-    await page.route('https://*.supabase.co/**', route => route.fulfill({ json: [] }));
-    const fallback = readFileSync('build/app.html', 'utf8');
+  test.describe(`초기 HTML 화면 비교 (${viewport.width}px)`, () => {
+    test.use({ serviceWorkers: 'block' });
+    test(`사전 HTML 이후 화면은 기존 앱 시작 방식과 동일하다 (${viewport.width}px)`, async ({ page }, testInfo) => {
+      await page.setViewportSize(viewport);
+      await page.route('https://*.supabase.co/**', route => route.fulfill({ json: [] }));
+      const fallback = readFileSync('build/app.html', 'utf8');
 
-    for (const [name, path] of [
-      ['home', '/'],
-      ['past-exams', '/past-exams?year=2026&subject=reasoning&type=even'],
-      ['login', '/login'],
-    ]) {
-      // 동일한 코드·화면에서 초기 HTML 유무만 바꾸어 비교한다.
-      await page.route('http://127.0.0.1:4173/**', async route => {
-        if (route.request().isNavigationRequest()) {
-          await route.fulfill({ contentType: 'text/html', body: fallback });
-        } else await route.continue();
-      });
-      await page.goto(path);
-      await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
-      if (path === '/' || path === '/login') await expect(page.locator('[data-dday-display]')).toHaveText('디데이 설정을 불러오지 못했습니다.');
-      const original = await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' });
-      await page.unroute('http://127.0.0.1:4173/**');
+      for (const [name, path] of [
+        ['home', '/'],
+        ['past-exams', '/past-exams?year=2026&subject=reasoning&type=even'],
+        ['login', '/login'],
+      ]) {
+        // 동일한 코드·화면에서 초기 HTML 유무만 바꾸어 비교한다.
+        await page.route('http://127.0.0.1:4173/**', async route => {
+          if (route.request().isNavigationRequest()) {
+            await route.fulfill({ contentType: 'text/html', body: fallback });
+          } else await route.continue();
+        });
+        await page.goto(path);
+        await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
+        if (path === '/' || path === '/login') await expect(page.locator('[data-dday-display]')).toHaveText('디데이 설정을 불러오지 못했습니다.');
+        const original = await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' });
+        await page.unroute('http://127.0.0.1:4173/**');
 
-      await page.goto(path);
-      await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
-      await expect(page.locator('#prerender-shell')).toHaveCount(0);
-      if (path === '/' || path === '/login') await expect(page.locator('[data-dday-display]')).toHaveText('디데이 설정을 불러오지 못했습니다.');
-      const prerendered = await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' });
-      await testInfo.attach(`${name}-original`, { body: original, contentType: 'image/png' });
-      await testInfo.attach(`${name}-prerendered`, { body: prerendered, contentType: 'image/png' });
-      expect(prerendered.equals(original), `${path}: 초기 HTML 교체 후 화면이 달라졌습니다.`).toBe(true);
-    }
+        await page.goto(path);
+        await expect(page.locator('#root')).toHaveAttribute('data-app-ready', 'true');
+        await expect(page.locator('#prerender-shell')).toHaveCount(0);
+        if (path === '/' || path === '/login') await expect(page.locator('[data-dday-display]')).toHaveText('디데이 설정을 불러오지 못했습니다.');
+        const prerendered = await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' });
+        await testInfo.attach(`${name}-original`, { body: original, contentType: 'image/png' });
+        await testInfo.attach(`${name}-prerendered`, { body: prerendered, contentType: 'image/png' });
+        expect(prerendered.equals(original), `${path}: 초기 HTML 교체 후 화면이 달라졌습니다.`).toBe(true);
+      }
+    });
   });
 }
 

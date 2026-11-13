@@ -1,8 +1,8 @@
 import { writeFileSync } from 'node:fs';
+import { CANONICAL_ORIGIN, PUBLIC_STATIC_PATHS } from '../src/utils/pageSeo';
 import { getPastExamSelection, PAST_EXAM_DOCUMENTS } from '../src/utils/pastExamData';
 
-const origin = 'https://all-leet.vercel.app';
-const publicPaths = ['/', '/history', '/mock-history', '/community', '/privacy-policy', '/terms'];
+const publicPaths = [...PUBLIC_STATIC_PATHS, '/community'];
 
 const examPaths = PAST_EXAM_DOCUMENTS.map(document => {
   const type = document.examType === 'single' ? 'odd' : document.examType;
@@ -20,7 +20,7 @@ if (new Set(examPaths).size !== examPaths.length) {
 
 const paths = [publicPaths[0], ...examPaths, ...publicPaths.slice(1)];
 const locations = paths.map(path => {
-  const url = `${origin}${path}`.replace(/&/g, '&amp;');
+  const url = `${CANONICAL_ORIGIN}${path}`.replace(/&/g, '&amp;');
   return `  <url><loc>${url}</loc></url>`;
 });
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${locations.join('\n')}\n</urlset>\n`;

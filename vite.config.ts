@@ -3,7 +3,7 @@
   import react from '@vitejs/plugin-react-swc';
   import path from 'path';
 
-  export default defineConfig({
+  export default defineConfig(({ isSsrBuild }) => ({
     plugins: [react()],
     publicDir: 'src/public',
     resolve: {
@@ -54,9 +54,11 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      // 정적 import·화면 준비 순서를 유지하며 앱 수정 때도 외부 라이브러리 캐시를 재사용한다.
+      rollupOptions: { output: { manualChunks: isSsrBuild ? undefined : (id: string) => id.includes('/node_modules/') ? 'vendor' : undefined } },
     },
     server: {
       port: 3000,
       open: true,
     },
-  });
+  }));

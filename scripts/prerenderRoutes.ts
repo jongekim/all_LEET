@@ -1,8 +1,23 @@
 import { PAST_EXAM_DOCUMENTS, getPastExamSelection } from '../src/utils/pastExamData';
 import { PUBLIC_STATIC_PATHS } from '../src/utils/pageSeo';
+import { APP_STATIC_PATHS } from '../src/utils/appRoutes';
 
 interface QueryCondition { type: 'query'; key: string; value: string }
 export interface Rewrite { source: string; destination: string; has?: QueryCondition[]; missing?: QueryCondition[] }
+
+export function getShellPages() {
+  return APP_STATIC_PATHS.filter(path => !PUBLIC_STATIC_PATHS.includes(path) && !['/past-exams', '/community'].includes(path))
+    .map(url => ({ url, output: `/shells${url}.html` }));
+}
+
+export function getAppRewrites(): Rewrite[] {
+  return [
+    { source: '/community', destination: '/api/community' },
+    { source: '/community/:postId', destination: '/api/community?postId=:postId' },
+    ...getPrerenderRewrites(),
+    ...getShellPages().map(page => ({ source: page.url, destination: page.output })),
+  ];
+}
 
 export function examOutputPath(year: string, subject: string, type: string) {
   return `/prerender/past-exams/${year === '09예비' ? '09-preliminary' : year}-${subject}-${type}.html`;

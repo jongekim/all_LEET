@@ -1,0 +1,27 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "user_id": "00000000-0000-0000-0000-000000000010",
+    "tag": "질문",
+    "title": "언어이해 학습 질문",
+    "content": "기출문제를 풀고 정답표를 확인하는 방법을 공유합니다.",
+    "image_urls": [],
+    "created_at": "2026-10-01T00:00:00Z",
+    "likes_count": 1,
+    "views_count": 5,
+    "reports_count": 0,
+    "comments_count": 1,
+    "like_count": [{ "count": 1 }],
+    "comment_count": [{ "count": 1 }],
+    "community_comments": [
+      {
+        "id": "00000000-0000-0000-0000-000000000002",
+        "user_id": "00000000-0000-0000-0000-000000000020",
+        "content": "정답표에서 문항별로 확인할 수 있습니다.",
+        "created_at": "2026-10-01T01:00:00Z",
+        "likes_count": 0,
+        "reports_count": 0
+      }
+    ]
+  }
+]

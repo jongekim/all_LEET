@@ -99,7 +99,7 @@ test('통계와 환산 기준은 별도 설명창을 열고 포커스를 돌려�
   const conversion = page.getByRole('button', { name: '점수 환산 기준' });
   await conversion.click();
   const conversionDialog = page.getByRole('dialog', { name: '점수 환산 기준' });
-  await expect(conversionDialog).toContainText('일부 구간은 추정값입니다');
+  await expect(conversionDialog).toContainText('출처와 산출 방법');
   await conversionDialog.getByRole('button', { name: '닫기' }).click();
   await expect(conversion).toBeFocused();
   await expect(page.getByRole('table', { name: '맞은 개수별 표준점수와 백분위' })).toBeVisible();

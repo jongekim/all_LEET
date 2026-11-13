@@ -126,6 +126,186 @@
           "value": "no-store"
         }
       ]
+    },
+    {
+      "source": "/shells/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/community/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/404.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/login",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/signup",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/forgot-password",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/reset-password",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin/push",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin/user-data",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin/analytics",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin/dday",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin/announcements",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/community",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/chat",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/result",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admission",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admission-result",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/mock-input",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/past-exams/data-guide",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -135,10 +315,13 @@
     {"source":"/robots.txt","destination":"/robots.txt"},
     {"source":"/icon.svg","destination":"/icon.svg"},
     {"source":"/assets/(.*)","destination":"/assets/$1"},
+    {"source":"/community","destination":"/api/community"},
+    {"source":"/community/:postId","destination":"/api/community?postId=:postId"},
     {"source":"/history","destination":"/prerender/history.html"},
     {"source":"/mock-history","destination":"/prerender/mock-history.html"},
     {"source":"/privacy-policy","destination":"/prerender/privacy-policy.html"},
     {"source":"/terms","destination":"/prerender/terms.html"},
+    {"source":"/past-exams/data-guide","destination":"/prerender/past-exams/data-guide.html"},
     {"source":"/past-exams","destination":"/prerender/past-exams/09-preliminary-reasoning-odd.html","has":[{"type":"query","key":"year","value":"09예비"},{"type":"query","key":"subject","value":"reasoning"}],"missing":[{"type":"query","key":"type","value":"even"}]},
     {"source":"/past-exams","destination":"/prerender/past-exams/09-preliminary-reasoning-even.html","has":[{"type":"query","key":"year","value":"09예비"},{"type":"query","key":"subject","value":"reasoning"},{"type":"query","key":"type","value":"even"}]},
     {"source":"/past-exams","destination":"/prerender/past-exams/09-preliminary-verbal-odd.html","has":[{"type":"query","key":"year","value":"09예비"}],"missing":[{"type":"query","key":"subject","value":"reasoning"},{"type":"query","key":"type","value":"even"}]},
@@ -219,7 +402,27 @@
     {"source":"/past-exams","destination":"/prerender/past-exams/2027-verbal-odd.html","has":[{"type":"query","key":"year","value":"2027"}],"missing":[{"type":"query","key":"subject","value":"reasoning"}]},
     {"source":"/past-exams","destination":"/prerender/past-exams/2027-reasoning-odd.html","has":[{"type":"query","key":"subject","value":"reasoning"}]},
     {"source":"/past-exams","destination":"/prerender/past-exams/2027-verbal-odd.html","missing":[{"type":"query","key":"subject","value":"reasoning"}]},
-    {"source":"/(.*)","destination":"/app.html"}
+    {"source":"/login","destination":"/shells/login.html"},
+    {"source":"/signup","destination":"/shells/signup.html"},
+    {"source":"/forgot-password","destination":"/shells/forgot-password.html"},
+    {"source":"/reset-password","destination":"/shells/reset-password.html"},
+    {"source":"/admin","destination":"/shells/admin.html"},
+    {"source":"/admin/push","destination":"/shells/admin/push.html"},
+    {"source":"/admin/user-data","destination":"/shells/admin/user-data.html"},
+    {"source":"/admin/analytics","destination":"/shells/admin/analytics.html"},
+    {"source":"/admin/dday","destination":"/shells/admin/dday.html"},
+    {"source":"/admin/announcements","destination":"/shells/admin/announcements.html"},
+    {"source":"/chat","destination":"/shells/chat.html"},
+    {"source":"/result","destination":"/shells/result.html"},
+    {"source":"/admission","destination":"/shells/admission.html"},
+    {"source":"/admission-result","destination":"/shells/admission-result.html"},
+    {"source":"/mock-input","destination":"/shells/mock-input.html"}
   ],
-  "trailingSlash": false
+  "trailingSlash": false,
+  "functions": {
+    "api/community.ts": {
+      "includeFiles": ".generated/community/**",
+      "maxDuration": 15
+    }
+  }
 }

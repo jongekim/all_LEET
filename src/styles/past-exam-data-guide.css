@@ -1,0 +1,69 @@
+.past-exam-guide-entry {
+  border-top: 1px solid #edf2f7;
+  margin-top: 10px;
+  padding-top: 4px;
+}
+
+.past-exam-guide-link,
+.guide-toc a {
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.past-exam-guide-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  justify-self: start;
+}
+
+.past-exam-guide-link:focus-visible,
+.guide-toc a:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+
+.guide-panel {
+  padding: clamp(16px, 4vw, 24px);
+  scroll-margin-top: 12px;
+  color: #475569;
+}
+
+.guide-panel h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.guide-panel h3 {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.guide-panel p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.guide-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-toc a { display: inline-block; padding: 5px 0; }
+
+@media (max-width: 390px) {
+  .guide-toc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 10px; }
+}

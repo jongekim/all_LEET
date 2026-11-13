@@ -15,7 +15,8 @@ all_LEET은 Vite로 빌드되는 React 단일 페이지 애플리케이션(SPA)�
  └─ Edge Function make-server-cd835c22
       └─ kv_store_cd835c22 (공식·사설 성적 이력 JSONB)
 
-Vercel ── Vite build/ 정적 파일과 SPA rewrite 제공
+Vercel ── Vite build/ 정적 파일·등록된 앱 shell·404 제공
+ └─ Node Function api/community → 기존 anon/RLS 공개 조회 → 같은 React HTML
 ```
 
 ## 런타임 경계
@@ -58,7 +59,7 @@ v2 개발자 전용 `scripts/question-statistics-v2.ts`는 브라우저와 분�
 
 공개 페이지의 사이트맵은 `scripts/generate-sitemap.ts`가 `src/public/sitemap.xml`에 생성한다. 기출문제 URL은 등록된 문제지 78개와 일대일로 대응한다. 검색 제목·설명·canonical은 `src/utils/pageSeo.ts`를 빌드와 브라우저가 공유한다. 홈의 검색 제목·설명은 LEET 채점, 문항별 정답률·선지별 응답 분포, 기출문제 PDF·정답표·환산표를 강조하며 기존 화면의 본문·레이아웃은 유지한다.
 
-`npm run build`는 Vite 빌드 후 `scripts/prerender.ts`가 기존 React 화면을 Vite SSR/React 서버 렌더러로 HTML에 기록한다. 대상은 홈, 성적 이력 예시 두 경로, 정책 두 경로, 기출문제 선택 URL 78개로 총 83개다. `scripts/prerenderStatistics.ts`가 기존 anon 키와 SELECT/RLS로 현재 공개 발행 통계 전체를 GET 한 번으로 읽고, 응답 건수·문항 합계·시험 조합 중복·발행본 일치를 검증한다. 요청은 15초 제한·redirect 금지·캐시 미사용이다. v2 테이블 미설치(PGRST205/42P01)·미발행은 미가용으로 표시하며, 네트워크/일반 조회 실패·부분 응답·잘못된 통계에는 빌드를 실패시키며 오래된 파일로 대체하지 않는다.
+`npm run build`는 Vite 빌드 후 `scripts/prerender.ts`가 기존 React 화면을 Vite SSR/React 서버 렌더러로 HTML에 기록한다. 대상은 홈, 성적 이력 예시 두 경로, 정책 두 경로, 기출 데이터 기준, 기출문제 선택 URL 78개로 총 84개다. `scripts/prerenderStatistics.ts`가 기존 anon 키와 SELECT/RLS로 현재 공개 발행 통계 전체를 GET 한 번으로 읽고, 응답 건수·문항 합계·시험 조합 중복·발행본 일치를 검증한다. 요청은 15초 제한·redirect 금지·캐시 미사용이다. v2 테이블 미설치(PGRST205/42P01)·미발행은 미가용으로 표시하며, 네트워크/일반 조회 실패·부분 응답·잘못된 통계에는 빌드를 실패시키며 오래된 파일로 대체하지 않는다.
 
 `src/entry-prerender.tsx`는 `StaticRouter`, 세션 없는 인증 Context, 빌드 전용 `PrerenderStatisticsContext`로 `AppContent`를 렌더링한다. AuthProvider·React effect는 실행하지 않는다. 공개 통계 조회를 마친 뒤 실제 React 렌더링에서는 외부 fetch를 금지하며 공지·개인 이력·인증·쓰기 요청은 실행하지 않는다. 원본 통계 JSON·집계 건수·조회 일자는 HTML에 직렬화하지 않고 기존 문항별 정답률과 경고만 렌더링한다. 미발행 시험과 정답 버전 불일치는 기존 상태를 유지한다.
 
@@ -66,9 +67,9 @@ v2 개발자 전용 `scripts/question-statistics-v2.ts`는 브라우저와 분�
 
 DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 변경되지 않는다. 통계를 새로 발행한 뒤 Vercel의 최신 Production 배포를 빌드 캐시 없이 Redeploy하면 코드 변경·새 커밋·push 없이 현재 공개 통계로 HTML을 다시 생성한다. 새 학년도 등 코드/DB 지원 범위 변경은 별도 개발·검증·배포가 필요하다. 운영 절차는 [정답률 HTML 갱신](question-statistics-html.md)을 따른다.
 
-`vercel.json`의 query 조건부 rewrite는 유효한 학년도·과목·문형에 맞는 `build/prerender/past-exams/*.html`을 제공한다. 생략·잘못된 선택과 단일 문형 보정은 기존 선택 규칙과 일치한다. 정적 정책·이력 경로도 각각의 HTML을 받는다. 홈은 `build/index.html`이며 로그인·관리자·개인 화면 및 커뮤니티의 fallback은 빈 앱 본문을 가진 `build/app.html`이다. 커뮤니티 목록·게시글은 최신 공개 DB 조회가 필요한 동적 화면으로 기존 클라이언트 렌더링을 유지하며, 게시글 메타데이터는 조회 결과로 갱신한다.
+`vercel.json`의 query 조건부 rewrite는 유효한 학년도·과목·문형에 맞는 `build/prerender/past-exams/*.html`을 제공한다. 생략·잘못된 선택과 단일 문형 보정은 기존 선택 규칙과 일치한다. 정적 정책·이력 경로도 각각의 HTML을 받는다. 홈은 `build/index.html`이며 로그인·관리자·개인 화면은 빈 앱 본문과 경로별 메타데이터/noindex를 가진 `build/shells/`를 받는다. 등록되지 않은 주소는 기존 앱 모양을 유지하는 `build/404.html`로 404 응답한다. 커뮤니티 목록·게시글은 `api/community.ts`의 Node 함수가 기존 anon 공개 SELECT/RLS로 요청마다 읽어 같은 React 화면을 HTML로 제공한다. Cookie·회원 토큰·전역 데이터 캐시·서버 쓰기는 없으며 삭제된 글은 404, 읽기 장애는 503이다. 브라우저의 최신 공개 DB 조회와 기존 조작은 유지하고, 게시글 메타데이터·WebPage JSON-LD도 그 조회 결과로 갱신한다.
 
-브라우저는 초기 정적 본문을 `prerender-shell`에 보관하고 기존 createRoot/AuthProvider를 실행한다. 인증 초기화 후 실제 페이지가 마운트되면 정적 본문을 제거한다. HTML을 hydrate하지 않으므로 빌드 시점 날짜·세션·화면 폭 차이로 인한 hydration 불일치가 없다. 사이트명 구조화 데이터는 `ldjson-website` 한 개로 유지한다.
+브라우저는 초기 정적 본문을 `prerender-shell`에 보관하고 기존 createRoot/AuthProvider를 실행한다. 인증 초기화 후 실제 페이지가 마운트되면 정적 본문을 제거한다. HTML을 hydrate하지 않으므로 빌드 시점 날짜·세션·화면 폭 차이로 인한 hydration 불일치가 없다. 사이트명 구조화 데이터는 `ldjson-website` 한 개로 유지하고 공개 페이지의 검증된 제목·설명·URL은 `ldjson-webpage` 한 개로 제공한다.
 
 홈의 기능 바로가기·정책 링크와 전역 하단 메뉴는 React Router 링크를 사용한다. 커뮤니티 목록의 게시글 제목에도 상세 URL 링크가 있으며, 기존 카드 전체 클릭 이동과 좋아요 버튼은 유지한다.
 
@@ -83,7 +84,7 @@ DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 �
 ## 배포 및 PWA
 
 - Vite `outDir`은 `build/`이고 public 디렉터리는 `src/public/`이다.
-- `vercel.json`은 정적 파일 캐시 헤더, 공개 HTML rewrite와 나머지 앱 경로의 `/app.html` fallback을 설정한다. 공개 HTML은 no-store로 응답하며 자산은 기존 장기 캐시를 유지한다. `pastExamDocuments.ts`의 78개 문제지는 Supabase 공개 버킷 `past-exams/watermarked/v1/`의 워터마크 PDF를 직접 참조한다. 원본 PDF·HWP는 로컬 다운로드 보관 영역에 유지하고 웹 빌드에 포함하지 않는다. `pastExamData.ts`가 정답 학년도와 문제지 학년도를 합쳐 선택 목록을 구성한다. 기출 PDF 유형은 단일 문형도 지원하되 기존 채점 타입은 홀수형·짝수형을 유지한다.
+- `vercel.json`은 정적 파일 캐시 헤더, 공개 HTML·개인 shell·커뮤니티 함수 rewrite를 설정한다. 포괄 fallback은 없으며 없는 주소는 실제 404다. 공개 HTML은 no-store로 응답하고 자산은 기존 장기 캐시를 유지한다. vendor chunk 분리로 앱 변경 후 라이브러리 캐시를 재사용하며 정적 import는 유지한다. `pastExamDocuments.ts`의 78개 문제지는 Supabase 공개 버킷 `past-exams/watermarked/v1/`의 워터마크 PDF를 직접 참조한다. 원본 PDF·HWP는 로컬 다운로드 보관 영역에 유지하고 웹 빌드에 포함하지 않는다. `pastExamData.ts`가 정답 학년도와 문제지 학년도를 합쳐 선택 목록을 구성한다. 기출 PDF 유형은 단일 문형도 지원하되 기존 채점 타입은 홀수형·짝수형을 유지한다.
 - `src/main.tsx`가 `/sw.js`를 등록한다. 서비스 워커는 캐시를 정리하고 네트워크 요청을 가로채지 않는다.
 - 서비스 배포 버전의 단일 기준은 `package.json`의 `version`이며, `main` push 전 갱신 절차는 `docs/versioning.md`에 정의한다.
 

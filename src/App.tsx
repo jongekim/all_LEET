@@ -13,6 +13,7 @@ import { AdminPushPage } from './pages/AdminPushPage';
 import { HomePage } from './pages/HomePage';
 import { PushConsent } from './components/PushConsent';
 import { PastExamsPage } from './pages/PastExamsPage';
+import { PastExamDataGuidePage } from './pages/PastExamDataGuidePage';
 import { ChatPage } from './pages/ChatPage';
 import { ResultPage } from './pages/ResultPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -31,7 +32,9 @@ import { AdminAnalyticsPage } from './pages/AdminAnalyticsPage';
 import { AdminUserDataPage } from './pages/AdminUserDataPage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalBottomNav } from './components/GlobalBottomNav';
-import { getPageSeo, WEBSITE_SCHEMA } from './utils/pageSeo';
+import { getPageSeo, getWebPageSchema, WEBSITE_SCHEMA } from './utils/pageSeo';
+import { shouldNoindex } from './utils/appRoutes';
+import { finishPublicHtml } from './utils/publicHtml';
 import { Analytics } from "@vercel/analytics/react"
 
 // --- 타입 정의 ---
@@ -78,12 +81,13 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 export function AppContent() {
   useUsageTracking();
   useServiceActivity();
+  const location = useLocation();
   useLayoutEffect(() => {
     // 인증 초기화가 끝나 실제 화면이 준비된 뒤 정적 화면을 교체한다.
-    document.getElementById('root')?.setAttribute('data-app-ready', 'true');
-    document.getElementById('prerender-shell')?.remove();
-  }, []);
-  const location = useLocation();
+    if (document.getElementById('prerender-shell') && /^\/community(?:\/[^/]+)?\/?$/.test(location.pathname)) return;
+    finishPublicHtml();
+    // 커뮤니티 최초 진입은 최신 조회가 완료된 자식에서 처리한다.
+  }, [location.pathname]);
   const { currentUser, logout } = useAuth();
   const userHistory = useUserHistory(currentUser?.id ?? null);
   const { history, mockHistory } = userHistory;
@@ -176,6 +180,22 @@ export function AppContent() {
     }
     canonicalLink.href = canonicalUrl;
 
+    const noindex = shouldNoindex(location.pathname.replace(/\/$/, '') || '/');
+    const robots = document.head.querySelector("meta[name='robots']");
+    if (noindex) upsertMeta("meta[name='robots']", { name: 'robots', content: 'noindex, follow' });
+    else robots?.remove();
+    let pageSchema = document.getElementById('ldjson-webpage') as HTMLScriptElement | null;
+    if (noindex) pageSchema?.remove();
+    else {
+      if (!pageSchema) {
+        pageSchema = document.createElement('script');
+        pageSchema.id = 'ldjson-webpage';
+        pageSchema.type = 'application/ld+json';
+        document.head.appendChild(pageSchema);
+      }
+      pageSchema.text = JSON.stringify(getWebPageSchema(seo));
+    }
+
     upsertMeta("meta[name='description']", {
       name: 'description',
       content: seo.description,
@@ -246,6 +266,7 @@ export function AppContent() {
 
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/past-exams" element={<ResultTelemetryProvider source="past" enabled><PastExamsPage /></ResultTelemetryProvider>} />
+          <Route path="/past-exams/data-guide" element={<PastExamDataGuidePage />} />
           <Route path="/community/:id" element={<CommunityPostPage />} />
 
           <Route path="/chat" element={<ChatPage />} />

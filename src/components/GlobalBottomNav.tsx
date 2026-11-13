@@ -31,6 +31,7 @@ const isActivePath = (pathname: string, path: string) => {
   }
 
   if (path === '/admission') return pathname === path || pathname === '/admission-result';
+  if (path === '/past-exams') return pathname === path || pathname === '/past-exams/data-guide';
   if (path === '/history') return pathname === path || pathname === '/mock-history';
 
   return pathname === path;
