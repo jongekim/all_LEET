@@ -1,6 +1,6 @@
 {
       "name": "all_LEET",
-      "version": "1.14.0",
+      "version": "1.14.1",
       "private": true,
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
@@ -84,6 +84,7 @@
             "test:e2e": "playwright test",
             "test:e2e:ui": "playwright test --ui",
             "build": "vite build && node --import tsx scripts/prerender.ts",
+            "vercel-build": "npm run build",
             "build:test": "vite build && node --import tsx scripts/prerender.ts --statistics-fixture=e2e/fixtures/question-statistics-v2.json",
             "check": "npm run lint && npm run typecheck && npm run registry:check && npm run test && npm run test:statistics && npm run test:edge && npm run test:user-data && npm run test:analytics && npm run test:schedule && npm run test:push && npm run test:e2e:push && npm run test:e2e && npm run build:test && npm run test:prerender && npm run build",
             "test:schedule": "node --import tsx scripts/test-exam-schedule-sql.ts",
