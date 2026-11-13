@@ -67,7 +67,7 @@ v2 개발자 전용 `scripts/question-statistics-v2.ts`는 브라우저와 분�
 
 DB의 공개 발행 통계가 갱신되어도 이미 배포된 HTML은 자동 변경되지 않는다. 통계를 새로 발행한 뒤 Vercel의 최신 Production 배포를 빌드 캐시 없이 Redeploy하면 코드 변경·새 커밋·push 없이 현재 공개 통계로 HTML을 다시 생성한다. 새 학년도 등 코드/DB 지원 범위 변경은 별도 개발·검증·배포가 필요하다. 운영 절차는 [정답률 HTML 갱신](question-statistics-html.md)을 따른다.
 
-`vercel.json`의 query 조건부 rewrite는 유효한 학년도·과목·문형에 맞는 `build/prerender/past-exams/*.html`을 제공한다. 생략·잘못된 선택과 단일 문형 보정은 기존 선택 규칙과 일치한다. 정적 정책·이력 경로도 각각의 HTML을 받는다. 홈은 `build/index.html`이며 로그인·관리자·개인 화면은 빈 앱 본문과 경로별 메타데이터/noindex를 가진 `build/shells/`를 받는다. 등록되지 않은 주소는 기존 앱 모양을 유지하는 `build/404.html`로 404 응답한다. 커뮤니티 목록·게시글은 `api/community.ts`의 Node 함수가 기존 anon 공개 SELECT/RLS로 요청마다 읽어 같은 React 화면을 HTML로 제공한다. Cookie·회원 토큰·전역 데이터 캐시·서버 쓰기는 없으며 삭제된 글은 404, 읽기 장애는 503이다. 브라우저의 최신 공개 DB 조회와 기존 조작은 유지하고, 게시글 메타데이터·WebPage JSON-LD도 그 조회 결과로 갱신한다.
+`vercel.json`의 query 조건부 rewrite는 유효한 학년도·과목·문형에 맞는 `build/prerender/past-exams/*.html`을 제공한다. 생략·잘못된 선택과 단일 문형 보정은 기존 선택 규칙과 일치한다. 정적 정책·이력 경로도 각각의 HTML을 받는다. 홈은 `build/index.html`이며 로그인·관리자·개인 화면은 빈 앱 본문과 경로별 메타데이터/noindex를 가진 `build/shells/`를 받는다. 등록되지 않은 주소는 기존 앱 모양을 유지하는 `build/404.html`로 404 응답한다. 커뮤니티 목록·게시글은 `api/community.mjs`의 Node 함수가 기존 anon 공개 SELECT/RLS로 요청마다 읽어 같은 React 화면을 HTML로 제공한다. Cookie·회원 토큰·전역 데이터 캐시·서버 쓰기는 없으며 삭제된 글은 404, 읽기 장애는 503이다. 브라우저의 최신 공개 DB 조회와 기존 조작은 유지하고, 게시글 메타데이터·WebPage JSON-LD도 그 조회 결과로 갱신한다.
 
 브라우저는 초기 정적 본문을 `prerender-shell`에 보관하고 기존 createRoot/AuthProvider를 실행한다. 인증 초기화 후 실제 페이지가 마운트되면 정적 본문을 제거한다. HTML을 hydrate하지 않으므로 빌드 시점 날짜·세션·화면 폭 차이로 인한 hydration 불일치가 없다. 사이트명 구조화 데이터는 `ldjson-website` 한 개로 유지하고 공개 페이지의 검증된 제목·설명·URL은 `ldjson-webpage` 한 개로 제공한다.
 

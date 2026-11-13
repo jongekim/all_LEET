@@ -11,7 +11,7 @@ config.rewrites = [...existing, ...getAppRewrites()];
 for (const source of ['/prerender/(.*)', '/shells/(.*)', '/community/:path*', '/404.html', ...APP_STATIC_PATHS, '/app.html']) {
   if (!config.headers.some((rule: { source: string }) => rule.source === source)) config.headers.push({ source, headers: [{ key: 'Cache-Control', value: 'no-store' }] });
 }
-config.functions = { ...config.functions, 'api/community.ts': { includeFiles: '.generated/community/**', maxDuration: 15 } };
+config.functions = { ...config.functions, 'api/community.mjs': { includeFiles: '.generated/community/**', maxDuration: 15 } };
 const json = JSON.stringify(config, null, 2).replace(/ {2}"rewrites": \[\n[\s\S]*?\n {2}\]/, () =>
   '  "rewrites": [\n' + config.rewrites.map((rule: object) => '    ' + JSON.stringify(rule)).join(',\n') + '\n  ]');
 writeFileSync(file, json + '\n');

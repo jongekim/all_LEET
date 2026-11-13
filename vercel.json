@@ -420,7 +420,7 @@
   ],
   "trailingSlash": false,
   "functions": {
-    "api/community.ts": {
+    "api/community.mjs": {
       "includeFiles": ".generated/community/**",
       "maxDuration": 15
     }

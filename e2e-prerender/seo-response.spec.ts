@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { createServer, type RequestListener } from 'node:http';
+import { once } from 'node:events';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import rows from '../e2e/fixtures/community-public.json';
 import { APP_STATIC_PATHS } from '../src/utils/appRoutes';
-import communityApi from '../api/community';
 
 test('없는 화면과 없는 파일은 기존 앱을 유지하며 실제 404로 응답한다', async ({ request }) => {
   for (const path of ['/seo-no-such-page', '/llms.txt', '/og-image.png', '/admin/no-such-page', '/community/a/b']) {
@@ -45,6 +48,12 @@ test('커뮤니티 목록·게시글의 초기 HTML에 기존 공개 본문과 �
 });
 
 test('실제 Vercel 진입점이 비공개 빌드 번들을 읽어 공개 HTML을 반환한다', async () => {
+  const entrypoint = pathToFileURL(resolve('api/community.mjs'));
+  const { default: communityApi } = await import(entrypoint.href) as { default: RequestListener };
+  const server = createServer(communityApi).listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('검증용 HTTP 서버 주소를 확인할 수 없습니다.');
   const original = globalThis.fetch;
   const methods: string[] = [];
   globalThis.fetch = async (_input, init) => {
@@ -52,11 +61,14 @@ test('실제 Vercel 진입점이 비공개 빌드 번들을 읽어 공개 HTML�
     return Response.json(rows);
   };
   try {
-    const response = await communityApi.fetch(new Request(`https://all-leet.vercel.app/api/community?postId=${rows[0].id}`));
+    const response = await original(`http://127.0.0.1:${address.port}/api/community?postId=${rows[0].id}`);
     expect(response.status).toBe(200);
     expect(await response.text()).toContain(`<h1 class="text-lg sm:text-xl font-bold text-gray-900 mt-3">${rows[0].title}</h1>`);
     expect(methods).toEqual(['GET']);
-  } finally { globalThis.fetch = original; }
+  } finally {
+    globalThis.fetch = original;
+    server.close();
+  }
 });
 
 test('로그인에서 공개 화면으로 이동하면 색인 제외 지시를 제거한다', async ({ page }) => {

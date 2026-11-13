@@ -14,7 +14,7 @@
 
 Vercel의 정적 사이트와 Node 함수 빌드 모두 `vercel-build`를 실행한다. 함수 빌드도 렌더러와 HTML 템플릿을 자체 생성하므로 두 빌드의 파일 공유에 의존하지 않는다.
 
-`api/community.ts`는 새 **Vercel Node.js Function** 진입점이며 Supabase Edge Function이 아니다. Vite가 `src/server/communityEntry.tsx`를 `.generated/community/handler.mjs`로 번들하고 앱 HTML template과 함께 함수의 includeFiles로만 포함한다. `.generated/`는 공개 build/ 밖에 있고 git에서 제외한다. 게시글 내용은 빌드 산출물·소스·서버 전역 캐시에 저장하지 않는다. 새 npm 패키지나 비밀 환경 변수는 없다.
+`api/community.mjs`는 새 **Vercel Node.js Function** 진입점이며 Supabase Edge Function이 아니다. Vite가 `src/server/communityEntry.tsx`를 `.generated/community/handler.mjs`로 번들하고 앱 HTML template과 함께 함수에 포함한다. 함수 진입점은 상대 경로로 두 파일을 읽고 Node 요청·응답을 공용 HTML 핸들러에 연결한다. `.generated/`는 공개 build/ 밖에 있고 git에서 제외한다. 게시글 내용은 빌드 산출물·소스·서버 전역 캐시에 저장하지 않는다. 새 npm 패키지나 비밀 환경 변수는 없다.
 
 목록·상세 요청마다 현재 브라우저와 같은 anon 공개 SELECT/RLS로 `community_posts`, `community_comments`, `community_post_likes`를 읽는다. 사용자 Cookie·Authorization을 전달하지 않고 service role도 사용하지 않는다. API에는 GET/HEAD만 허용한다. UUID 외 식별자는 조회 없이 404, 읽기 성공 후 없는 글은 404, 네트워크·권한·잘못된 데이터·크기 오류는 noindex/Retry-After를 가진 503으로 응답한다. 조회는 8초·JSON 2MB·HTML 4MB 제한이며 redirect를 따르지 않는다. 실패를 정상 빈 목록으로 저장하지 않는다.
 
